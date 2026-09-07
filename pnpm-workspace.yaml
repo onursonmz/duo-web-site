@@ -1,0 +1,30 @@
+# pnpm 12 proje ayarları.
+
+# esbuild, Vite/Astro/Vitest'in transitif bağımlılığıdır ve platforma özgü
+# ikilisini yerleştirmek için postinstall çalıştırması gerekir.
+# Yalnızca bu pakete izin verilir; diğer tüm build script'leri kapalı kalır.
+allowBuilds:
+  esbuild: true
+
+# Astro, prerender bundle'ında `cookie` paketini harici bırakır. pnpm'in izole
+# yerleşiminde `cookie` kök node_modules'ta bulunmadığı için Node çözümlemesi
+# proje dizininin ÜSTÜNE çıkar ve makinede bulunan başka bir `cookie` kopyasını
+# yakalayabilir (bkz. S01 raporu: C:\Users\ASUS\node_modules içinde 2024'ten
+# kalma CommonJS cookie@0.x). Bu, build'i "parseCookie is not exported"
+# hatasıyla kırar. Paketi kök node_modules'a yükselterek doğru sürümün
+# çözüldüğünü garanti ediyoruz.
+publicHoistPattern:
+  - cookie
+
+# pnpm 12'nin tedarik zinciri politikası (minimumReleaseAge), yayınlanalı çok
+# kısa süre olmuş paketleri reddeder. eslint-plugin-astro / astro-eslint-parser
+# transitif olarak @typescript-eslint/* 8.70.0'ı çekiyor; doğrudan bağımlılığımız
+# olan typescript-eslint 8.69.0 ile aynı hizaya çekiyoruz.
+# Politika GEVŞETİLMEDİ; uyumlu sürüme sabitlendi.
+overrides:
+  "@typescript-eslint/scope-manager": "8.69.0"
+  "@typescript-eslint/types": "8.69.0"
+  "@typescript-eslint/visitor-keys": "8.69.0"
+  "@typescript-eslint/typescript-estree": "8.69.0"
+  "@typescript-eslint/utils": "8.69.0"
+  "@typescript-eslint/parser": "8.69.0"

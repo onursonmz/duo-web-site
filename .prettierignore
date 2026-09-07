@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.astro/
+pnpm-lock.yaml
+test-results/
+playwright-report/
+coverage/
+discovery/
+duosis_web_sitesi_planlamasi/
+evidence/

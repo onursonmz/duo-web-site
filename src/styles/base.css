@@ -1,0 +1,96 @@
+/*
+ * S01 temel stil. Gerçek Command Atlas tasarım sistemi S03 kapsamındadır;
+ * buradaki kurallar yalnızca iskeletin okunabilir ve erişilebilir olmasını sağlar.
+ */
+
+:root {
+  --color-ink: #252a2e;
+  --color-paper: #fbfbf9;
+  --color-line: #d9dbd8;
+
+  /*
+   * S00 ölçümü (C11): marka cyanı #16A6D9, beyaz üzerinde 2.80:1 ile
+   * WCAG 2.2 AA'yı geçmiyor. Bu yüzden açık yüzeyde metin/link rengi olarak
+   * KULLANILMAZ. Aşağıdaki koyulaştırılmış ton geçici bir S01 yer tutucusudur;
+   * kanonik palet S03'te ADR-008 uyarınca türetilecektir.
+   */
+  --color-link: #0b5f80;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    Arial,
+    sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+a {
+  color: var(--color-link);
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  padding: 0.75rem 1rem;
+  background: var(--color-ink);
+  color: #ffffff;
+  text-decoration: none;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+#main-content:focus {
+  outline: none;
+}
+
+.site-header,
+.site-footer {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.site-footer {
+  border-bottom: 0;
+  border-top: 1px solid var(--color-line);
+  font-size: 0.875rem;
+}
+
+.site-header__brand {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+main {
+  max-width: 70ch;
+  padding: 2rem 1.25rem 3rem;
+}
+
+h1 {
+  font-size: clamp(1.75rem, 1.2rem + 2vw, 2.5rem);
+  line-height: 1.2;
+  margin-top: 0;
+}
