@@ -1,0 +1,215 @@
+DUOSIS WEB SITESI YENILEME - HACKATHON BRIEF
+
+Amac: Duosis kurumsal web sitesini sifirdan, ozgun tasarimla yeniden insa
+etmek. Bu hackathon'un ciktisi bitmis bir site degil; CALISAN BIR DIKEY
+KESIT (vertical slice) - yani tasarim dilini, icerik modelini ve ana
+donusum akisini uctan uca kanitlayan bir prototip.
+
+Marka sesi: "Islerinizi kolaylastiriyoruz." - kurumsal, sade, teknik
+guven veren. Abartili kutlama estetiginden kacin.
+
+------------------------------------------------------------------------
+
+NE INSA EDIYORUZ
+
+Mevcut WordPress (Woodmart) sitesinin yerine gececek, ozgun tasarimli,
+TR/EN cift dilli, hizli ve KVKK uyumlu yeni kurumsal site. Iki sey one
+cikacak:
+
+1. 10. yil - gecici kampanya degil, kalici guven ogesi. Ana sayfada
+   interaktif "10 Yillik Cozum Yolculugu" zaman cizelgesi.
+2. CyclOps - Duosis'in kendi urunu. Duosis'i entegratorden urun sahibine
+   tasiyan farklilik; kendi one cikan sayfasi hak ediyor.
+
+Cozumler artik menude teknik kategori listesi ("ITOM", "ITSM") olarak
+degil, FAYDA ODAKLI BASLIK + KISA ACIKLAMA + ICINDEKI TEKNOLOJILER
+formatinda sunulacak.
+
+------------------------------------------------------------------------
+
+KESIN KISITLAR (bunlar tartismaya kapali)
+
+- WordPress yok. Ozgun, sifirdan tasarim.
+- TR/EN cift dil - icerik modeli seviyesinde, URL'de locale (/en/...).
+- Hizli - Core Web Vitals hedefleri: LCP < 2.5s, CLS < 0.1, INP < 200ms.
+- KVKK - cerez consent opt-in; analitik yalnizca onaydan sonra yuklenir.
+- Mobil oncelikli, erisilebilir (WCAG AA kontrast/font, klavye
+  navigasyonu).
+- Stok gorsel yigini yerine gercek urun ekranlari / sematik illustrasyon
+  ("izleme paneli" estetigi).
+
+TEKNIK ONERILER (zorunlu degil - ekip karar verir)
+
+- Frontend: Astro onerilir, zorunlu degil. Icerik agirlikli kurumsal
+  site icin en iyi Core Web Vitals'i verir; interaktif parcalari
+  (timeline, CyclOps animasyonu) "island" olarak koyarsin. Ekip
+  Next.js / Nuxt / SvelteKit gibi baska bir modern frontend'i daha iyi
+  biliyorsa onu secebilir.
+- Icerik kaynagi: Hackathon hizi icin Astro content collections (git
+  tabanli MDX + sema) ile baslanabilir - CMS kurulumu olmadan icerik
+  modeli hemen ayaga kalkar. Alternatif: gercek headless CMS
+  (Payload / Strapi / Directus - self-host, KVKK acisindan temiz; ya da
+  Sanity - hosted, editor deneyimi iyi). Oneri: hackathon'da collections
+  ile kur, "prod'da headless CMS'e baglanir" notunu dus.
+- Ekip hangi yolu secerse secsin icerik modeli AYNI (asagida). Bu,
+  prototipi sonradan gercek CMS'e tasimayi kolaylastirir.
+
+------------------------------------------------------------------------
+
+ROUTE ISKELETI (ust menude en fazla 6 baslik)
+
+  /                         Anasayfa
+  /cozumler                 Cozum kartlari landing
+  /cozumler/[slug]          Cozum detay (tek sablon, veriyle doldurulur)
+  /cozumler/sektorel/[slug] Sektorel cozumler (ayni sablon)
+  /cyclops                  One cikan urun - kendi sayfasi
+  /hizmetler                Danismanlik, Destek, Egitim, Yonetilen
+                             Hizmet, Dis Kaynak
+  /teknolojiler             Is ortaklari / teknolojiler (gruplu)
+  /hakkimizda               10 yil hikayesi, ekip, ofisler
+                             (Istanbul + Ankara)
+  /blog, /blog/[slug]
+  /iletisim, /kvkk, /cerez-politikasi
+  /en/...                   Ayni agacin EN dil varyanti
+
+------------------------------------------------------------------------
+
+ICERIK MODELI (isin kalbi - cozumler TEK tip)
+
+8 fayda basligi + sektorel cozumler ayri sayfalar degil, tek bir "Cozum"
+tipinin kayitlari. Detay sablonu bir kez yazilir, herkes kullanir.
+
+Cozum (Solution)
+  slug, kategori (ana | sektorel), oneCikan (bool - CyclOps), baslik,
+  ozet (1-2 cumle), faydalar[] (3-5 madde), teknolojiler[] -> Teknoloji
+  ref, ve detay icin problem, yaklasim, ornekSenaryo, cta.
+  Hepsi TR/EN.
+
+Teknoloji (Technology)
+  ad, logo, grup (izleme | APM | varlik/CMDB | veri | ITSM | EA), aktif
+  (bool), url.
+  Not: "aktif" alani onemli - "hangi teknoloji kalacak/cikacak" karari
+  koda gomulmez, icerikten yonetilir. (Eskiyenler: Micro Focus/OpenText
+  eski, SolarWinds, RunZero, Kron -> karar pazarlamada.)
+
+Referans (Testimonial)
+  alinti, isim, unvan, kurum veya anonimSektor ("bir kamu bankasi"),
+  logoIzinli (bool), metrikler[] (or. MTTR X->Y).
+
+Kilometre Tasi (Milestone)
+  yil, baslik, aciklama, ikon/teknoloji - 10 yil timeline'ini besler.
+
+Cozum basliklari (taslak - cilalanabilir):
+  1. Sunucudan uygulamaya, altyapinizin tamami tek ekranda
+     (uctan uca izleme - Zabbix, Grafana, Pandora FMS, Stor2RRD)
+  2. Yavaslamayi kullanici fark etmeden siz gorun
+     (APM - Instana, Datadog, OpenTelemetry)
+  3. Binlerce alarmi tek anlamli olaya indirin
+     (ITOM/AIOps - CyclOps, otomasyon)
+  4. Sahip oldugunuz her cihazi kesfedin, haritalayin, yonetin
+     (Asset + CMDB - Device42)
+  5. Talepten cozume, kesintisiz hizmet akisi
+     (ITSM/ITIL - SMAX, Freshservice)
+  6. Verinizi gercek zamanli urune donusturun
+     (veri akisi - Confluent, PostgreSQL, Vertica)
+  7. Uygulama ve is mimarinizi tek haritada gorun
+     (EA - Ardoq)
+  8. Mevcut ortaminizi sifirdan kurmadan akillandirin
+     (entegrasyon + AI etkinlestirme - CyclOps orkestrasyonu)
+
+Sektorel: Bankacilik/ATM, Saglik, Universite, Hybrid Cloud,
+Compliance & Security.
+
+------------------------------------------------------------------------
+
+TRACK KARTLARI
+
+Ekipler birbirini bloklamadan paralel ilerlesin diye is 5 track'e
+bolunmustur. Kucuk ekipte bir kisi birden fazla track tasiyabilir.
+
+Track 1 - Tasarim Sistemi
+  Design token'lar, tipografi, renk, "izleme paneli" estetigi.
+  Hero + kart + timeline stil dili.
+  Cikti: uygulanabilir stil rehberi + temel bilesen stilleri.
+
+Track 2 - Icerik Modeli + Veri
+  Astro (veya secilen stack) kurulumu; Cozum / Teknoloji / Referans /
+  Milestone tiplerinin semasi; TR/EN birkac gercek ornek kayit.
+  Cikti: sema + doldurulmus ornek icerik, diger track'ler bunu tuketir.
+
+Track 3 - Ana Akis (asil donusum yolu)
+  Anasayfa + /cozumler landing + bir tam cozum detay sablonu
+  (problem -> yaklasim -> teknolojiler -> ornek senaryo -> CTA).
+  Cikti: tek sablon, veriyle calisan cozum detayi.
+
+Track 4 - One Cikanlar
+  Interaktif 10 Yil Timeline (asil "wow" bileseni - animasyonlu
+  solution arc) + CyclOps sayfasi.
+  Cikti: calisan timeline + one cikan urun sayfasi.
+
+Track 5 - Form / Entegrasyon / Uyum
+  Iletisim/talep formu -> CRM veya e-posta; spam korumasi (Cloudflare
+  Turnstile / hCaptcha); KVKK cerez consent; analitik + donusum olayi.
+  Cikti: calisan form + consent akisi.
+
+Yatay (herkesin sorumlulugu): i18n (TR/EN), SEO/redirect iskeleti,
+performans butcesi.
+
+------------------------------------------------------------------------
+
+MVP / DEMO KRITERI
+
+Hedef butun icerigi doldurmak DEGIL - sablonlarin ve akisin uctan uca
+calistigini gostermek. Demo'da sunlar olmali:
+
+  [ ] Anasayfa: Hero (10. yil) + cozum kartlari + timeline + 1-2 referans
+  [ ] Bir tam cozum detay sayfasi (sablon veriyle calisiyor)
+  [ ] CyclOps sayfasi
+  [ ] Calisan iletisim formu (gercek CRM zorunlu degil; e-posta
+      fallback yeterli)
+  [ ] TR/EN gecisi calisiyor
+  [ ] Mobilde duzgun, hizli
+
+------------------------------------------------------------------------
+
+DEGERLENDIRME KRITERLERI (juri)
+
+  Mesaj netligi     "Duosis bana ne cozuyor?" 5 saniyede anlasiliyor
+                     mu? Fayda odakli anlatim.
+  Cozum anlatimi     Teknoloji adi yerine is sonucu; tek sablonun
+                     yeniden kullanilabilirligi.
+  10. yil + CyclOps  Guven ve urun sahipligi mesaji hissediliyor mu?
+                     Timeline/urun sayfasi etkisi.
+  Tasarim kalitesi   Ozgun, kurumsal, "dashboard" estetigi; sablonik
+                     durmuyor.
+  Teknik saglamlik   Core Web Vitals, TR/EN, KVKK consent, temiz
+                     icerik modeli.
+  Donusum            Iletisim formuna giden yol net ve akici mi?
+
+------------------------------------------------------------------------
+
+HACKATHON ONCESI / SIRASINDA SAGLANACAK GIRDILER
+
+Bunlar is/pazarlama tarafindan gelir; kod tarafini bloklamamasi icin
+erken netlesmeli:
+
+  1. 10. yil rakamlari (kurulus yili, proje/sektor/musteri sayisi) ve
+     kilometre taslari -> timeline'i besler.
+  2. Teknoloji aktif/pasif listesi - hangileri kalacak, hangileri
+     cikacak.
+  3. Referans metinleri + logo izinleri - hangi musteri, hangi metrik,
+     logo izinli mi.
+  4. Marka: mevcut logo/renk korunacak mi, 10. yilla tazelenecek mi ->
+     Track 1'i dogrudan etkiler.
+  5. CRM hedefi + form alan eslemesi (yoksa e-posta fallback ile demo).
+  6. Eski site URL envanteri + 301 haritasi - eski WP cozum/blog
+     URL'leri Google'da indeksli; geciste 301 kurulmazsa SEO coker.
+     (Bu hackathon MVP'sinin zorunlu parcasi degil ama prod planinda
+     sart.)
+
+------------------------------------------------------------------------
+
+Not: WordPress'ten kalmadigimiz icin "iyilestirme" degil temiz kurulum
+yapiyoruz - ama URL 301 haritasi ve eski blog/politika iceriklerinin
+gocu hala gundemde. Bunlar prod gecisinin isi, hackathon demo'sunun
+degil.

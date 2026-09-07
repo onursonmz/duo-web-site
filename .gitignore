@@ -1,0 +1,52 @@
+# --- bağımlılıklar ---
+node_modules/
+.pnpm-store/
+
+# --- build çıktıları ---
+dist/
+.astro/
+.output/
+.vercel/
+.netlify/
+
+# --- secret ---
+# Yalnızca .env.example commit edilir; gerçek değer taşıyan hiçbir dosya girmez.
+.env
+.env.*
+!.env.example
+
+# --- test çıktıları, log ve trace ---
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+coverage/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+*.trace
+*.zip.tmp
+
+# --- S01 kanıt ve teslim paketleri (repoya girmez) ---
+evidence/
+*.bundle
+duosis-discovery-*.zip
+duosis-web-*.zip
+
+# --- kurumsal kaynak belgeleri (repoya girmez) ---
+# Sunum/PDF kaynakları iş belgeleridir ve müşteri logoları içerir; sürüm kontrolüne alınmaz.
+*.pptx
+*.pdf
+
+# --- discovery görsel kanıtları (büyük binary) ---
+# Ölçüm metinleri (MEASUREMENTS.md) commit edilir; PNG kanıtlar teslim paketiyle dağıtılır.
+discovery/baseline/*.png
+
+# --- işletim sistemi / editör ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
