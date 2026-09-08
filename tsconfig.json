@@ -17,7 +17,8 @@
     "baseUrl": ".",
     "paths": {
       "@lib/*": ["src/lib/*"],
-      "@layouts/*": ["src/layouts/*"]
+      "@layouts/*": ["src/layouts/*"],
+      "@components/*": ["src/components/*"]
     }
   },
   "include": [".astro/types.d.ts", "**/*.ts", "**/*.astro", "**/*.mjs"],

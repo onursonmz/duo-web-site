@@ -28,3 +28,20 @@ overrides:
   "@typescript-eslint/typescript-estree": "8.69.0"
   "@typescript-eslint/utils": "8.69.0"
   "@typescript-eslint/parser": "8.69.0"
+
+# Peer dependency uyuşmazlıkları VARSAYILAN OLARAK HATA verir (fail-closed).
+strictPeerDependencies: true
+
+# Tek istisna: eslint-plugin-jsx-a11y@6.10.2 peer olarak ESLint ^3..^9 istiyor,
+# projede ESLint 10.10.0 kurulu. Bu paketi doğrudan biz eklemedik;
+# eslint-plugin-astro peer olarak listeliyor. Lint zinciri bu kurulumla
+# doğrulanmış biçimde çalışıyor (S01: pnpm lint exit 0, a11y kuralları aktif).
+#
+# İzin BİLEREK dar kapsamlı: yalnızca bu paketin bu sürümünün eslint peer'ı için,
+# yalnızca tam sürüm 10.10.0. Genel `eslint` allowlist'i veya allowAny KULLANILMIYOR.
+#
+# GEÇİCİDİR: eslint-plugin-jsx-a11y ESLint 10 desteğini yayımladığında bu
+# istisna kaldırılacak ve paket yükseltilecek.
+peerDependencyRules:
+  allowedVersions:
+    "eslint-plugin-jsx-a11y@6.10.2>eslint": "10.10.0"

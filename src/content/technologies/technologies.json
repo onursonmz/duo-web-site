@@ -1,0 +1,171 @@
+[
+  {
+    "id": "zabbix",
+    "name": "Zabbix",
+    "group": "observability",
+    "active": true,
+    "officialUrl": "https://www.zabbix.com/",
+    "logoPermission": "unknown",
+    "decisionNeeded": false,
+    "note": "S00: sunumda ITOM ve Otomasyon slaytlarinda logo ile dogrulandi."
+  },
+  {
+    "id": "grafana",
+    "name": "Grafana",
+    "group": "observability",
+    "active": true,
+    "officialUrl": "https://grafana.com/",
+    "logoPermission": "unknown",
+    "decisionNeeded": true,
+    "note": "S00 B26: plan paketinin 8 cozum listesinde yoktu; brief ve sunumda var."
+  },
+  {
+    "id": "datadog",
+    "name": "Datadog",
+    "group": "apm",
+    "active": true,
+    "officialUrl": "https://www.datadoghq.com/",
+    "logoPermission": "unknown",
+    "decisionNeeded": false,
+    "note": "S00: sunum S8 ve S12 slaytlarinda logo ile dogrulandi."
+  },
+  {
+    "id": "instana",
+    "name": "IBM Instana",
+    "group": "apm",
+    "active": true,
+    "officialUrl": "https://www.ibm.com/products/instana",
+    "logoPermission": "unknown",
+    "decisionNeeded": false,
+    "note": "S00: sunum S12 slaytinda logo ile dogrulandi."
+  },
+  {
+    "id": "opentelemetry",
+    "name": "OpenTelemetry",
+    "group": "observability",
+    "active": true,
+    "officialUrl": "https://opentelemetry.io/",
+    "logoPermission": "unknown",
+    "decisionNeeded": false,
+    "note": "S00: sunum S12 slaytinda logo ile dogrulandi. Acik kaynak olmasi logo iznini vermez."
+  },
+  {
+    "id": "device42",
+    "name": "Device42",
+    "group": "cmdb",
+    "active": true,
+    "officialUrl": "https://www.device42.com/",
+    "logoPermission": "unknown",
+    "decisionNeeded": false,
+    "note": "S00: sunum S8, S11 ve S15 slaytlarinda logo ile dogrulandi."
+  },
+  {
+    "id": "glpi",
+    "name": "GLPI",
+    "group": "itsm",
+    "active": true,
+    "officialUrl": "https://glpi-project.org/",
+    "logoPermission": "unknown",
+    "decisionNeeded": true,
+    "note": "S00 B28: yalnizca sunumda bulundu; kapsam karari bekliyor."
+  },
+  {
+    "id": "freshservice",
+    "name": "Freshservice",
+    "group": "itsm",
+    "active": true,
+    "officialUrl": "https://www.freshworks.com/freshservice/",
+    "logoPermission": "unknown",
+    "decisionNeeded": false,
+    "note": "S00 B31: sunumun 5 slaytinda var, canli sitede hic gecmiyordu."
+  },
+  {
+    "id": "jira",
+    "name": "Atlassian Jira Software",
+    "group": "itsm",
+    "active": true,
+    "officialUrl": "https://www.atlassian.com/software/jira",
+    "logoPermission": "unknown",
+    "decisionNeeded": true,
+    "note": "S00 B28: yalnizca sunumda bulundu; kapsam karari bekliyor."
+  },
+  {
+    "id": "confluent",
+    "name": "Confluent",
+    "group": "data",
+    "active": true,
+    "officialUrl": "https://www.confluent.io/",
+    "logoPermission": "unknown",
+    "decisionNeeded": false,
+    "note": "S00: sunum S13 ve S14 slaytlarinda logo ile dogrulandi."
+  },
+  {
+    "id": "tableau",
+    "name": "Tableau",
+    "group": "data",
+    "active": true,
+    "officialUrl": "https://www.tableau.com/",
+    "logoPermission": "unknown",
+    "decisionNeeded": true,
+    "note": "S00 B28: yalnizca sunumda bulundu; kapsam karari bekliyor."
+  },
+  {
+    "id": "ardoq",
+    "name": "Ardoq",
+    "group": "enterprise-architecture",
+    "active": true,
+    "officialUrl": "https://www.ardoq.com/",
+    "logoPermission": "unknown",
+    "decisionNeeded": false,
+    "note": "S00: sunum EA slaytinin tek teknolojisi."
+  },
+  {
+    "id": "ansible",
+    "name": "Red Hat Ansible",
+    "group": "automation",
+    "active": true,
+    "officialUrl": "https://www.redhat.com/en/technologies/management/ansible",
+    "logoPermission": "unknown",
+    "decisionNeeded": false,
+    "note": "S00: sunum Otomasyon slaytinda logo ile dogrulandi."
+  },
+  {
+    "id": "cyclops",
+    "name": "CyclOps",
+    "group": "aiops",
+    "active": false,
+    "logoPermission": "unknown",
+    "decisionNeeded": true,
+    "note": "DUOSIS KENDI URUNU. S00-R2 C12: yalnizca hackathon brief'inde geciyor (9 kez); kurumsal sunumda 0, canli sitede 0. Urun kaniti (ekran, surum, mimari) YOK. active:false -> public build'e CIKMAZ. S08 icin urun kaniti bekleniyor."
+  },
+  {
+    "id": "solarwinds",
+    "name": "SolarWinds",
+    "group": "observability",
+    "active": false,
+    "officialUrl": "https://www.solarwinds.com/",
+    "logoPermission": "unknown",
+    "decisionNeeded": true,
+    "note": "S00 B29: brief 'Eskiyenler' listesinde sayiyor; kapsamdan cikarma karari bekliyor."
+  },
+  {
+    "id": "runzero",
+    "name": "runZero",
+    "group": "cmdb",
+    "active": false,
+    "officialUrl": "https://www.runzero.com/",
+    "logoPermission": "unknown",
+    "decisionNeeded": true,
+    "note": "S00 B29: brief 'Eskiyenler' listesinde sayiyor; kapsamdan cikarma karari bekliyor."
+  },
+  {
+    "id": "kace",
+    "name": "Quest KACE",
+    "group": "itam",
+    "active": false,
+    "officialUrl": "https://www.quest.com/kace/",
+    "logoPermission": "unknown",
+    "decisionNeeded": true,
+    "note": "S00: plan paketi ACIK ONAY istiyor; uc kaynagin hicbirinde yok."
+  }
+]

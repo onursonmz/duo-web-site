@@ -3,4 +3,4 @@
 *.jpg binary
 *.pdf binary
 *.zip binary
-pnpm-lock.yaml -diff linguist-generated=true
+pnpm-lock.yaml linguist-generated=true

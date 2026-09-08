@@ -34,12 +34,18 @@ export default defineConfig({
     },
   ],
 
-  // Testler üretim çıktısına karşı koşar: dev sunucusunun HMR istemcisi
-  // konsol ve DOM sonuçlarını kirletmesin diye build + preview kullanılır.
+  // Testler ÜRETİM ÇIKTISINA karşı koşar: dev sunucusunun HMR istemcisi konsol
+  // ve DOM sonuçlarını kirletmesin diye önce build alınır.
+  //
+  // `astro preview` yerine küçük bir statik sunucu kullanılıyor: Astro 7'nin
+  // preview komutu TTY yokken kendini arka plana alıp kilit dosyası tutuyor;
+  // Playwright ön planda kalan bir süreç beklediği için bu davranış testleri
+  // kırıyor ve makinede kalan eski bir daemon testlerin bayat build'e karşı
+  // koşmasına yol açabiliyor. Bkz. tests/support/preview-server.mjs
   webServer: {
-    command: "pnpm build && pnpm preview --port 4321 --host 127.0.0.1",
+    command: `pnpm build && node tests/support/preview-server.mjs dist ${PORT} 127.0.0.1`,
     url: BASE_URL,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 180_000,
     stdout: "pipe",
     stderr: "pipe",

@@ -6,8 +6,8 @@ Bu depo sprint temellidir. Her sprint tek başına incelenebilir bir artım üre
 [`duosis_web_sitesi_planlamasi/`](duosis_web_sitesi_planlamasi/), S00 keşif çıktıları ise
 [`discovery/`](discovery/) altındadır.
 
-**Mevcut durum:** S01 — repo iskeleti ve kalite kapıları. Gerçek tasarım (S03), içerik modeli
-(S02) ve pazarlama metinleri henüz üretilmedi; `src/pages/` altındaki sayfalar yer tutucudur.
+**Mevcut durum:** S02 — içerik modeli ve TR/EN yönlendirme. Gerçek tasarım (S03) ve nihai
+pazarlama metinleri henüz üretilmedi; `src/content/` altındaki kayıtlar **taslak fixture**'dır.
 
 ---
 
@@ -86,15 +86,55 @@ E2E testleri **üretim çıktısına** karşı koşar: Playwright `pnpm build &&
 
 ```text
 src/
-  layouts/BaseLayout.astro   # <head>, skip link, #main-content, footer
-  lib/seo/pageTitle.ts       # title üretimi (unit test kapsamında)
-  pages/index.astro          # yer tutucu ana sayfa
-  pages/404.astro            # 404
-  styles/base.css            # asgari temel stil (tasarım sistemi S03'te)
+  content.config.ts          # koleksiyon tanımları (şemalar @lib/content/schemas'tan)
+  content/
+    solutions/tr|en/         # 8 TR + 2 EN çözüm fixture'ı
+    technologies/*.json      # TEK teknoloji veri kaynağı
+    services|milestones|proofs|insights|authors/
+  lib/
+    content/schema.ts        # ortak enumlar, slug/translationKey, SEO
+    content/schemas.ts       # koleksiyon şemaları (testler bunları doğrular)
+    content/selectors.ts     # MERKEZİ public/preview filtre katmanı
+    i18n/routes.ts           # locale algılama + yerelleştirilmiş yol üretimi
+    i18n/dictionary.ts       # nav/CTA/sistem mesajları (TR + EN)
+    seo/pageTitle.ts
+  components/                # LanguageSwitcher, SolutionList, SolutionDetail
+  layouts/BaseLayout.astro
+  pages/
+    index.astro              # TR ana sayfa
+    cozumler/[index|[slug]]  # TR çözümler
+    en/index.astro           # EN ana sayfa
+    en/solutions/…           # EN çözümler
+    404.astro
 tests/
-  unit/                      # Vitest
-  e2e/                       # Playwright
+  unit/                      # Vitest (şema, seçici, i18n, içerik doğrulama)
+  e2e/                       # Playwright (smoke, i18n, JavaScript kapalı)
+  support/preview-server.mjs # e2e için deterministik statik sunucu
 ```
+
+## İçerik kuralları
+
+| Kural                                                               | Nerede uygulanıyor                         |
+| ------------------------------------------------------------------- | ------------------------------------------ |
+| Şema dışı alan build'i kırar                                        | Tüm şemalar `.strict()`                    |
+| Enumlar kapalı (status, verificationStatus, logoPermission, locale) | `@lib/content/schema`                      |
+| Yinelenen `translationKey + locale` reddedilir                      | `assertUniqueTranslations`                 |
+| Bozuk içerik referansı build'i kırar                                | `assertSolutionReferencesResolve`          |
+| `status !== published` public'te görünmez                           | `selectors` — public mod                   |
+| `verificationStatus !== verified` iddia public'te görünmez          | `selectors` — public mod                   |
+| `logoPermission !== allowed` logo hiç render edilmez                | `logoPathIfAllowed`                        |
+| `active: false` teknoloji public listede yok                        | `selectors` — **kod değişikliği gerekmez** |
+| Eksik çeviri sessiz fallback üretmez                                | `LanguageSwitcher` + `t()`                 |
+
+Üretim sayfaları filtreleri **açıkça** `PUBLIC` moduyla çağırır.
+
+## Diller
+
+- Türkçe **prefixsiz**: `/`, `/cozumler/`, `/cozumler/<slug>/`
+- İngilizce **`/en/` altında**: `/en/`, `/en/solutions/`, `/en/solutions/<slug>/`
+- Locale **yalnızca URL'den** belirlenir (`localeFromPath`) — çerez/Accept-Language yok
+- Dil değiştirici aynı `translationKey` karşılığına gider; karşılığı yoksa link üretmez ve
+  erişilebilir bir "çeviri mevcut değil" bilgisi gösterir
 
 ## Ortam değişkenleri
 

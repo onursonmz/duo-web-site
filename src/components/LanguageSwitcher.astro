@@ -1,0 +1,53 @@
+---
+import { t, type TranslationKey } from "@lib/i18n/dictionary";
+import { otherLocales } from "@lib/i18n/routes";
+import type { Locale } from "@lib/content/schema";
+
+interface Props {
+  locale: Locale;
+  /** Aynı kaydın diğer dillerdeki yolları. Eksik olan dil için link üretilmez. */
+  alternates: Partial<Record<Locale, string>>;
+}
+
+const { locale, alternates } = Astro.props;
+
+/**
+ * Eksik çeviri SESSİZCE gizlenmez ve başka dile yönlendirilmez:
+ * karşılığı olmayan dil, erişilebilir biçimde "mevcut değil" olarak duyurulur.
+ */
+const targets = otherLocales(locale).map((target) => ({
+  locale: target,
+  href: alternates[target],
+  label: t(locale, `lang.${target}` as TranslationKey),
+}));
+---
+
+<nav class="lang-switcher" aria-label={t(locale, "nav.language")} data-testid="language-switcher">
+  <ul>
+    {
+      targets.map(({ locale: target, href, label }) =>
+        href !== undefined ? (
+          <li>
+            <a href={href} hreflang={target} lang={target} data-testid={`lang-link-${target}`}>
+              {label}
+            </a>
+          </li>
+        ) : (
+          <li>
+            <span
+              class="lang-switcher__unavailable"
+              lang={target}
+              data-testid={`lang-unavailable-${target}`}
+            >
+              {label}
+              <span class="lang-switcher__note">
+                {" "}
+                — {t(locale, "translation.notAvailableInTarget")}
+              </span>
+            </span>
+          </li>
+        )
+      )
+    }
+  </ul>
+</nav>

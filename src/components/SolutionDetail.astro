@@ -1,0 +1,90 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { t, type TranslationKey } from "@lib/i18n/dictionary";
+import { solutionsIndexPath } from "@lib/i18n/routes";
+import {
+  getTechnologiesForSolution,
+  logoPathIfAllowed,
+  type ViewMode,
+} from "@lib/content/selectors";
+import type { Locale } from "@lib/content/schema";
+
+interface Props {
+  locale: Locale;
+  solution: CollectionEntry<"solutions">;
+  mode: ViewMode;
+}
+
+const { locale, solution, mode } = Astro.props;
+
+// Teknolojiler TEK veri kaynağından ve merkezi seçiciden gelir:
+// `active: false` kayıtlar public modda burada düşer, kod değişmeden.
+const technologies = await getTechnologiesForSolution(solution, mode);
+---
+
+<article class="solution" data-testid="solution-detail">
+  <p class="badge" data-testid="draft-badge">{t(locale, "draft.badge")}</p>
+
+  {solution.data.eyebrow && <p class="solution__eyebrow">{solution.data.eyebrow}</p>}
+  <h1>{solution.data.title}</h1>
+  <p class="solution__summary">{solution.data.summary}</p>
+
+  <section aria-labelledby="problem-heading">
+    <h2 id="problem-heading">{t(locale, "solutions.problem")}</h2>
+    <p>{solution.data.problem}</p>
+  </section>
+
+  <section aria-labelledby="approach-heading">
+    <h2 id="approach-heading">{t(locale, "solutions.approach")}</h2>
+    <p>{solution.data.approach}</p>
+  </section>
+
+  <section aria-labelledby="benefits-heading">
+    <h2 id="benefits-heading">{t(locale, "solutions.benefits")}</h2>
+    <ul>
+      {solution.data.benefits.map((benefit) => <li>{benefit}</li>)}
+    </ul>
+  </section>
+
+  <section aria-labelledby="tech-heading">
+    <h2 id="tech-heading">{t(locale, "solutions.technologies")}</h2>
+    {
+      technologies.length > 0 ? (
+        <ul data-testid="technology-list">
+          {technologies.map((tech) => {
+            // Logo YALNIZCA yazılı izin varsa render edilir.
+            const logo = logoPathIfAllowed(tech.data);
+            return (
+              <li data-technology-id={tech.id}>
+                {logo !== undefined && <img src={logo} alt="" width="80" height="24" />}
+                {tech.data.officialUrl !== undefined ? (
+                  <a href={tech.data.officialUrl} rel="noopener noreferrer">
+                    {tech.data.name}
+                  </a>
+                ) : (
+                  <span>{tech.data.name}</span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p data-testid="technology-empty">{t(locale, "solutions.technologiesEmpty")}</p>
+      )
+    }
+  </section>
+
+  <p class="solution__cta">
+    <a href={solution.data.cta.href}>
+      {t(locale, solution.data.cta.labelKey as TranslationKey)}
+    </a>
+  </p>
+
+  <p>
+    <a href={solutionsIndexPath(locale)} data-testid="back-to-solutions">
+      {t(locale, "cta.backToSolutions")}
+    </a>
+  </p>
+
+  <p class="notice">{t(locale, "draft.notice")}</p>
+</article>

@@ -1,39 +1,57 @@
 ---
 import { buildPageTitle } from "@lib/seo/pageTitle";
+import { t } from "@lib/i18n/dictionary";
+import { homePath, solutionsIndexPath } from "@lib/i18n/routes";
+import type { Locale } from "@lib/content/schema";
+import LanguageSwitcher from "@components/LanguageSwitcher.astro";
 import "../styles/base.css";
 
 interface Props {
-  /** Sayfaya özgü başlık (yer tutucu; nihai metin S05+). */
+  locale: Locale;
   title?: string;
-  /** Meta description (yer tutucu). */
   description: string;
+  /** Dil değiştiricinin karşılık arayacağı kayıt anahtarı. */
+  translationKey?: string;
+  /** Aynı kaydın diğer dillerdeki yolları. Yoksa "çeviri mevcut değil" davranışı. */
+  alternates?: Partial<Record<Locale, string>>;
+  noindex?: boolean;
 }
 
-const { title, description } = Astro.props;
+const { locale, title, description, alternates = {}, noindex = false } = Astro.props;
 
-// S00-R2 / ADR-010: kamuya açık iş iddiaları doğrulanmadan yayınlanmaz.
-// Buradaki metinler bilinçli olarak nötr yer tutuculardır.
-const SITE_NAME = "Duosis";
+const SITE_NAME = t(locale, "site.name");
 const pageTitle = buildPageTitle({ pageTitle: title, siteName: SITE_NAME });
-
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
 ---
 
 <!doctype html>
-<html lang="tr">
+<html lang={locale}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical.href} />
+    {noindex && <meta name="robots" content="noindex" />}
+    {
+      Object.entries(alternates).map(([altLocale, href]) => (
+        <link rel="alternate" hreflang={altLocale} href={new URL(href, canonical).href} />
+      ))
+    }
     <meta name="generator" content={Astro.generator} />
   </head>
   <body>
-    <a class="skip-link" href="#main-content">Ana içeriğe geç</a>
+    <a class="skip-link" href="#main-content">{t(locale, "nav.skipToContent")}</a>
 
     <header class="site-header">
-      <p class="site-header__brand">Duosis</p>
+      <p class="site-header__brand">{SITE_NAME}</p>
+
+      <nav class="site-nav" aria-label={t(locale, "nav.home")}>
+        <a href={homePath(locale)}>{t(locale, "nav.home")}</a>
+        <a href={solutionsIndexPath(locale)}>{t(locale, "nav.solutions")}</a>
+      </nav>
+
+      <LanguageSwitcher locale={locale} alternates={alternates} />
     </header>
 
     <main id="main-content" tabindex="-1">
@@ -41,7 +59,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
     </main>
 
     <footer class="site-footer">
-      <p>Duosis — kurumsal web sitesi yenileme çalışması (geliştirme sürümü).</p>
+      <p>{t(locale, "site.tagline")}</p>
     </footer>
   </body>
 </html>

@@ -37,12 +37,13 @@ export default tseslint.config(
     // Yapılandırma dosyaları ve testler Node ortamında çalışır.
     // `globals` paketi eklemek yerine yalnızca gerçekten kullanılan
     // global'ler tanımlanıyor (bağımlılık disiplini).
-    files: ["tests/**/*.ts", "*.config.ts", "*.config.mjs", "eslint.config.js"],
+    files: ["tests/**/*.{ts,mjs}", "*.config.ts", "*.config.mjs", "eslint.config.js"],
     languageOptions: {
       globals: {
         process: "readonly",
         console: "readonly",
         URL: "readonly",
+        fetch: "readonly",
       },
     },
     rules: {

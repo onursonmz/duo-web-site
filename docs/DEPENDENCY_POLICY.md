@@ -50,12 +50,37 @@ kütüphanesi, CMS istemcisi, form/spam servisi, ikon/font paketi, CSS framework
 `globals` paketi (ESLint yapılandırmasında yalnızca gerçekten kullanılan üç global
 elle tanımlandı).
 
-## Bilinen peer uyarısı
+## Peer dependency politikası
 
-`eslint-plugin-jsx-a11y@6.10.2` peer olarak ESLint `^3 || … || ^9` istiyor; projede ESLint
-10 kurulu. Uyarı `eslint-plugin-astro`'nun bu paketi peer olarak listelemesinden geliyor.
-**Pratikte sorun yok:** `pnpm lint` sorunsuz çalışıyor ve a11y kuralları uygulanıyor.
-Yukarı akış ESLint 10 desteğini yayınlayınca sürüm yükseltilecek.
+`pnpm-workspace.yaml` içinde **`strictPeerDependencies: true`** ayarlıdır: karşılanmayan
+bir peer bağımlılık **hata** verir, uyarı değil (fail-closed).
+
+### Tek istisna (geçici)
+
+```yaml
+peerDependencyRules:
+  allowedVersions:
+    "eslint-plugin-jsx-a11y@6.10.2>eslint": "10.10.0"
+```
+
+- `eslint-plugin-jsx-a11y@6.10.2` peer olarak ESLint `^3 || … || ^9` istiyor; projede
+  ESLint `10.10.0` kurulu.
+- Bu paketi doğrudan biz eklemedik; `eslint-plugin-astro` peer olarak listeliyor.
+- İzin **bilerek dar kapsamlıdır**: yalnızca bu paketin bu sürümünün `eslint` peer'ı için
+  ve yalnızca tam sürüm `10.10.0`. Genel bir `eslint` allowlist'i veya `allowAny`
+  **kullanılmamaktadır**.
+- Uyumsuzluk doğrulanmıştır: `pnpm lint` sorunsuz çalışıyor ve a11y kuralları uygulanıyor.
+- **GEÇİCİDİR.** `eslint-plugin-jsx-a11y` ESLint 10 desteğini yayımladığında bu istisna
+  kaldırılacak ve paket yükseltilecektir. Yükseltme sonrası `pnpm peers check` istisnasız
+  temiz dönmelidir.
+
+## Diğer pnpm ayarları
+
+| Ayar                 | Değer                           | Gerekçe                                                                                                                                                                                                                                                        |
+| -------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `allowBuilds`        | yalnızca `esbuild`              | Vite/Astro/Vitest transitif bağımlılığı; platform ikilisi için postinstall gerekir. Diğer tüm build script'leri kapalı                                                                                                                                         |
+| `publicHoistPattern` | yalnızca `cookie`               | Astro prerender bundle'ında `cookie` harici bırakılır; pnpm izole yerleşiminde kök `node_modules`'ta bulunmadığı için Node çözümlemesi proje dizininin üstüne çıkıp makinedeki başka bir kopyayı yakalayabiliyordu (S01 raporu §11.2). **Genişletilmemelidir** |
+| `overrides`          | `@typescript-eslint/*` → 8.69.0 | Tedarik zinciri politikasına uyum; politika gevşetilmedi                                                                                                                                                                                                       |
 
 ## Yükseltme ritmi
 

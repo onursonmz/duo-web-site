@@ -1,18 +1,18 @@
-import { fileURLToPath } from "node:url";
-import { defineConfig } from "vitest/config";
+/// <reference types="vitest/config" />
+import { getViteConfig } from "astro/config";
 
-export default defineConfig({
+/**
+ * `getViteConfig` kullanılıyor: testlerin `astro:content` gibi sanal modülleri
+ * ve tsconfig alias'larını gerçek proje yapılandırmasıyla aynı şekilde
+ * çözebilmesi için. Böylece testler kopya değil, GERÇEK şemaları doğrular.
+ */
+export default getViteConfig({
   test: {
-    // Yalnızca unit testler; e2e Playwright ile ayrı çalışır.
     include: ["tests/unit/**/*.test.ts"],
     environment: "node",
     reporters: ["default"],
-  },
-  resolve: {
-    alias: {
-      // fileURLToPath kullanılıyor: URL.pathname Windows'ta "/C:/..." üretip
-      // yol çözümlemesini bozuyor.
-      "@lib": fileURLToPath(new URL("./src/lib", import.meta.url)),
-    },
+    // İçerik senkronizasyonu ve şema doğrulama testleri build çalıştırabilir.
+    testTimeout: 120_000,
+    hookTimeout: 120_000,
   },
 });

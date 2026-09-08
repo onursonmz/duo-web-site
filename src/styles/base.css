@@ -94,3 +94,86 @@ h1 {
   line-height: 1.2;
   margin-top: 0;
 }
+
+/* --- S02 içerik/i18n iskelet stilleri (tasarım sistemi S03'te) --- */
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.site-nav a,
+.lang-switcher a {
+  margin-right: 1rem;
+}
+
+.lang-switcher ul,
+.solution-list,
+.solution ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.lang-switcher ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.lang-switcher__unavailable {
+  color: #4a5158;
+}
+
+.lang-switcher__note {
+  font-size: 0.8125rem;
+}
+
+.badge {
+  display: inline-block;
+  margin: 0 0 1rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--color-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.solution__eyebrow {
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.solution__summary {
+  font-size: 1.125rem;
+}
+
+.solution-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.solution-list > li {
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--color-line);
+}
+
+.solution-list p {
+  margin: 0.25rem 0 0;
+}
+
+.notice {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-line);
+  font-size: 0.875rem;
+  color: #4a5158;
+}
+
+.translation-unavailable {
+  padding: 1rem;
+  border: 1px solid var(--color-line);
+}
