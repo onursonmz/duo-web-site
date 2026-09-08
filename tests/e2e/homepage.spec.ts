@@ -264,6 +264,35 @@ test.describe("ana sayfa erişilebilirliği ve reflow", () => {
     }
   });
 
+  test("DAR EKRANDA metin sıkışması yok", async ({ page }) => {
+    /*
+     * Teknoloji katmanı gövdesi 390px'te 2.5rem'lik indeks sütununa
+     * sıkışıyordu (ölçüm: 40px genişlik, 403px yükseklik). Bu test o sınıfın
+     * tekrarını engeller: metin taşıyan hiçbir kutu aşırı dar ve aşırı uzun
+     * olamaz.
+     */
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/");
+      const squeezed = await page.evaluate(() => {
+        const out: { cls: string; w: number; h: number }[] = [];
+        for (const el of document.querySelectorAll("#main-content *")) {
+          const r = el.getBoundingClientRect();
+          const text = (el.textContent ?? "").trim();
+          if (text.length > 40 && r.width > 0 && r.width < 90 && r.height > 150) {
+            out.push({
+              cls: el.className.toString(),
+              w: Math.round(r.width),
+              h: Math.round(r.height),
+            });
+          }
+        }
+        return out;
+      });
+      expect(squeezed, `${width}px sıkışma: ${JSON.stringify(squeezed)}`).toEqual([]);
+    }
+  });
+
   test("konsol hatası üretmiyor", async ({ page }) => {
     const errors: string[] = [];
     page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
