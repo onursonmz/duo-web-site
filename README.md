@@ -79,8 +79,13 @@ pnpm format       # biçimi düzelt (kontrol etmek yerine)
   projesinde `javaScriptEnabled: false` ile koşar; temel içerik, bağlantılar ve skip link
   erişilebilir kalmalı, sayfa hiç `<script>` yüklememeli.
 
-E2E testleri **üretim çıktısına** karşı koşar: Playwright `pnpm build && pnpm preview`
-çalıştırır, böylece dev sunucusunun HMR istemcisi konsol ve DOM sonuçlarını kirletmez.
+E2E testleri **üretim çıktısına** karşı koşar: `pnpm build` sonrası
+`tests/support/preview-server.mjs` ayağa kalkar.
+
+**Her çalıştırma dinamik ve boş bir port kullanır.** `tests/support/run-e2e.mjs` portu
+tek yerde seçip `E2E_PORT` ile hem `baseURL`'e hem web server komutuna aktarır; tüm
+worker'lar aynı değeri devralır. Sunucu bind edemezse testler **hiç başlamaz** ve komut
+sıfırdan farklı exit code döner. Sabit porttaki yabancı süreçlere dokunulmaz.
 
 ## Proje yapısı
 
@@ -89,17 +94,20 @@ src/
   content.config.ts          # koleksiyon tanımları (şemalar @lib/content/schemas'tan)
   content/
     solutions/tr|en/         # 8 TR + 2 EN çözüm fixture'ı
-    technologies/*.json      # TEK teknoloji veri kaynağı
+    technologies/technologies.json  # TEK veri kaynağı — S00'daki 35 kaydın tamamı
+    technologies/MAPPING.json       # S00 -> S02 dönüşümünün makinece okunabilir kaydı
     services|milestones|proofs|insights|authors/
   lib/
     content/schema.ts        # ortak enumlar, slug/translationKey, SEO
     content/schemas.ts       # koleksiyon şemaları (testler bunları doğrular)
     content/selectors.ts     # MERKEZİ public/preview filtre katmanı
+    content/graph.ts         # TÜM referans alanlarını doğrulayan içerik grafiği
     i18n/routes.ts           # locale algılama + yerelleştirilmiş yol üretimi
     i18n/dictionary.ts       # nav/CTA/sistem mesajları (TR + EN)
     seo/pageTitle.ts
   components/                # LanguageSwitcher, SolutionList, SolutionDetail
   layouts/BaseLayout.astro
+  middleware.ts              # her build'de grafik + benzersizlik doğrulaması
   pages/
     index.astro              # TR ana sayfa
     cozumler/[index|[slug]]  # TR çözümler
@@ -109,7 +117,8 @@ src/
 tests/
   unit/                      # Vitest (şema, seçici, i18n, içerik doğrulama)
   e2e/                       # Playwright (smoke, i18n, JavaScript kapalı)
-  support/preview-server.mjs # e2e için deterministik statik sunucu
+  support/run-e2e.mjs        # boş port seçer, E2E_PORT ile Playwright'ı başlatır
+  support/preview-server.mjs # e2e için deterministik statik sunucu (fail-closed)
 ```
 
 ## İçerik kuralları
@@ -119,14 +128,29 @@ tests/
 | Şema dışı alan build'i kırar                                        | Tüm şemalar `.strict()`                    |
 | Enumlar kapalı (status, verificationStatus, logoPermission, locale) | `@lib/content/schema`                      |
 | Yinelenen `translationKey + locale` reddedilir                      | `assertUniqueTranslations`                 |
-| Bozuk içerik referansı build'i kırar                                | `assertSolutionReferencesResolve`          |
+| Bozuk içerik referansı build'i kırar (TÜM referans alanları)        | `assertContentGraph` + `src/middleware.ts` |
 | `status !== published` public'te görünmez                           | `selectors` — public mod                   |
 | `verificationStatus !== verified` iddia public'te görünmez          | `selectors` — public mod                   |
 | `logoPermission !== allowed` logo hiç render edilmez                | `logoPathIfAllowed`                        |
-| `active: false` teknoloji public listede yok                        | `selectors` — **kod değişikliği gerekmez** |
+| `lifecycle !== active` teknoloji public listede yok                  | `isVisibleTechnology` — **kod değişikliği gerekmez** |
 | Eksik çeviri sessiz fallback üretmez                                | `LanguageSwitcher` + `t()`                 |
 
 Üretim sayfaları filtreleri **açıkça** `PUBLIC` moduyla çağırır.
+
+### İçerik grafiği doğrulaması
+
+`src/lib/content/graph.ts` şemadaki **tüm** `reference()` alanlarını doğrular
+(`solutions→technologies`, `solutions→proofs`, `milestones→solutions`,
+`insights→authors`, `insights→relatedSolutions`). `src/middleware.ts` her sayfa
+üretiminde çağırır; doğrulama **bir sayfanın o koleksiyonu sorgulamasına bağlı değildir**.
+
+> Astro'nun kendi `reference()` doğrulaması bozuk referansı yalnızca loglar ve
+> `astro sync` sıfır exit code döner. Bu doğrulayıcı hatayı **fırlatır**, build durur.
+
+### İçerik olgunluğu
+
+Bkz. [`docs/CONTENT_MATURITY.md`](docs/CONTENT_MATURITY.md). Şu an **35/35 teknoloji
+`lifecycle: pending`** ve **tüm sayfalar `noindex`** — doğrulanmamış içerik yayınlanmaz.
 
 ## Diller
 

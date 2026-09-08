@@ -32,7 +32,7 @@ seo:
   title: Enterprise architecture and governance
   description: >-
     Puts business goals, applications and technologies on one map so decisions can be defended.
-  noindex: false
+  noindex: true
 ---
 
 This page is generated from the draft content model. The wording is deliberately

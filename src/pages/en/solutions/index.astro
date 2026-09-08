@@ -10,6 +10,7 @@ const locale = "en" as const;
 const solutions = await getSolutions(locale, PUBLIC);
 
 const alternates = { tr: solutionsIndexPath("tr"), en: solutionsIndexPath("en") };
+// İçerik olgunluk politikası: taslak içerik indekslenmez (docs/CONTENT_MATURITY.md).
 ---
 
 <BaseLayout
@@ -17,6 +18,7 @@ const alternates = { tr: solutionsIndexPath("tr"), en: solutionsIndexPath("en") 
   title={t(locale, "solutions.title")}
   description={t(locale, "solutions.intro")}
   alternates={alternates}
+  noindex={true}
 >
   <p class="badge">{t(locale, "draft.badge")}</p>
   <h1>{t(locale, "solutions.title")}</h1>

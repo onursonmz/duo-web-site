@@ -33,7 +33,7 @@ seo:
   title: Veri akışı ve entegrasyon
   description: >-
     Veriyi üretildiği anda işleyip doğru sistemlere taşır.
-  noindex: false
+  noindex: true
 ---
 
 Bu sayfa taslak içerik modelinden üretilmiştir. Metinler nötr tutulmuştur ve

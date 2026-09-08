@@ -33,7 +33,7 @@ seo:
   title: Otomasyon
   description: >-
     Tekrarlayan operasyonel işleri standart, hızlı ve izlenebilir hale getirir.
-  noindex: false
+  noindex: true
 ---
 
 Bu sayfa taslak içerik modelinden üretilmiştir. Metinler nötr tutulmuştur ve

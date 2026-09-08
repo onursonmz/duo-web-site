@@ -1,0 +1,247 @@
+{
+  "source": "discovery/technology-inventory.csv (S00-R2, 35 kayıt)",
+  "target": "src/content/technologies/technologies.json",
+  "generatedBy": "S02-R1",
+  "fieldMapping": {
+    "id": "id (değişmedi)",
+    "officialName": "name",
+    "currentSiteLabel": "currentSiteLabel (boş/'-' ise atlandı)",
+    "group": "group (kapalı enuma indirgendi; ayrıntı groupMapping)",
+    "active": "lifecycle (ayrıntı lifecycleMapping)",
+    "decisionNeeded": "decisionNeeded (yes/no -> boolean)",
+    "logoPermission": "logoPermission (değişmedi)",
+    "licenseModel": "licenseModel (değişmedi)",
+    "officialUrl": "officialUrl (boşsa atlandı)",
+    "mappedSolutionArea": "solutionArea (ADR-009 translationKey; 'DECISION NEEDED' -> null)",
+    "note": "note (değişmedi)"
+  },
+  "lifecycleMapping": {
+    "rule": "S00 'active' alanı üç değerli değildi; tamamı 'unknown' idi. Fail-closed karşılığı 'pending'.",
+    "unknown": "pending",
+    "true": "active",
+    "false": "inactive",
+    "publicRule": "Public seçici YALNIZCA lifecycle == 'active' kayıtları gösterir. 'pending' ve 'inactive' public çıktıya GİRMEZ.",
+    "note": "35 kaydın tamamı S00'da 'unknown' olduğu için S02-R1'de public teknoloji listesi BOŞTUR. Bu bilinçli ve fail-closed bir sonuçtur; iş sahibi doğrulaması geldikçe kayıtlar tek tek 'active' yapılacaktır."
+  },
+  "groupMapping": {
+    "observability": "observability",
+    "observability|apm": "observability",
+    "apm": "apm",
+    "cmdb": "cmdb",
+    "cmdb|itam": "cmdb",
+    "itam": "itam",
+    "itsm": "itsm",
+    "itsm|itam": "itsm",
+    "itsm|issue-tracking": "itsm",
+    "data-streaming": "data",
+    "data-platform": "data",
+    "data-integration": "data",
+    "data-orchestration": "data",
+    "database": "data",
+    "bi|visualization": "data",
+    "search|observability": "data",
+    "observability|visualization": "observability",
+    "observability|storage": "observability",
+    "enterprise-architecture": "enterprise-architecture",
+    "automation": "automation",
+    "aiops|duosis-product": "aiops",
+    "cmdb|itsm|automation": "cmdb",
+    "database|security": "data",
+    "pam|security": "security",
+    "compliance|security": "security",
+    "endpoint-management": "itam",
+    "asset-discovery": "cmdb",
+    "observability|standard": "observability"
+  },
+  "solutionAreaMapping": {
+    "1 Observability": "observability-apm",
+    "2 Configuration Management / CMDB": "configuration-asset-management",
+    "3 ITSM": "it-service-management",
+    "4 Data Streaming & Integration": "data-streaming-integration",
+    "5 Governance / EA": "governance-enterprise-architecture",
+    "6 AIOps & Event Lifecycle": "aiops-event-lifecycle",
+    "7 Automation": "automation",
+    "DECISION NEEDED": null
+  },
+  "counts": {
+    "s00": 35,
+    "s02": 35
+  },
+  "lifecycleTransforms": [
+    {
+      "id": "datadog",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "ardoq",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "device42",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "freshservice",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "zabbix",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "grafana",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "opentelemetry",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "instana",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "confluent",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "opentext",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "jira",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "glpi",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "tableau",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "ansible",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "solarwinds",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "runzero",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "kron",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "pandora-fms",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "stor2rrd",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "vertica",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "postgresql",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "quest",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "runecast",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "smax",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "foglight",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "opentext-cms",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "opentext-oo",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "opentext-sa",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "nifi",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "airflow",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "elastic",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "awx",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "n8n",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "kace",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    },
+    {
+      "id": "cyclops",
+      "s00Active": "unknown",
+      "s02Lifecycle": "pending"
+    }
+  ]
+}

@@ -32,7 +32,7 @@ seo:
   title: AIOps ve olay yaşam döngüsü yönetimi
   description: >-
     Alarm gürültüsünü anlamlı olaylara indirger ve aksiyona bağlar.
-  noindex: false
+  noindex: true
 ---
 
 Bu sayfa taslak içerik modelinden üretilmiştir. Metinler nötr tutulmuştur ve

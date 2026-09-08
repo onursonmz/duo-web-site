@@ -134,29 +134,66 @@ test.describe("eksik çeviri — sessiz fallback YOK", () => {
   });
 });
 
-test.describe("public içerik filtreleri", () => {
-  test("pasif teknoloji (CyclOps) public çıktıda görünmez", async ({ page }) => {
-    await page.goto("/cozumler/aiops-ve-olay-yasam-dongusu/");
-
-    const html = await page.content();
-    expect(html.toLowerCase()).not.toContain("cyclops");
-    await expect(page.getByTestId("technology-empty")).toBeVisible();
+test.describe("public içerik filtreleri — FAIL-CLOSED", () => {
+  test("hiçbir teknoloji public çıktıda görünmüyor (tamamı pending)", async ({ page }) => {
+    // S00 envanterindeki 35 kaydın tamamı `lifecycle: pending`; iş sahibi
+    // doğrulaması gelmeden hiçbiri yayınlanmaz (docs/CONTENT_MATURITY.md).
+    for (const route of [TR_SOLUTION, EN_SOLUTION, "/cozumler/aiops-ve-olay-yasam-dongusu/"]) {
+      await page.goto(route);
+      await expect(page.getByTestId("technology-list"), route).toHaveCount(0);
+      await expect(page.getByTestId("technology-empty"), route).toBeVisible();
+    }
   });
 
-  test("aktif teknolojiler listeleniyor", async ({ page }) => {
-    await page.goto(TR_SOLUTION);
+  test("karar bekleyen teknolojiler HTML'de hiç geçmiyor", async ({ page }) => {
+    const forbidden = [
+      "cyclops",
+      "glpi",
+      "jira",
+      "tableau",
+      "zabbix",
+      "grafana",
+      "datadog",
+      "instana",
+      "opentelemetry",
+      "confluent",
+      "ardoq",
+      "device42",
+      "freshservice",
+      "solarwinds",
+      "runzero",
+      "kace",
+    ];
 
-    const list = page.getByTestId("technology-list");
-    await expect(list).toBeVisible();
-    await expect(list.locator("li")).toHaveCount(5);
-    await expect(list).toContainText("Zabbix");
+    for (const route of [
+      "/",
+      "/en/",
+      "/cozumler/",
+      "/en/solutions/",
+      TR_SOLUTION,
+      EN_SOLUTION,
+      "/cozumler/aiops-ve-olay-yasam-dongusu/",
+    ]) {
+      await page.goto(route);
+      const html = (await page.content()).toLowerCase();
+      for (const id of forbidden) {
+        expect(html.includes(id), `${route} sayfasında "${id}" bulundu`).toBe(false);
+      }
+    }
   });
 
   test("izinsiz logo hiçbir sayfada render edilmiyor", async ({ page }) => {
     for (const route of [TR_SOLUTION, EN_SOLUTION, "/cozumler/", "/"]) {
       await page.goto(route);
-      // Fixture'ların tamamında logoPermission unknown; hiç <img> olmamalı.
+      // Tüm kayıtlarda logoPermission unknown; hiç <img> olmamalı.
       await expect(page.locator("#main-content img")).toHaveCount(0);
+    }
+  });
+
+  test("taslak içerik indekslenmiyor (noindex)", async ({ page }) => {
+    for (const route of ["/", "/en/", "/cozumler/", "/en/solutions/", TR_SOLUTION, EN_SOLUTION]) {
+      await page.goto(route);
+      await expect(page.locator('meta[name="robots"][content="noindex"]'), route).toHaveCount(1);
     }
   });
 });
@@ -214,5 +251,18 @@ test.describe("sağlık kontrolleri", () => {
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
       .analyze();
     expect(result.violations).toEqual([]);
+  });
+});
+
+test.describe("e2e sunucu kimliği", () => {
+  test("istekler bu çalıştırmanın kendi preview sunucusuna gidiyor", async ({ page, baseURL }) => {
+    const response = await page.goto("/");
+
+    // Statik sunucumuz bu başlığı ekler; başka bir sunucuya bağlanılmadığının kanıtı.
+    expect(response?.headers()["x-duosis-preview"]).toBe("e2e");
+
+    // Dinamik port kullanılıyor; sabit 4321'e bağlanılmıyor.
+    expect(baseURL).toBeDefined();
+    expect(new URL(baseURL ?? "").port).not.toBe("4321");
   });
 });

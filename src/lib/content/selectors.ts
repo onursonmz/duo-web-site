@@ -1,5 +1,5 @@
 import { getCollection, type CollectionEntry } from "astro:content";
-import type { Locale } from "@lib/content/schema";
+import type { Locale, TechnologyLifecycle } from "@lib/content/schema";
 
 /**
  * MERKEZİ SEÇİCİ KATMANI.
@@ -11,7 +11,7 @@ import type { Locale } from "@lib/content/schema";
  * - `status !== "published"` kayıt görünmez
  * - `verificationStatus !== "verified"` iddia/metrik görünmez
  * - `logoPermission !== "allowed"` logo görünmez
- * - `active !== true` teknoloji görünmez
+ * - `lifecycle !== "active"` teknoloji görünmez (pending ve inactive dahil)
  */
 
 export type ViewMode = "public" | "preview";
@@ -40,8 +40,14 @@ export function canShowLogo(logoPermission: string): boolean {
   return logoPermission === "allowed";
 }
 
-export function isActiveTechnology(active: boolean, mode: ViewMode): boolean {
-  return mode === "preview" ? true : active === true;
+/**
+ * Teknoloji görünürlüğü — FAIL-CLOSED.
+ * Public modda yalnızca `active`. `pending` (karar bekliyor) ve `inactive`
+ * (kapsam dışı) public çıktıya girmez.
+ */
+export function isVisibleTechnology(lifecycle: TechnologyLifecycle, mode: ViewMode): boolean {
+  if (mode === "preview") return lifecycle !== "inactive";
+  return lifecycle === "active";
 }
 
 // ---------------------------------------------------------------- doğrulama
@@ -50,8 +56,6 @@ export function isActiveTechnology(active: boolean, mode: ViewMode): boolean {
  * Aynı `translationKey + locale` çifti birden fazla kayıtta olamaz ve aynı
  * locale içinde slug tekrar edemez. Astro şeması bunu göremez (dosya bazlı
  * doğrular), bu yüzden koleksiyon düzeyinde burada denetlenir.
- *
- * Sayfalar bu katmanı kullandığı için ihlal build'i kırar.
  */
 export function assertUniqueTranslations(
   entries: readonly { data: { translationKey: string; locale: string; slug?: string } }[],
@@ -87,43 +91,36 @@ export function assertUniqueTranslations(
   }
 }
 
-// ---------------------------------------------------------------- koleksiyon seçiciler
+/** `translationKey`/slug taşıyan tüm koleksiyonlar. */
+const LOCALIZED_COLLECTIONS = [
+  "solutions",
+  "services",
+  "milestones",
+  "proofs",
+  "insights",
+] as const;
+
+let uniqueCache: Promise<void> | undefined;
 
 /**
- * Referans bütünlüğü. Astro'nun `reference()` doğrulaması bozuk referansı
- * ERROR olarak LOGLAR ama içerik senkronizasyonunu durdurmaz; sessizce
- * kırık bir bağ ile devam edilmesini istemiyoruz.
- *
- * Bu denetim sayfa üretimi sırasında çalışır ve bozuk referansta BUILD'İ KIRAR.
+ * Yerelleştirilmiş TÜM koleksiyonlarda benzersizliği denetler.
+ * `src/middleware.ts` tarafından her build'de çağrılır; bir sayfanın ilgili
+ * koleksiyonu sorgulamasına bağlı değildir.
  */
-export async function assertSolutionReferencesResolve(
-  solutions: readonly Solution[]
-): Promise<void> {
-  const technologyIds = new Set((await getCollection("technologies")).map((e) => e.id));
-  const proofIds = new Set((await getCollection("proofs")).map((e) => e.id));
-
-  for (const solution of solutions) {
-    for (const ref of solution.data.technologyRefs) {
-      if (!technologyIds.has(ref.id)) {
-        throw new Error(
-          `[solutions] Bozuk içerik referansı: "${solution.id}" -> technologies/"${ref.id}" bulunamadı.`
-        );
-      }
+export function assertUniqueTranslationsOnce(): Promise<void> {
+  uniqueCache ??= (async () => {
+    for (const name of LOCALIZED_COLLECTIONS) {
+      assertUniqueTranslations(await getCollection(name), name);
     }
-    for (const ref of solution.data.proofRefs) {
-      if (!proofIds.has(ref.id)) {
-        throw new Error(
-          `[solutions] Bozuk içerik referansı: "${solution.id}" -> proofs/"${ref.id}" bulunamadı.`
-        );
-      }
-    }
-  }
+  })();
+  return uniqueCache;
 }
+
+// ---------------------------------------------------------------- koleksiyon seçiciler
 
 export async function getSolutions(locale: Locale, mode: ViewMode): Promise<Solution[]> {
   const all = await getCollection("solutions");
   assertUniqueTranslations(all, "solutions");
-  await assertSolutionReferencesResolve(all);
 
   return all
     .filter((e) => e.data.locale === locale && isPublishedStatus(e.data.status, mode))
@@ -143,11 +140,11 @@ export async function findSolutionByTranslationKey(
 export async function getTechnologies(mode: ViewMode): Promise<Technology[]> {
   const all = await getCollection("technologies");
   return all
-    .filter((e) => isActiveTechnology(e.data.active, mode))
+    .filter((e) => isVisibleTechnology(e.data.lifecycle, mode))
     .sort((a, b) => a.data.name.localeCompare(b.data.name, "en"));
 }
 
-/** Bir çözümün teknolojileri; pasif olanlar public modda düşer. */
+/** Bir çözümün teknolojileri; görünür olmayanlar public modda düşer. */
 export async function getTechnologiesForSolution(
   solution: Solution,
   mode: ViewMode

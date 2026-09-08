@@ -10,7 +10,7 @@ import {
   solutionPath,
   solutionsIndexPath,
 } from "@lib/i18n/routes";
-import { dictionaryKeys, getDictionary, t } from "@lib/i18n/dictionary";
+import { CTA_LABEL_KEYS, dictionaryKeys, getDictionary, t } from "@lib/i18n/dictionary";
 
 describe("locale algılama — URL tabanlı ve deterministik", () => {
   it("varsayılan locale tr", () => {
@@ -128,5 +128,22 @@ describe("locale dictionary", () => {
   it("eksik çeviri SESSİZ FALLBACK üretmez, hata fırlatır", () => {
     // @ts-expect-error bilinmeyen anahtar bilinçli olarak veriliyor
     expect(() => t("tr", "yok.olan.anahtar")).toThrow(/Eksik çeviri/);
+  });
+});
+
+describe("CTA anahtar kümesi kapalı", () => {
+  it("her CTA anahtarı sözlükte tanımlı", () => {
+    for (const key of CTA_LABEL_KEYS) {
+      expect(dictionaryKeys).toContain(key);
+      expect(t("tr", key).length).toBeGreaterThan(0);
+      expect(t("en", key).length).toBeGreaterThan(0);
+    }
+  });
+
+  it("küme boş değil ve yalnızca cta.* anahtarları içeriyor", () => {
+    expect(CTA_LABEL_KEYS.length).toBeGreaterThan(0);
+    for (const key of CTA_LABEL_KEYS) {
+      expect(key.startsWith("cta.")).toBe(true);
+    }
   });
 });

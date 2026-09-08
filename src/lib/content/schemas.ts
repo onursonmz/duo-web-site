@@ -1,11 +1,15 @@
-import { reference, z } from "astro:content";
+import { reference } from "astro:content";
+import { z } from "astro/zod";
+import { CTA_LABEL_KEYS } from "@lib/i18n/dictionary";
 import {
+  licenseModelEnum,
   localeEnum,
   localizedBase,
   logoPermissionEnum,
   seoSchema,
   slugSchema,
   statusEnum,
+  technologyLifecycleEnum,
   translationKeySchema,
   verificationStatusEnum,
 } from "@lib/content/schema";
@@ -17,7 +21,33 @@ import {
  *
  * Tümü `.strict()`: frontmatter'da tanımsız bir alan varsa doğrulama başarısız
  * olur ve build kırılır.
+ *
+ * MİMARİ KARAR — tek yönlü referans:
+ * Çözüm → teknoloji ilişkisi YALNIZCA `Solution.technologyRefs` üzerinde tutulur.
+ * `Technology` üzerinde ters bir `solutionRefs` alanı BULUNMAZ; aynı ilişkinin iki
+ * yerde tutulması senkronizasyon hatası üretir. Teknoloji kaydındaki `solutionArea`
+ * alanı S00 envanterinden gelen bilgilendirici bir etikettir, ilişki kaynağı değildir;
+ * sayfa üretiminde kullanılmaz.
  */
+
+/** Sözleşmedeki AI anlatısı: algıla → anla → harekete geç. */
+const aiRoleSchema = z
+  .object({
+    detect: z.string().min(1),
+    understand: z.string().min(1),
+    act: z.string().min(1),
+  })
+  .strict();
+
+/** Sözleşmedeki "örnek senaryo / çalışma akışı" bölümü. */
+const scenarioSchema = z
+  .object({
+    title: z.string().min(1),
+    context: z.string().min(1),
+    flow: z.array(z.string().min(1)).min(1),
+    result: z.string().min(1),
+  })
+  .strict();
 
 export const solutionSchema = z
   .object({
@@ -33,11 +63,23 @@ export const solutionSchema = z
     benefits: z.array(z.string().min(1)).min(1),
     capabilities: z.array(z.string().min(1)).default([]),
     technologyRefs: z.array(reference("technologies")).default([]),
+    /**
+     * Sözleşmedeki `caseStudyRefs` ile aynı ilişkidir. Tek bir `proofs`
+     * koleksiyonu kullanıyoruz: hem anonim/isimli referans (testimonial) hem de
+     * metrikli vaka (case study) aynı şemayla temsil ediliyor; ikisi de aynı
+     * doğrulama ve logo izni kurallarına tabi. Ayrım kayıt içinde `metrics` ve
+     * `quote` alanlarının doluluğuyla yapılır. Bu, sözleşmedeki adın
+     * genişletilmiş (superset) karşılığıdır.
+     */
     proofRefs: z.array(reference("proofs")).default([]),
+    /** Yalnızca DOĞRULANMIŞ AI yeteneği varsa doldurulur; uydurulmaz. */
+    aiRole: aiRoleSchema.optional(),
+    /** Yalnızca doğrulanmış bir akış varsa doldurulur. */
+    scenario: scenarioSchema.optional(),
     cta: z
       .object({
-        /** Etiket locale dictionary'den gelir; burada yalnızca anahtar tutulur. */
-        labelKey: z.string().min(1),
+        /** Kapalı küme: locale sözlüğünde CTA olarak tanımlı anahtarlar. */
+        labelKey: z.enum(CTA_LABEL_KEYS),
         href: z.string().min(1),
       })
       .strict(),
@@ -48,6 +90,7 @@ export const technologySchema = z
   .object({
     id: z.string().min(1),
     name: z.string().min(1),
+    currentSiteLabel: z.string().optional(),
     group: z.enum([
       "observability",
       "apm",
@@ -58,13 +101,20 @@ export const technologySchema = z
       "enterprise-architecture",
       "automation",
       "aiops",
+      "security",
     ]),
-    /** false -> public listelerden düşer; kod değişikliği gerekmez. */
-    active: z.boolean(),
+    /** Kapalı yayın döngüsü; public seçici YALNIZCA "active" gösterir. */
+    lifecycle: technologyLifecycleEnum,
+    decisionNeeded: z.boolean(),
+    logoPermission: logoPermissionEnum,
+    /** Bilgi amaçlı; logo iznini ima ETMEZ. */
+    licenseModel: licenseModelEnum,
+    /** S00 envanterindeki kaynak izi (hangi belgede bulundu). */
+    source: z.string().min(1),
+    /** Bilgilendirici ADR-009 alan etiketi; ilişki kaynağı DEĞİL (yukarıdaki nota bakın). */
+    solutionArea: translationKeySchema.nullable(),
     officialUrl: z.url().optional(),
     logoPath: z.string().optional(),
-    logoPermission: logoPermissionEnum,
-    decisionNeeded: z.boolean().default(false),
     note: z.string().optional(),
   })
   .strict();

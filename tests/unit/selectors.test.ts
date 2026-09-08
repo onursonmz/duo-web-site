@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   assertUniqueTranslations,
   canShowLogo,
-  isActiveTechnology,
+  isVisibleTechnology,
   isPublishedStatus,
   isVerifiedClaim,
   logoPathIfAllowed,
@@ -63,14 +63,17 @@ describe("canShowLogo — izinsiz logo hiçbir modda gösterilmez", () => {
   });
 });
 
-describe("isActiveTechnology — active:false public listede yok", () => {
+describe("isVisibleTechnology — fail-closed", () => {
   it("public modda yalnızca active geçer", () => {
-    expect(isActiveTechnology(true, PUBLIC)).toBe(true);
-    expect(isActiveTechnology(false, PUBLIC)).toBe(false);
+    expect(isVisibleTechnology("active", PUBLIC)).toBe(true);
+    expect(isVisibleTechnology("pending", PUBLIC)).toBe(false);
+    expect(isVisibleTechnology("inactive", PUBLIC)).toBe(false);
   });
 
-  it("preview modda pasifler de görünür", () => {
-    expect(isActiveTechnology(false, PREVIEW)).toBe(true);
+  it("preview modda pending görünür, inactive görünmez", () => {
+    expect(isVisibleTechnology("pending", PREVIEW)).toBe(true);
+    expect(isVisibleTechnology("active", PREVIEW)).toBe(true);
+    expect(isVisibleTechnology("inactive", PREVIEW)).toBe(false);
   });
 });
 

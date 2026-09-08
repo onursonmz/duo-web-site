@@ -31,7 +31,7 @@ seo:
   title: Mühendislik ve ürün geliştirme
   description: >-
     İhtiyacı çalışan yazılıma ve sürdürülebilir operasyona dönüştürür.
-  noindex: false
+  noindex: true
 ---
 
 Bu sayfa taslak içerik modelinden üretilmiştir. Metinler nötr tutulmuştur ve

@@ -90,6 +90,19 @@ const dictionaries = {
 
 export type TranslationKey = keyof (typeof dictionaries)["tr"];
 
+/**
+ * İçerik verisinde `cta.labelKey` olarak kullanılabilecek KAPALI anahtar kümesi.
+ * Şema bu listeye göre doğrular; serbest string veya cast kabul edilmez.
+ */
+export const CTA_LABEL_KEYS = [
+  "cta.exploreSolutions",
+  "cta.solutionDetail",
+  "cta.backToSolutions",
+  "cta.contactUs",
+] as const satisfies readonly TranslationKey[];
+
+export type CtaLabelKey = (typeof CTA_LABEL_KEYS)[number];
+
 /** Sözlükteki anahtar sayısı — TR/EN paritesi testte doğrulanır. */
 export const dictionaryKeys = Object.keys(dictionaries.tr) as TranslationKey[];
 

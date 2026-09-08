@@ -37,7 +37,7 @@ seo:
   title: Operasyonel görünürlük ve uygulama performansı
   description: >-
     Altyapı, ağ, uygulama ve log verisini tek operasyon görünümünde birleştirir.
-  noindex: false
+  noindex: true
 ---
 
 Bu sayfa taslak içerik modelinden üretilmiştir. Metinler nötr tutulmuştur ve

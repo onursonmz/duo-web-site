@@ -37,7 +37,7 @@ seo:
   title: Operational visibility and application performance
   description: >-
     Brings infrastructure, network, application and log data into one operational view.
-  noindex: false
+  noindex: true
 ---
 
 This page is generated from the draft content model. The wording is deliberately

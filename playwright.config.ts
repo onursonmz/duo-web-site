@@ -1,7 +1,32 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 4321;
-const BASE_URL = `http://127.0.0.1:${PORT}`;
+/**
+ * E2E her çalıştırmada DİNAMİK ve BOŞ bir loopback portu kullanır.
+ *
+ * Sabit port (4321) kullanıldığında makinede kalmış eski bir sunucu testlerin
+ * BAYAT bir build'e bağlanmasına yol açabiliyordu; `EADDRINUSE` alan yeni sunucu
+ * ölürken testler eski sunucuya bağlanıp yanlış pozitif üretiyordu (S02 bulgusu).
+ *
+ * Çözüm:
+ * - Port `tests/support/run-e2e.mjs` içinde TEK bir yerde `listen(0)` ile seçilir.
+ *   (Yapılandırma her worker sürecinde yeniden değerlendirildiği için portun
+ *   burada seçilmesi worker'ların farklı portlara bakmasına yol açıyordu.)
+ * - Aynı port TEK bir environment değişkeniyle (`E2E_PORT`) hem `baseURL`'e hem
+ *   web server komutuna verilir; worker'lar bu değeri devralır.
+ * - Sunucu bind edemezse süreç sıfırdan farklı exit code ile ölür ve Playwright
+ *   testleri hiç başlatmaz (`reuseExistingServer: false`).
+ * - Sabit porttaki bilinmeyen süreçler ÖLDÜRÜLMEZ; onlara dokunulmaz.
+ */
+const rawPort = process.env.E2E_PORT;
+if (rawPort === undefined || Number(rawPort) <= 0) {
+  throw new Error(
+    "E2E_PORT tanımlı değil. E2E testlerini `pnpm test:e2e` ile çalıştırın " +
+      "(tests/support/run-e2e.mjs boş bir port seçip bu değişkeni ayarlar)."
+  );
+}
+const PORT = Number(rawPort);
+const HOST = "127.0.0.1";
+const BASE_URL = `http://${HOST}:${PORT}`;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -36,18 +61,14 @@ export default defineConfig({
 
   // Testler ÜRETİM ÇIKTISINA karşı koşar: dev sunucusunun HMR istemcisi konsol
   // ve DOM sonuçlarını kirletmesin diye önce build alınır.
-  //
-  // `astro preview` yerine küçük bir statik sunucu kullanılıyor: Astro 7'nin
-  // preview komutu TTY yokken kendini arka plana alıp kilit dosyası tutuyor;
-  // Playwright ön planda kalan bir süreç beklediği için bu davranış testleri
-  // kırıyor ve makinede kalan eski bir daemon testlerin bayat build'e karşı
-  // koşmasına yol açabiliyor. Bkz. tests/support/preview-server.mjs
   webServer: {
-    command: `pnpm build && node tests/support/preview-server.mjs dist ${PORT} 127.0.0.1`,
+    command: `pnpm build && node tests/support/preview-server.mjs dist ${PORT} ${HOST}`,
     url: BASE_URL,
+    // Var olan sunucu ASLA yeniden kullanılmaz.
     reuseExistingServer: false,
     timeout: 180_000,
     stdout: "pipe",
     stderr: "pipe",
+    env: { E2E_PORT: String(PORT) },
   },
 });

@@ -32,7 +32,7 @@ seo:
   title: Kurumsal mimari ve yönetişim
   description: >-
     İş hedefleri, uygulamalar ve teknolojileri aynı haritada karar verilebilir hale getirir.
-  noindex: false
+  noindex: true
 ---
 
 Bu sayfa taslak içerik modelinden üretilmiştir. Metinler nötr tutulmuştur ve

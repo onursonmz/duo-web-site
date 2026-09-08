@@ -19,8 +19,8 @@
     "typecheck": "astro check && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test",
-    "test:a11y": "playwright test --grep @a11y",
+    "test:e2e": "node tests/support/run-e2e.mjs",
+    "test:a11y": "node tests/support/run-e2e.mjs --grep @a11y",
     "quality": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e && pnpm build"
   },
   "dependencies": {

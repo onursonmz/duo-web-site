@@ -33,7 +33,7 @@ seo:
   title: Konfigürasyon ve varlık yönetimi
   description: >-
     BT bileşenlerini ve aralarındaki ilişkileri güncel, merkezi ve güvenilir bir kaynağa taşır.
-  noindex: false
+  noindex: true
 ---
 
 Bu sayfa taslak içerik modelinden üretilmiştir. Metinler nötr tutulmuştur ve

@@ -1,0 +1,270 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it } from "vitest";
+import { technologySchema } from "@lib/content/schemas";
+import { isVisibleTechnology, PREVIEW, PUBLIC } from "@lib/content/selectors";
+import { TECHNOLOGY_LIFECYCLES } from "@lib/content/schema";
+
+/**
+ * S00 ENVANTERİ ↔ S02 İÇERİK VERİSİ PARİTE TESTLERİ.
+ *
+ * S00 normalize envanteri (`discovery/technology-inventory.csv`) kaynak kayıttır.
+ * İçerik verisi ondan türetilir; sessiz veri kaybı kabul edilmez.
+ */
+
+const root = new URL("../../", import.meta.url);
+const read = (p: string) => readFileSync(fileURLToPath(new URL(p, root)), "utf8");
+
+/** Basit CSV ayrıştırıcı (tırnaklı alan ve gömülü virgül destekli). */
+function parseCsv(text: string): Record<string, string>[] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let quoted = false;
+
+  const body = text.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
+  for (let i = 0; i < body.length; i++) {
+    const ch = body[i];
+    if (quoted) {
+      if (ch === '"') {
+        if (body[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          quoted = false;
+        }
+      } else {
+        field += ch;
+      }
+    } else if (ch === '"') {
+      quoted = true;
+    } else if (ch === ",") {
+      row.push(field);
+      field = "";
+    } else if (ch === "\n") {
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = "";
+    } else {
+      field += ch;
+    }
+  }
+  if (field !== "" || row.length > 0) {
+    row.push(field);
+    rows.push(row);
+  }
+
+  const header = rows.shift();
+  if (header === undefined) return [];
+  return rows
+    .filter((r) => r.some((c) => c.trim() !== ""))
+    .map((r) => Object.fromEntries(header.map((h, i) => [h, r[i] ?? ""])));
+}
+
+const s00 = parseCsv(read("discovery/technology-inventory.csv"));
+const s02 = JSON.parse(read("src/content/technologies/technologies.json")) as Record<
+  string,
+  unknown
+>[];
+const mapping = JSON.parse(read("src/content/technologies/MAPPING.json")) as {
+  lifecycleMapping: Record<string, string>;
+  counts: { s00: number; s02: number };
+  lifecycleTransforms: { id: string; s00Active: string; s02Lifecycle: string }[];
+};
+
+const s00Ids = s00.map((r) => r["id"] ?? "");
+const s02Ids = s02.map((r) => String(r["id"]));
+
+describe("S00 ↔ S02 teknoloji paritesi", () => {
+  it("S00 envanteri 35 kayıt içeriyor", () => {
+    expect(s00).toHaveLength(35);
+  });
+
+  it("S02 içerik verisi de 35 kayıt içeriyor", () => {
+    expect(s02).toHaveLength(35);
+  });
+
+  it("ID kümeleri BİREBİR aynı — eksik veya fazla kayıt yok", () => {
+    const missing = s00Ids.filter((id) => !s02Ids.includes(id));
+    const extra = s02Ids.filter((id) => !s00Ids.includes(id));
+
+    expect(missing, `S02'de eksik: ${missing.join(", ")}`).toEqual([]);
+    expect(extra, `S02'de fazla: ${extra.join(", ")}`).toEqual([]);
+  });
+
+  it("ID'ler benzersiz", () => {
+    expect(new Set(s02Ids).size).toBe(s02Ids.length);
+  });
+
+  it("MAPPING.json sayımları gerçek dosyalarla tutarlı", () => {
+    expect(mapping.counts.s00).toBe(s00.length);
+    expect(mapping.counts.s02).toBe(s02.length);
+  });
+});
+
+describe("alan korunumu — sessiz veri kaybı yok", () => {
+  const byId = new Map(s02.map((r) => [String(r["id"]), r]));
+
+  it("her kayıtta zorunlu alanlar mevcut", () => {
+    for (const record of s02) {
+      for (const field of [
+        "id",
+        "name",
+        "group",
+        "lifecycle",
+        "decisionNeeded",
+        "logoPermission",
+        "licenseModel",
+        "source",
+        "solutionArea",
+        "note",
+      ]) {
+        expect(record, `${String(record["id"])} -> ${field}`).toHaveProperty(field);
+      }
+    }
+  });
+
+  it("decisionNeeded S00 ile birebir aynı", () => {
+    for (const src of s00) {
+      const id = src["id"] ?? "";
+      const expected = src["decisionNeeded"] === "yes";
+      expect(byId.get(id)?.["decisionNeeded"], `${id} decisionNeeded`).toBe(expected);
+    }
+  });
+
+  it("logoPermission S00 ile birebir aynı", () => {
+    for (const src of s00) {
+      const id = src["id"] ?? "";
+      expect(byId.get(id)?.["logoPermission"], `${id} logoPermission`).toBe(src["logoPermission"]);
+    }
+  });
+
+  it("licenseModel S00 ile birebir aynı", () => {
+    for (const src of s00) {
+      const id = src["id"] ?? "";
+      expect(byId.get(id)?.["licenseModel"], `${id} licenseModel`).toBe(src["licenseModel"]);
+    }
+  });
+
+  it("source (kaynak izi) S00 ile birebir aynı", () => {
+    for (const src of s00) {
+      const id = src["id"] ?? "";
+      expect(byId.get(id)?.["source"], `${id} source`).toBe(src["source"]);
+    }
+  });
+
+  it("officialUrl S00'da doluysa korunmuş", () => {
+    for (const src of s00) {
+      const id = src["id"] ?? "";
+      const url = (src["officialUrl"] ?? "").trim();
+      if (url !== "") {
+        expect(byId.get(id)?.["officialUrl"], `${id} officialUrl`).toBe(url);
+      }
+    }
+  });
+
+  it("note (açıklama) boş bırakılmamış", () => {
+    for (const record of s02) {
+      expect(String(record["note"] ?? "").length, `${String(record["id"])} note`).toBeGreaterThan(
+        0
+      );
+    }
+  });
+
+  it("Grafana decisionNeeded S00 kaynağıyla uyumlu (false)", () => {
+    const src = s00.find((r) => r["id"] === "grafana");
+    expect(src?.["decisionNeeded"]).toBe("no");
+    expect(byId.get("grafana")?.["decisionNeeded"]).toBe(false);
+  });
+});
+
+describe("lifecycle dönüşümü — sessizce active yapılmadı", () => {
+  it("S00'da hiçbir kayıt active:true değil", () => {
+    expect(s00.every((r) => r["active"] === "unknown")).toBe(true);
+  });
+
+  it("S00 active:unknown -> S02 lifecycle:pending", () => {
+    for (const src of s00) {
+      const id = src["id"] ?? "";
+      expect(byIdLifecycle(id), `${id} lifecycle`).toBe("pending");
+    }
+  });
+
+  it("hiçbir kayıt sessizce active yapılmamış", () => {
+    expect(s02.filter((r) => r["lifecycle"] === "active")).toEqual([]);
+  });
+
+  it("lifecycle değerleri kapalı enumda", () => {
+    for (const record of s02) {
+      expect(TECHNOLOGY_LIFECYCLES).toContain(record["lifecycle"]);
+    }
+  });
+
+  it("MAPPING.json dönüşüm kuralını belgeliyor", () => {
+    expect(mapping.lifecycleMapping["unknown"]).toBe("pending");
+    expect(mapping.lifecycleTransforms).toHaveLength(35);
+    expect(mapping.lifecycleTransforms.every((t) => t.s02Lifecycle === "pending")).toBe(true);
+  });
+
+  function byIdLifecycle(id: string): unknown {
+    return byId.get(id)?.["lifecycle"];
+  }
+
+  const byId = new Map(s02.map((r) => [String(r["id"]), r]));
+});
+
+describe("public seçici FAIL-CLOSED", () => {
+  it("pending teknoloji public'te GÖRÜNMEZ", () => {
+    expect(isVisibleTechnology("pending", PUBLIC)).toBe(false);
+  });
+
+  it("inactive teknoloji public'te GÖRÜNMEZ", () => {
+    expect(isVisibleTechnology("inactive", PUBLIC)).toBe(false);
+  });
+
+  it("yalnızca active public'te görünür", () => {
+    expect(isVisibleTechnology("active", PUBLIC)).toBe(true);
+  });
+
+  it("preview modda pending görünür, inactive görünmez", () => {
+    expect(isVisibleTechnology("pending", PREVIEW)).toBe(true);
+    expect(isVisibleTechnology("inactive", PREVIEW)).toBe(false);
+  });
+
+  it("mevcut envanterin TAMAMI public'te filtreleniyor (hiçbiri onaylı değil)", () => {
+    const visible = s02.filter((r) =>
+      isVisibleTechnology(r["lifecycle"] as "active" | "inactive" | "pending", PUBLIC)
+    );
+    expect(visible).toEqual([]);
+  });
+
+  it("özellikle GLPI, Jira, Tableau ve CyclOps public'te görünmüyor", () => {
+    for (const id of ["glpi", "jira", "tableau", "cyclops"]) {
+      const record = s02.find((r) => r["id"] === id);
+      expect(record, `${id} kaydı bulunmalı`).toBeDefined();
+      expect(
+        isVisibleTechnology(record?.["lifecycle"] as "active" | "inactive" | "pending", PUBLIC),
+        `${id} public'te görünmemeli`
+      ).toBe(false);
+    }
+  });
+});
+
+describe("şema uyumu", () => {
+  it("35 kaydın tamamı technologySchema'yı geçiyor", () => {
+    for (const record of s02) {
+      const result = technologySchema.safeParse(record);
+      expect(
+        result.success,
+        `${String(record["id"])}: ${JSON.stringify(result.error?.issues)}`
+      ).toBe(true);
+    }
+  });
+
+  it("geçersiz lifecycle değeri REDDEDİLİR", () => {
+    const base = { ...s02[0] };
+    expect(technologySchema.safeParse({ ...base, lifecycle: "unknown" }).success).toBe(false);
+    expect(technologySchema.safeParse({ ...base, lifecycle: true }).success).toBe(false);
+  });
+});

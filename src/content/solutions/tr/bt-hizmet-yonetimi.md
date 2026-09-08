@@ -34,7 +34,7 @@ seo:
   title: BT hizmet yönetimi
   description: >-
     Talepten çözüme kadar hizmet akışını ölçülebilir ve standart hale getirir.
-  noindex: false
+  noindex: true
 ---
 
 Bu sayfa taslak içerik modelinden üretilmiştir. Metinler nötr tutulmuştur ve

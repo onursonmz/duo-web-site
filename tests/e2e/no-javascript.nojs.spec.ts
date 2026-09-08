@@ -42,7 +42,7 @@ test.describe("JavaScript kapalı", () => {
 
     await expect(page.locator("html")).toHaveAttribute("lang", "tr");
     await expect(page.locator("h1")).toBeVisible();
-    await expect(page.getByTestId("technology-list")).toBeVisible();
+    await expect(page.getByTestId("technology-empty")).toBeVisible();
 
     const main = (await page.locator("#main-content").innerText()).trim();
     expect(main.length).toBeGreaterThan(300);

@@ -69,12 +69,17 @@ describe("technologySchema", () => {
     id: "zabbix",
     name: "Zabbix",
     group: "observability",
-    active: true,
+    lifecycle: "pending",
+    decisionNeeded: false,
     logoPermission: "unknown",
+    licenseModel: "not-assessed",
+    source: "site+plan+brief+sunum(S12,S16)",
+    solutionArea: "observability-apm",
   };
 
   it("geçerli kaydı kabul eder", () => {
-    expect(technologySchema.safeParse(valid).success).toBe(true);
+    const r = technologySchema.safeParse(valid);
+    expect(r.success, JSON.stringify(r.error?.issues)).toBe(true);
   });
 
   it("geçersiz logoPermission enum'unu REDDEDER", () => {
@@ -88,12 +93,32 @@ describe("technologySchema", () => {
     expect(technologySchema.safeParse({ ...valid, group: "monitoring" }).success).toBe(false);
   });
 
-  it("active alanı boolean değilse REDDEDER", () => {
-    expect(technologySchema.safeParse({ ...valid, active: "true" }).success).toBe(false);
+  it("geçersiz lifecycle enum'unu REDDEDER", () => {
+    expect(technologySchema.safeParse({ ...valid, lifecycle: "unknown" }).success).toBe(false);
+    expect(technologySchema.safeParse({ ...valid, lifecycle: true }).success).toBe(false);
+  });
+
+  it("geçersiz licenseModel enum'unu REDDEDER", () => {
+    expect(technologySchema.safeParse({ ...valid, licenseModel: "mit" }).success).toBe(false);
+  });
+
+  it("solutionArea null olabilir ama tanımsız olamaz", () => {
+    expect(technologySchema.safeParse({ ...valid, solutionArea: null }).success).toBe(true);
+    const { solutionArea: _drop, ...without } = valid;
+    expect(technologySchema.safeParse(without).success).toBe(false);
+  });
+
+  it("source alanı zorunlu (S00 kaynak izi kaybolmaz)", () => {
+    const { source: _drop, ...without } = valid;
+    expect(technologySchema.safeParse(without).success).toBe(false);
   });
 
   it("geçersiz officialUrl'yi REDDEDER", () => {
     expect(technologySchema.safeParse({ ...valid, officialUrl: "zabbix.com" }).success).toBe(false);
+  });
+
+  it("şema dışı alanı REDDEDER (strict)", () => {
+    expect(technologySchema.safeParse({ ...valid, active: true }).success).toBe(false);
   });
 });
 
@@ -175,5 +200,64 @@ describe("seoSchema", () => {
   it("noindex varsayılanı false", () => {
     const r = seoSchema.parse({ title: "T", description: "D" });
     expect(r.noindex).toBe(false);
+  });
+});
+
+describe("solutionSchema — sözleşme alanları", () => {
+  it("aiRole isteğe bağlı ve strict", () => {
+    const withAi = {
+      ...validSolution,
+      aiRole: { detect: "a", understand: "b", act: "c" },
+    };
+    expect(solutionSchema.safeParse(withAi).success).toBe(true);
+
+    // eksik alan
+    expect(
+      solutionSchema.safeParse({ ...validSolution, aiRole: { detect: "a", understand: "b" } })
+        .success
+    ).toBe(false);
+    // fazla alan
+    expect(
+      solutionSchema.safeParse({
+        ...validSolution,
+        aiRole: { detect: "a", understand: "b", act: "c", extra: "x" },
+      }).success
+    ).toBe(false);
+  });
+
+  it("scenario isteğe bağlı ve strict", () => {
+    const withScenario = {
+      ...validSolution,
+      scenario: { title: "t", context: "c", flow: ["1"], result: "r" },
+    };
+    expect(solutionSchema.safeParse(withScenario).success).toBe(true);
+
+    // boş flow
+    expect(
+      solutionSchema.safeParse({
+        ...validSolution,
+        scenario: { title: "t", context: "c", flow: [], result: "r" },
+      }).success
+    ).toBe(false);
+  });
+
+  it("aiRole ve scenario yokken kayıt geçerli (doğrulanmamış veri uydurulmaz)", () => {
+    expect(solutionSchema.safeParse(validSolution).success).toBe(true);
+  });
+
+  it("cta.labelKey KAPALI kümeden olmalı", () => {
+    expect(
+      solutionSchema.safeParse({
+        ...validSolution,
+        cta: { labelKey: "cta.contactUs", href: "/x/" },
+      }).success
+    ).toBe(true);
+
+    for (const bad of ["cta.uydurma", "nav.home", "rastgele"]) {
+      expect(
+        solutionSchema.safeParse({ ...validSolution, cta: { labelKey: bad, href: "/x/" } }).success,
+        `"${bad}" reddedilmeliydi`
+      ).toBe(false);
+    }
   });
 });
