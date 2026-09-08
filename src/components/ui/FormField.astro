@@ -1,0 +1,203 @@
+---
+/**
+ * FORM FIELD — durumlarıyla birlikte.
+ *
+ * Erişilebilirlik kuralları:
+ * - Etiket her zaman görünür (placeholder etiket yerine geçmez).
+ * - Hata metni `aria-describedby` ile alana bağlanır ve `aria-invalid` set edilir.
+ * - Hata rengi TEK BAŞINA anlam taşımaz: metin ve şekil işareti de vardır.
+ * - Kenarlık kontrastı yüzeye karşı en az 3:1 (`--border-strong`).
+ */
+interface Props {
+  id: string;
+  name?: string;
+  label: string;
+  type?: "text" | "email" | "tel" | "url";
+  value?: string;
+  placeholder?: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  disabled?: boolean;
+  readonly?: boolean;
+  multiline?: boolean;
+}
+
+const {
+  id,
+  name,
+  label,
+  type = "text",
+  value,
+  placeholder,
+  hint,
+  error,
+  required = false,
+  disabled = false,
+  readonly = false,
+  multiline = false,
+} = Astro.props;
+
+const hintId = hint ? `${id}-hint` : undefined;
+const errorId = error ? `${id}-error` : undefined;
+const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
+---
+
+<div class:list={["field", error && "field--error", disabled && "field--disabled"]}>
+  <label class="field__label" for={id}>
+    {label}
+    {
+      required && (
+        <span class="field__required">
+          <span aria-hidden="true">*</span>
+          <span class="field__sr">(zorunlu)</span>
+        </span>
+      )
+    }
+  </label>
+
+  {
+    hint && (
+      <p class="field__hint" id={hintId}>
+        {hint}
+      </p>
+    )
+  }
+
+  {
+    multiline ? (
+      <textarea
+        class="field__control"
+        id={id}
+        name={name ?? id}
+        placeholder={placeholder}
+        required={required}
+        disabled={disabled}
+        readonly={readonly}
+        aria-invalid={error ? "true" : undefined}
+        aria-describedby={describedBy}
+        rows="4"
+      >
+        {value}
+      </textarea>
+    ) : (
+      <input
+        class="field__control"
+        id={id}
+        name={name ?? id}
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        required={required}
+        disabled={disabled}
+        readonly={readonly}
+        aria-invalid={error ? "true" : undefined}
+        aria-describedby={describedBy}
+      />
+    )
+  }
+
+  {
+    error && (
+      <p class="field__error" id={errorId}>
+        <span aria-hidden="true">×</span>
+        {error}
+      </p>
+    )
+  }
+</div>
+
+<style>
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    max-width: 26rem;
+  }
+
+  .field__label {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--text-primary);
+  }
+
+  .field__required {
+    color: var(--status-critical);
+  }
+
+  .field__hint {
+    margin: 0;
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    max-width: none;
+  }
+
+  .field__control {
+    width: 100%;
+    padding: var(--space-2xs) var(--space-xs);
+    background: var(--surface-raised);
+    border: var(--border-width) solid var(--border-strong);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: var(--text-md);
+    line-height: 1.5;
+    transition: border-color var(--motion-fast) var(--motion-ease);
+  }
+
+  .field__control::placeholder {
+    color: var(--text-muted);
+  }
+
+  .field__control:hover:not(:disabled):not([readonly]) {
+    border-color: var(--text-secondary);
+  }
+
+  .field__control:focus-visible {
+    border-color: var(--signal);
+  }
+
+  .field__control:disabled {
+    background: var(--surface-sunken);
+    border-color: var(--border-subtle);
+    color: var(--text-disabled);
+    cursor: not-allowed;
+  }
+
+  .field__control[readonly] {
+    background: var(--surface-sunken);
+  }
+
+  .field--error .field__control {
+    border-color: var(--status-critical);
+    border-width: var(--border-width-strong);
+  }
+
+  .field__error {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3xs);
+    margin: 0;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--status-critical);
+    max-width: none;
+  }
+
+  .field__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .field__control {
+      transition: none;
+    }
+  }
+</style>

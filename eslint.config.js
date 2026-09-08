@@ -31,6 +31,21 @@ export default tseslint.config(
       ],
       "no-console": ["error", { allow: ["warn", "error"] }],
       eqeqeq: ["error", "always"],
+
+      /*
+       * Kaydırılabilir bir bölge KLAVYEYLE erişilebilir olmak ZORUNDADIR:
+       * axe'ın `scrollable-region-focusable` kuralı ve WCAG 2.1.1, `overflow`
+       * taşıyan bir kaba `tabindex="0"` verilmesini şart koşar. Bu lint kuralı
+       * varsayılan olarak yalnızca `tabpanel` rolüne izin verdiği için iki
+       * gereksinim çakışıyor; çakışmada WCAG kazanır.
+       *
+       * Kural KAPATILMAZ — yalnızca `region` rolü izinli role listesine
+       * eklenir. Rolsüz veya başka rollü elemanlarda hata vermeye devam eder.
+       */
+      "astro/jsx-a11y/no-noninteractive-tabindex": [
+        "error",
+        { tags: [], roles: ["tabpanel", "region"], allowExpressionValues: true },
+      ],
     },
   },
   {

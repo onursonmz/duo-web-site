@@ -1,0 +1,80 @@
+---
+/**
+ * QUOTE / PROOF BLOCK.
+ *
+ * Doğrulanmamış müşteri sözü veya sonucu yayınlanamaz. `verificationStatus`
+ * "verified" değilse bileşen atıf yerine açık bir bekleme etiketi gösterir;
+ * uydurma isim/şirket üretmez.
+ */
+interface Props {
+  cite?: string;
+  role?: string;
+  verificationStatus: "verified" | "pending" | "rejected";
+  pendingLabel: string;
+}
+
+const { cite, role, verificationStatus, pendingLabel } = Astro.props;
+const verified = verificationStatus === "verified";
+---
+
+<figure class="quote">
+  <blockquote class="quote__body">
+    <slot />
+  </blockquote>
+  <figcaption class="quote__caption">
+    {
+      verified && cite ? (
+        <>
+          <span class="quote__cite">{cite}</span>
+          {role && <span class="quote__role">{role}</span>}
+        </>
+      ) : (
+        <span class="quote__pending">{pendingLabel}</span>
+      )
+    }
+  </figcaption>
+</figure>
+
+<style>
+  .quote {
+    margin: 0;
+    padding-left: var(--space-md);
+    border-left: var(--border-width-strong) solid var(--signal);
+  }
+
+  .quote__body {
+    margin: 0;
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .quote__body :global(p) {
+    margin: 0;
+  }
+
+  .quote__caption {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+    margin-top: var(--space-sm);
+    font-size: var(--text-sm);
+  }
+
+  .quote__cite {
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+  }
+
+  .quote__role {
+    color: var(--text-secondary);
+  }
+
+  .quote__pending {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+</style>
