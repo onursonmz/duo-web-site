@@ -1,0 +1,78 @@
+---
+/**
+ * EYEBROW + SECTION HEADING.
+ *
+ * Eyebrow monospace sistem etiketidir (sınırlı kullanım). Başlık seviyesi
+ * çağıran tarafından verilir; bileşen kendi başına h2 varsaymaz, böylece
+ * belge başlık hiyerarşisi bozulmaz.
+ */
+interface Props {
+  eyebrow?: string;
+  /** Sayfanin ana basligi ise h1; aksi halde bolum seviyesine gore secilir. */
+  as?: "h1" | "h2" | "h3" | "h4";
+  lead?: string;
+  align?: "start" | "center";
+  id?: string;
+}
+
+// Acik tip ek aciklamasi: bkz. Section.astro.
+const { eyebrow, as: Tag = "h2", lead, align = "start", id }: Props = Astro.props;
+---
+
+<header class:list={["heading", `heading--${align}`]}>
+  {eyebrow && <p class="heading__eyebrow">{eyebrow}</p>}
+  <Tag class="heading__title" id={id}><slot /></Tag>
+  {lead && <p class="heading__lead">{lead}</p>}
+</header>
+
+<style>
+  .heading {
+    margin-bottom: var(--space-lg);
+    max-width: 46rem;
+  }
+
+  .heading--center {
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .heading__eyebrow {
+    margin: 0 0 var(--space-2xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  /* İnce sinyal çizgisi: eyebrow'u başlıktan ayırır, dekoratiftir. */
+  .heading__eyebrow::before {
+    content: "";
+    display: inline-block;
+    width: var(--space-md);
+    height: 1px;
+    margin-right: var(--space-2xs);
+    vertical-align: middle;
+    background: var(--signal);
+  }
+
+  .heading--center .heading__eyebrow::before {
+    display: none;
+  }
+
+  .heading__title {
+    margin: 0;
+  }
+
+  .heading__lead {
+    margin: var(--space-sm) 0 0;
+    font-size: var(--text-lg);
+    color: var(--text-secondary);
+    max-width: var(--container-text);
+  }
+
+  .heading--center .heading__lead {
+    margin-inline: auto;
+  }
+</style>

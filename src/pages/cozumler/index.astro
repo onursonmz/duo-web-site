@@ -1,0 +1,30 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import SolutionList from "@components/SolutionList.astro";
+import { PUBLIC, getSolutions } from "@lib/content/selectors";
+import { solutionsIndexPath } from "@lib/i18n/routes";
+import { t } from "@lib/i18n/dictionary";
+
+const locale = "tr" as const;
+// Üretim sayfası: PUBLIC modu AÇIKÇA kullanılır.
+const solutions = await getSolutions(locale, PUBLIC);
+
+const alternates = { tr: solutionsIndexPath("tr"), en: solutionsIndexPath("en") };
+// İçerik olgunluk politikası: taslak içerik indekslenmez (docs/CONTENT_MATURITY.md).
+---
+
+<BaseLayout
+  locale={locale}
+  title={t(locale, "solutions.title")}
+  description={t(locale, "solutions.intro")}
+  alternates={alternates}
+  noindex={true}
+>
+  <p class="badge">{t(locale, "draft.badge")}</p>
+  <h1>{t(locale, "solutions.title")}</h1>
+  <p>{t(locale, "solutions.intro")}</p>
+
+  <SolutionList locale={locale} solutions={solutions} />
+
+  <p class="notice">{t(locale, "draft.notice")}</p>
+</BaseLayout>

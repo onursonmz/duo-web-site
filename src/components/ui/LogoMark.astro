@@ -1,0 +1,64 @@
+---
+/**
+ * LOGO KABI.
+ *
+ * İki ayrı sorumluluk:
+ * 1. DUOSIS kendi logosu — `variant` ile seçilir, izin gerekmez.
+ * 2. Üçüncü taraf logosu — bu bileşen üzerinden RENDER EDİLMEZ; izin denetimi
+ *    `logoPathIfAllowed` seçicisindedir ve `logoPermission !== "allowed"` olan
+ *    hiçbir varlık çıktıya girmez.
+ *
+ * Header'da okunamayan küçük tagline kullanılmaz: `lockup` yalnızca yeterli
+ * genişlikte tercih edilir, dar alanda `wordmark` kullanılır.
+ */
+interface Props {
+  variant?: "lockup" | "lockup-dark" | "wordmark" | "wordmark-mono" | "mark" | "mark-mono";
+  /** CSS uzunluğu; SVG en-boy oranını korur. */
+  width?: string;
+  label?: string;
+  class?: string;
+}
+
+const { variant = "lockup", width = "12rem", label = "Duosis", class: className } = Astro.props;
+
+const FILE: Record<string, string> = {
+  lockup: "/brand/duosis-logo.svg",
+  "lockup-dark": "/brand/duosis-logo-dark.svg",
+  wordmark: "/brand/duosis-wordmark.svg",
+  "wordmark-mono": "/brand/duosis-wordmark-mono.svg",
+  mark: "/brand/duosis-mark.svg",
+  "mark-mono": "/brand/duosis-mark-mono.svg",
+};
+
+// En-boy oranları üretilen SVG viewBox değerlerinden sabitlenir; böylece font
+// veya ağ durumundan bağımsız olarak CLS oluşmaz.
+const RATIO: Record<string, string> = {
+  lockup: "507.789 / 218.851",
+  "lockup-dark": "507.789 / 218.851",
+  wordmark: "507.789 / 149.541",
+  "wordmark-mono": "507.789 / 149.541",
+  mark: "194.137 / 149.446",
+  "mark-mono": "194.137 / 149.446",
+};
+---
+
+<span
+  class:list={["logo", className]}
+  style={`--logo-width:${width};--logo-ratio:${RATIO[variant]}`}
+>
+  <img src={FILE[variant]} alt={label} width="508" height="219" decoding="async" />
+</span>
+
+<style>
+  .logo {
+    display: inline-block;
+    width: var(--logo-width);
+  }
+
+  .logo img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: var(--logo-ratio);
+  }
+</style>

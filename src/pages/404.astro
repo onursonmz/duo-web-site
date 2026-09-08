@@ -1,0 +1,23 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import { homePath } from "@lib/i18n/routes";
+import { t } from "@lib/i18n/dictionary";
+
+// 404 varsayılan locale ile sunulur (statik çıktıda tek 404 dosyası vardır).
+const locale = "tr" as const;
+---
+
+<BaseLayout
+  locale={locale}
+  title="Sayfa bulunamadı"
+  description="Aradığınız sayfa bulunamadı. Ana sayfaya dönebilirsiniz."
+  noindex={true}
+>
+  <h1>Sayfa bulunamadı</h1>
+
+  <p>Aradığınız adres bu sitede yok veya taşınmış olabilir.</p>
+
+  <p>
+    <a href={homePath(locale)}>{t(locale, "nav.home")}</a>
+  </p>
+</BaseLayout>

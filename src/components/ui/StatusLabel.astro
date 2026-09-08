@@ -1,0 +1,84 @@
+---
+/**
+ * STATUS LABEL.
+ *
+ * Yalnızca GERÇEK durum bilgisi taşır (sözleşme: pill/badge dekoratif
+ * kullanılmaz). Renk tek başına anlam taşımaz; her durumun metin karşılığı ve
+ * bir şekil işareti vardır.
+ */
+type Tone = "neutral" | "success" | "warning" | "critical" | "signal";
+
+interface Props {
+  tone?: Tone;
+  /** Ekran okuyucuya durumun ne olduğunu söyler (ör. "Durum: doğrulandı"). */
+  srPrefix?: string;
+}
+
+const { tone = "neutral", srPrefix } = Astro.props;
+
+const GLYPH: Record<Tone, string> = {
+  neutral: "•",
+  success: "✓",
+  warning: "!",
+  critical: "×",
+  signal: "▸",
+};
+---
+
+<span class:list={["status", `status--${tone}`]}>
+  {srPrefix && <span class="status__sr">{srPrefix}</span>}
+  <span class="status__glyph" aria-hidden="true">{GLYPH[tone]}</span>
+  <slot />
+</span>
+
+<style>
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    padding: 0.125rem var(--space-2xs);
+    border: var(--border-width) solid currentColor;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .status__glyph {
+    font-weight: var(--weight-bold);
+  }
+
+  .status--neutral {
+    color: var(--text-secondary);
+  }
+
+  .status--signal {
+    color: var(--signal);
+  }
+
+  .status--success {
+    color: var(--status-success);
+  }
+
+  .status--warning {
+    color: var(--status-warning);
+  }
+
+  .status--critical {
+    color: var(--status-critical);
+  }
+
+  .status__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>

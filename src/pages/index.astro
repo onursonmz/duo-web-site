@@ -1,0 +1,37 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import SolutionList from "@components/SolutionList.astro";
+import { PUBLIC, getSolutions } from "@lib/content/selectors";
+import { homePath, solutionsIndexPath } from "@lib/i18n/routes";
+import { t } from "@lib/i18n/dictionary";
+
+const locale = "tr" as const;
+// Üretim sayfası: PUBLIC modu AÇIKÇA kullanılır.
+const solutions = await getSolutions(locale, PUBLIC);
+
+// Her iki dilin de ana sayfası var; dil değiştirici karşılığa gider.
+const alternates = { tr: homePath("tr"), en: homePath("en") };
+// İçerik olgunluk politikası: taslak içerik indekslenmez (docs/CONTENT_MATURITY.md).
+---
+
+<BaseLayout
+  locale={locale}
+  title={t(locale, "nav.home")}
+  description={t(locale, "site.tagline")}
+  alternates={alternates}
+  noindex={true}
+>
+  <p class="badge">{t(locale, "draft.badge")}</p>
+  <h1>{t(locale, "site.name")} — {t(locale, "site.tagline")}</h1>
+
+  <h2>{t(locale, "solutions.title")}</h2>
+  <p>{t(locale, "solutions.intro")}</p>
+
+  <SolutionList locale={locale} solutions={solutions} />
+
+  <p>
+    <a href={solutionsIndexPath(locale)}>{t(locale, "cta.exploreSolutions")}</a>
+  </p>
+
+  <p class="notice">{t(locale, "draft.notice")}</p>
+</BaseLayout>

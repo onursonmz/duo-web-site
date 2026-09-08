@@ -1,0 +1,258 @@
+/*
+ * TEMEL KATMAN (S03).
+ *
+ * Ham renk/ölçü değeri YAZILMAZ; her şey `tokens.css` üzerinden gelir.
+ * S01/S02 iskelet sınıfları korunur, yalnızca token'lara bağlanır.
+ */
+
+@import "./fonts.css";
+@import "./tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /*
+   * `overflow-x: hidden` KULLANILMAZ: taşmayı gizler ama sorunu çözmez ve
+   * gerçek hataları testlerden saklar. Geniş içerik (tablo, kod, diyagram)
+   * KENDİ kabında kaydırılır — bkz. `.scroll-x`.
+   */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+  font-synthesis-weight: none;
+  overflow-wrap: break-word;
+}
+
+/* ---------------------------------------------------------------- tipografi */
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0 0 var(--space-sm);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--text-3xl);
+}
+
+h2 {
+  font-size: var(--text-2xl);
+}
+
+h3 {
+  font-size: var(--text-xl);
+}
+
+h4 {
+  font-size: var(--text-lg);
+}
+
+p {
+  margin: 0 0 var(--space-sm);
+  max-width: var(--container-text);
+}
+
+a {
+  color: var(--signal);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: color var(--motion-fast) var(--motion-ease);
+}
+
+a:hover {
+  color: var(--signal-hover);
+}
+
+code,
+kbd,
+samp {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+/* ---------------------------------------------------------------- odak */
+
+/*
+ * WCAG 2.2 SC 2.4.11 + 1.4.11: odak göstergesi her iki yüzeyde de yüzeye karşı
+ * en az 3:1 kontrast taşır ve offset ile bileşenin kendi renginden ayrılır.
+ */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+}
+
+#main-content:focus {
+  outline: none;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--surface-inverse);
+  color: var(--text-inverse);
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+/* ---------------------------------------------------------------- düzen */
+
+.theme-light,
+.theme-dark {
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--container-gutter);
+}
+
+.site-header,
+.site-footer {
+  padding: var(--space-sm) var(--container-gutter);
+  border-bottom: var(--border-width) solid var(--border-subtle);
+}
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.site-footer {
+  border-bottom: 0;
+  border-top: var(--border-width) solid var(--border-subtle);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.site-header__brand {
+  margin: 0;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.02em;
+}
+
+main {
+  max-width: var(--container-text);
+  padding: var(--space-lg) var(--container-gutter) var(--space-xl);
+}
+
+/*
+ * GENIS ICERIK KABI.
+ * Tablo/kod gibi dar ekrana sigmayan icerik sayfayi degil KENDINI kaydirir.
+ * `tabindex="0"` klavye kullanicisinin da kaydirabilmesi icindir (WCAG 2.1.1).
+ */
+.scroll-x {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.scroll-x:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ---------------------------------------------------------------- S02 iskeleti */
+
+.site-nav a,
+.lang-switcher a {
+  margin-right: var(--space-sm);
+}
+
+.lang-switcher ul,
+.solution-list,
+.solution ul {
+  margin: 0;
+  padding-left: var(--space-md);
+}
+
+.lang-switcher ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.lang-switcher__unavailable {
+  color: var(--text-secondary);
+}
+
+.lang-switcher__note {
+  font-size: var(--text-xs);
+}
+
+.badge {
+  display: inline-block;
+  margin: 0 0 var(--space-sm);
+  padding: var(--space-3xs) var(--space-2xs);
+  border: var(--border-width) solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+}
+
+.solution__eyebrow {
+  margin-bottom: var(--space-3xs);
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.solution__summary {
+  font-size: var(--text-lg);
+}
+
+.solution-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.solution-list > li {
+  padding: var(--space-xs) 0;
+  border-top: var(--border-width) solid var(--border-subtle);
+}
+
+.solution-list p {
+  margin: var(--space-3xs) 0 0;
+}
+
+.notice {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-sm);
+  border-top: var(--border-width) solid var(--border-subtle);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.translation-unavailable {
+  padding: var(--space-sm);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}

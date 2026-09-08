@@ -1,0 +1,72 @@
+---
+/**
+ * METRIC.
+ *
+ * Rakam tek başına iddia taşımaz: `verified` false ise kaynak/durum etiketi
+ * zorunludur ve değer "doğrulanmamış" olarak işaretlenir. Bu, doğrulanmamış
+ * sayıların onaylı görünmesini engeller (S00 içerik doğruluk matrisi).
+ */
+interface Props {
+  value: string;
+  label: string;
+  note?: string;
+  verified?: boolean;
+  unverifiedLabel?: string;
+}
+
+const { value, label, note, verified = false, unverifiedLabel } = Astro.props;
+---
+
+<div class="metric">
+  <p class="metric__value" data-verified={String(verified)}>{value}</p>
+  <p class="metric__label">{label}</p>
+  {note && <p class="metric__note">{note}</p>}
+  {
+    !verified && unverifiedLabel && (
+      <p class="metric__flag">
+        <span aria-hidden="true">◇</span> {unverifiedLabel}
+      </p>
+    )
+  }
+</div>
+
+<style>
+  .metric {
+    padding-top: var(--space-xs);
+    border-top: var(--border-width-strong) solid var(--signal);
+  }
+
+  .metric__value {
+    margin: 0;
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-tight);
+    font-variant-numeric: tabular-nums;
+    max-width: none;
+  }
+
+  .metric__label {
+    margin: var(--space-3xs) 0 0;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    max-width: none;
+  }
+
+  .metric__note {
+    margin: var(--space-2xs) 0 0;
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    max-width: none;
+  }
+
+  /* Doğrulanmamış değer: renk TEK BAŞINA anlam taşımaz, metin de vardır. */
+  .metric__flag {
+    margin: var(--space-2xs) 0 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: 0.04em;
+    color: var(--status-warning);
+    max-width: none;
+  }
+</style>

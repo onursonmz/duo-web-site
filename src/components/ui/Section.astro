@@ -1,0 +1,60 @@
+---
+/**
+ * TEMA BAĞLAMI.
+ *
+ * Açık/koyu yüzey ayrımı bileşenlerin İÇİNDE çözülmez. Section bir tema sınıfı
+ * uygular, içindeki tüm bileşenler aynı semantic token adlarını okur. Böylece
+ * bir bileşen hangi yüzeyde olduğunu bilmek zorunda kalmaz ve koyu bölümde
+ * kontrast bozulmaz.
+ */
+interface Props {
+  tone?: "light" | "dark";
+  /** Dar okuma sütunu mu, geniş editorial ızgara mı. */
+  width?: "text" | "wide";
+  as?: "section" | "div" | "article" | "footer" | "header";
+  class?: string;
+  id?: string;
+}
+
+// Acik tip ek aciklamasi: dinamik <Tag> render eden bilesenlerde Astro'nun
+// ortuk Props baglantisi olusmuyor ve `noUnusedLocals` tetikleniyor.
+const {
+  tone = "light",
+  width = "wide",
+  as: Tag = "section",
+  class: className,
+  id,
+}: Props = Astro.props;
+---
+
+<Tag class:list={[`theme-${tone}`, "section", className]} id={id}>
+  <div class:list={["section__inner", `section__inner--${width}`]}>
+    <slot />
+  </div>
+</Tag>
+
+<style>
+  .section {
+    padding-block: var(--space-2xl);
+  }
+
+  .section__inner {
+    width: 100%;
+    margin-inline: auto;
+    padding-inline: var(--container-gutter);
+  }
+
+  .section__inner--wide {
+    max-width: var(--container-max);
+  }
+
+  .section__inner--text {
+    max-width: var(--container-text);
+  }
+
+  @media (max-width: 40rem) {
+    .section {
+      padding-block: var(--space-xl);
+    }
+  }
+</style>

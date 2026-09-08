@@ -1,0 +1,224 @@
+---
+/**
+ * BUTTON / LINK.
+ *
+ * Hiyerarşi görsel olarak ayrışır; her metin buton görünmez:
+ * - primary  : dolu, sayfada tek birincil eylem
+ * - secondary: kenarlıklı
+ * - quiet    : yalnızca metin + alt çizgi (inline link tonunda)
+ *
+ * `href` verilirse <a>, verilmezse <button> render edilir. Görünüm aynıdır,
+ * semantik doğru kalır: gezinme link, eylem butondur.
+ */
+interface Props {
+  variant?: "primary" | "secondary" | "quiet";
+  size?: "md" | "sm";
+  href?: string;
+  type?: "button" | "submit" | "reset";
+  disabled?: boolean;
+  loading?: boolean;
+  /** Yükleniyor durumunda ekran okuyucuya verilecek metin. */
+  loadingLabel?: string;
+  class?: string;
+  "data-testid"?: string;
+}
+
+const {
+  variant = "secondary",
+  size = "md",
+  href,
+  type = "button",
+  disabled = false,
+  loading = false,
+  loadingLabel,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const isLink = href !== undefined;
+// Devre dışı bir link tıklanabilir kalmamalı: href kaldırılır ve
+// aria-disabled ile duyurulur (WAI-ARIA link deseni).
+const inert = disabled || loading;
+const classes = ["btn", `btn--${variant}`, `btn--${size}`, className];
+---
+
+{
+  isLink ? (
+    <a
+      class:list={classes}
+      href={inert ? undefined : href}
+      role={inert ? "link" : undefined}
+      aria-disabled={inert ? "true" : undefined}
+      aria-busy={loading ? "true" : undefined}
+      tabindex={inert ? -1 : undefined}
+      {...rest}
+    >
+      <span class="btn__label">
+        <slot />
+      </span>
+      {loading && <span class="btn__spinner" aria-hidden="true" />}
+      {loading && loadingLabel && <span class="btn__sr">{loadingLabel}</span>}
+    </a>
+  ) : (
+    <button
+      class:list={classes}
+      type={type}
+      disabled={inert}
+      aria-busy={loading ? "true" : undefined}
+      {...rest}
+    >
+      <span class="btn__label">
+        <slot />
+      </span>
+      {loading && <span class="btn__spinner" aria-hidden="true" />}
+      {loading && loadingLabel && <span class="btn__sr">{loadingLabel}</span>}
+    </button>
+  )
+}
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2xs);
+    padding: var(--space-2xs) var(--space-md);
+    border: var(--border-width-strong) solid transparent;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background-color var(--motion-fast) var(--motion-ease),
+      border-color var(--motion-fast) var(--motion-ease),
+      color var(--motion-fast) var(--motion-ease);
+  }
+
+  .btn--sm {
+    padding: var(--space-3xs) var(--space-sm);
+    font-size: var(--text-xs);
+  }
+
+  /* ---------------------------------------------------------- primary */
+
+  .btn--primary {
+    background: var(--action);
+    border-color: var(--action);
+    color: var(--action-contrast);
+  }
+
+  .btn--primary:hover:not([aria-disabled="true"]):not(:disabled) {
+    background: var(--action-hover);
+    border-color: var(--action-hover);
+  }
+
+  .btn--primary:active:not([aria-disabled="true"]):not(:disabled) {
+    /* Basılı durum: dolgu koyulaşır, hareket yok. */
+    background: var(--action-hover);
+    border-color: var(--action-hover);
+    transform: translateY(1px);
+  }
+
+  /* ---------------------------------------------------------- secondary */
+
+  .btn--secondary {
+    background: transparent;
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+  }
+
+  .btn--secondary:hover:not([aria-disabled="true"]):not(:disabled) {
+    border-color: var(--signal);
+    color: var(--signal);
+  }
+
+  .btn--secondary:active:not([aria-disabled="true"]):not(:disabled) {
+    background: var(--signal-surface);
+    transform: translateY(1px);
+  }
+
+  /* ---------------------------------------------------------- quiet */
+
+  .btn--quiet {
+    padding-inline: 0;
+    background: transparent;
+    border-color: transparent;
+    color: var(--signal);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.25em;
+  }
+
+  .btn--quiet:hover:not([aria-disabled="true"]):not(:disabled) {
+    color: var(--signal-hover);
+    text-decoration-thickness: 2px;
+  }
+
+  /* ---------------------------------------------------------- disabled */
+
+  .btn:disabled,
+  .btn[aria-disabled="true"] {
+    color: var(--text-disabled);
+    background: transparent;
+    border-color: var(--border-subtle);
+    cursor: not-allowed;
+    text-decoration: none;
+  }
+
+  .btn--primary:disabled,
+  .btn--primary[aria-disabled="true"] {
+    background: var(--surface-sunken);
+  }
+
+  /* ---------------------------------------------------------- loading */
+
+  .btn__spinner {
+    width: 0.75em;
+    height: 0.75em;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: btn-spin 720ms linear infinite;
+  }
+
+  @keyframes btn-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /*
+   * Hareket azaltma: dönüş durur. Bilgi yalnızca animasyonla verilmediği için
+   * (aria-busy + görünür metin) anlam kaybı olmaz.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .btn__spinner {
+      animation: none;
+      border-top-color: currentColor;
+      opacity: 0.55;
+    }
+
+    .btn {
+      transition: none;
+    }
+
+    .btn:active {
+      transform: none;
+    }
+  }
+
+  .btn__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>

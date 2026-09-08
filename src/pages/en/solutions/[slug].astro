@@ -1,0 +1,29 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "@layouts/BaseLayout.astro";
+import SolutionDetail from "@components/SolutionDetail.astro";
+import { PUBLIC, getSolutionAlternates, getSolutions } from "@lib/content/selectors";
+import { solutionPath } from "@lib/i18n/routes";
+
+export const getStaticPaths = (async () => {
+  // Üretim sayfası: PUBLIC modu AÇIKÇA kullanılır.
+  const solutions = await getSolutions("en", PUBLIC);
+  return solutions.map((solution) => ({
+    params: { slug: solution.data.slug },
+    props: { solution },
+  }));
+}) satisfies GetStaticPaths;
+
+const { solution } = Astro.props;
+const alternates = await getSolutionAlternates(solution.data.translationKey, PUBLIC, solutionPath);
+---
+
+<BaseLayout
+  locale="en"
+  title={solution.data.title}
+  description={solution.data.seo.description}
+  alternates={alternates}
+  noindex={solution.data.seo.noindex}
+>
+  <SolutionDetail locale="en" solution={solution} mode={PUBLIC} />
+</BaseLayout>

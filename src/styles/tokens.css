@@ -1,0 +1,207 @@
+/*
+ * COMMAND ATLAS — SEMANTIC TASARIM TOKENLARI (S03)
+ *
+ * Kurallar:
+ * - Bileşenler HAM renk yazmaz; yalnızca semantic token kullanır.
+ *   (`tests/unit/tokens.test.ts` bunu denetler ve ham hex kullanımını reddeder.)
+ * - Açık/koyu yüzey ayrımı bileşenin içinde değil, TEMA BAĞLAMINDA çözülür:
+ *   `.theme-light` / `.theme-dark` bir section'a uygulanır, bileşenler aynı
+ *   token adlarını okur.
+ *
+ * ÖLÇÜLMÜŞ MARKA KAYNAKLARI (duosis-logo.pdf içerik akışından çıkarıldı):
+ *   cyan A  #16a6de   beyaz üzerinde 2.78:1
+ *   cyan B  #16a6d9   beyaz üzerinde 2.80:1
+ *   ink     #252a2e   beyaz üzerinde 14.49:1
+ *
+ * Cyan'ın her iki tonu da AÇIK yüzeyde normal metin/link için WCAG 2.2 AA'yı
+ * (4.5:1) GEÇMEZ; 3:1 büyük metin eşiğini de geçmez. Bu yüzden açık yüzeyde
+ * yalnızca logo geometrisinin parçası olarak, dekoratif kalır. Metin ve link
+ * için tondan türetilmiş `--signal-on-light` kullanılır.
+ *
+ * PROVISIONAL: aşağıdaki türetilmiş değerler marka sahibi onayı beklemektedir
+ * (ADR-008). Ham logo renkleri değiştirilmemiştir; yalnızca erişilebilir
+ * karşılıkları türetilmiştir.
+ */
+
+:root {
+  /* ---------------------------------------------------------- marka kaynağı */
+  /* Yalnızca logo ve dekoratif grafik. Metin için KULLANILMAZ. */
+  --brand-cyan: #16a6de;
+  --brand-cyan-alt: #16a6d9;
+  --brand-ink: #252a2e;
+
+  /* ---------------------------------------------------------- ölçek: boşluk */
+  /* 4px tabanlı ritim; bölüm aralıkları büyük adımlarla kurulur. */
+  --space-3xs: 0.25rem; /*  4px */
+  --space-2xs: 0.5rem; /*   8px */
+  --space-xs: 0.75rem; /*  12px */
+  --space-sm: 1rem; /*     16px */
+  --space-md: 1.5rem; /*   24px */
+  --space-lg: 2rem; /*     32px */
+  --space-xl: 3rem; /*     48px */
+  --space-2xl: 4.5rem; /*  72px */
+  --space-3xl: 7rem; /*   112px */
+
+  /* ---------------------------------------------------------- ölçek: kapsayıcı */
+  --container-max: 76rem; /* 1216px */
+  --container-text: 38rem; /* ~608px, 55-75 karakter satır uzunluğu */
+  --container-gutter: var(--space-md);
+
+  /* ---------------------------------------------------------- ızgara */
+  --grid-columns: 12;
+  --grid-gap: var(--space-md);
+
+  /* ---------------------------------------------------------- kenar / köşe */
+  /* Sözleşme: radius çoğunlukla 0-6px, yalnızca işlevsel kontrollerde artar. */
+  --radius-none: 0;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --border-width: 1px;
+  --border-width-strong: 2px;
+
+  /* Büyük yumuşak gölge YOK: katman border ve kontrastla kurulur. */
+  --elevation-flat: none;
+  --elevation-raised: 0 1px 0 0 var(--border-subtle);
+
+  /* ---------------------------------------------------------- tipografi */
+  /*
+   * Fallback aileleri metrik olarak hizalanmıştır (bkz. fonts.css); font
+   * yüklenmediğinde satır sayısı ve yükseklik değişmez, CLS oluşmaz.
+   */
+  --font-sans:
+    "Inter", "Inter Fallback", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono:
+    "JetBrains Mono", "JetBrains Mono Fallback", ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+  /* Modüler ölçek (~1.2 mobil -> ~1.25 masaüstü), clamp ile akışkan. */
+  --text-2xs: 0.75rem; /*    12px — yalnızca sistem etiketi */
+  --text-xs: 0.8125rem; /*   13px */
+  --text-sm: 0.875rem; /*    14px */
+  --text-md: 1rem; /*        16px — gövde tabanı */
+  --text-lg: clamp(1.125rem, 1.05rem + 0.35vw, 1.25rem);
+  --text-xl: clamp(1.375rem, 1.2rem + 0.8vw, 1.75rem);
+  --text-2xl: clamp(1.75rem, 1.4rem + 1.6vw, 2.5rem);
+  --text-3xl: clamp(2.25rem, 1.6rem + 3vw, 3.75rem);
+
+  --leading-tight: 1.1;
+  --leading-snug: 1.25;
+  --leading-normal: 1.6;
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.08em;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* ---------------------------------------------------------- hareket */
+  /* Sözleşme: mikro etkileşimler 160-360ms. */
+  --motion-fast: 160ms;
+  --motion-base: 240ms;
+  --motion-slow: 360ms;
+  --motion-ease: cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+/*
+ * TEMA BAĞLAMI — AÇIK YÜZEY.
+ * `:root` varsayılanı açık temadır; `.theme-light` aynı değerleri koyu bir
+ * bölümün içine yeniden yerleştirebilmek için ayrıca tanımlanır.
+ */
+:root,
+.theme-light {
+  --surface-canvas: #f6f7f8;
+  --surface-raised: #ffffff;
+  --surface-sunken: #eef0f2;
+  --surface-inverse: #14181c;
+
+  --text-primary: #14181c; /* 16.63:1 */
+  --text-secondary: #4a545e; /*  7.20:1 */
+  --text-muted: #5d6874; /*      5.29:1 */
+  --text-inverse: #eef1f4;
+  --text-disabled: #8b95a0; /*   2.84:1 — yalnızca devre dışı kontrol */
+
+  --border-subtle: #d8dde2; /*   1.27:1 — ayırıcı çizgi */
+  --border-strong: #767f8a; /*   3.78:1 — form/UI bileşeni sınırı */
+
+  --signal: #107aa4; /*          4.51:1 — link ve vurgulu metin */
+  --signal-hover: #0e6c92;
+  --signal-surface: #e6f2f8;
+  --signal-contrast: #ffffff; /*  4.84:1 (signal üzerinde) */
+
+  --action: #b5560f; /*          4.55:1 */
+  --action-hover: #99480c;
+  --action-contrast: #ffffff; /*  4.88:1 (action üzerinde) */
+
+  --status-success: #1a8246; /*  4.53:1 */
+  --status-warning: #986800; /*  4.54:1 */
+  --status-critical: #d03939; /* 4.53:1 */
+
+  --logo-counter: #ffffff;
+  color-scheme: light;
+}
+
+/*
+ * TEMA BAĞLAMI — KOYU YÜZEY.
+ * Koyu yüzeyde ORİJİNAL marka cyanı kullanılabilir: #16a6de koyu yüzeyde
+ * 6.41:1 ölçüldü (AA'yı geçer).
+ */
+.theme-dark {
+  --surface-canvas: #14181c;
+  --surface-raised: #1c2126;
+  --surface-sunken: #0f1316;
+  --surface-inverse: #f6f7f8;
+
+  --text-primary: #eef1f4; /*   15.74:1 */
+  --text-secondary: #aab4bf; /*  8.49:1 */
+  --text-muted: #8b96a2; /*      5.93:1 */
+  --text-inverse: #14181c;
+  --text-disabled: #68727d;
+
+  --border-subtle: #2b3238; /*   1.37:1 */
+  --border-strong: #68727d; /*   3.65:1 */
+
+  --signal: #16a6de; /*          6.41:1 — marka cyanı burada kullanılabilir */
+  --signal-hover: #4dbce7;
+  --signal-surface: #10262f;
+  --signal-contrast: #14181c;
+
+  --action: #e06b12; /*          5.34:1 */
+  --action-hover: #ee8636;
+  --action-contrast: #14181c;
+
+  --status-success: #1f9d55; /*  5.11:1 */
+  --status-warning: #c98a00; /*  6.05:1 */
+  --status-critical: #d75555; /* 4.52:1 */
+
+  --logo-counter: #14181c;
+  color-scheme: dark;
+}
+
+/*
+ * FOCUS — tek değer, HER İKİ yüzeyde WCAG 2.2 SC 1.4.11 (3:1) sağlar:
+ *   #0f86b4  açık yüzeyde 3.85:1, koyu yüzeyde 4.32:1, raised'da 3.93:1
+ * Ring'i yüzeyden ayırmak için ayrıca offset kullanılır; böylece kontrast
+ * bileşenin kendi rengine değil, yüzeye karşı ölçülür.
+ */
+:root,
+.theme-light,
+.theme-dark {
+  --focus-ring: #0f86b4;
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 2px;
+}
+
+/*
+ * HAREKET AZALTMA — sözleşme gereği hareket kaldırılır veya anlam kaybetmeyen
+ * basit bir geçişe iner. Token seviyesinde süreler sıfırlanır; bileşenlerin
+ * ayrıca kural yazması gerekmez.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 1ms;
+    --motion-base: 1ms;
+    --motion-slow: 1ms;
+  }
+}

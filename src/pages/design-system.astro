@@ -1,0 +1,667 @@
+---
+/**
+ * /design-system — YALNIZCA GELİŞTİRME/ÖNİZLEME ROUTE'U.
+ *
+ * - `noindex: true` ile arama motoru dizinine girmez.
+ * - Hiçbir üretim sayfası buraya link vermez.
+ * - Tek dosyadır; kaldırmak için bu dosyayı silmek yeterlidir (S03 kabul
+ *   kriteri: "prod çıktısında indexlenmesin veya kaldırılabilsin").
+ *
+ * Amaç: token'ları, tipografiyi, ızgarayı ve temel bileşenleri açık ve koyu
+ * yüzeyde, tüm etkileşim durumlarıyla birlikte kanıtlamak.
+ */
+import BaseLayout from "@layouts/BaseLayout.astro";
+import Section from "@components/ui/Section.astro";
+import SectionHeading from "@components/ui/SectionHeading.astro";
+import Button from "@components/ui/Button.astro";
+import Metric from "@components/ui/Metric.astro";
+import StatusLabel from "@components/ui/StatusLabel.astro";
+import Quote from "@components/ui/Quote.astro";
+import LogoMark from "@components/ui/LogoMark.astro";
+import FormField from "@components/ui/FormField.astro";
+
+const SPACING = [
+  ["3xs", "0.25rem"],
+  ["2xs", "0.5rem"],
+  ["xs", "0.75rem"],
+  ["sm", "1rem"],
+  ["md", "1.5rem"],
+  ["lg", "2rem"],
+  ["xl", "3rem"],
+  ["2xl", "4.5rem"],
+  ["3xl", "7rem"],
+];
+
+const TYPE_SCALE = [
+  ["text-3xl", "Operasyonu görün", "clamp(2.25rem … 3.75rem)"],
+  ["text-2xl", "Veriyi bağlayın", "clamp(1.75rem … 2.5rem)"],
+  ["text-xl", "AI ile harekete geçin", "clamp(1.375rem … 1.75rem)"],
+  ["text-lg", "Bölüm giriş metni", "clamp(1.125rem … 1.25rem)"],
+  ["text-md", "Gövde metni tabanı", "1rem"],
+  ["text-sm", "İkincil metin", "0.875rem"],
+  ["text-2xs", "SİSTEM ETİKETİ", "0.75rem"],
+];
+
+/** Ölçülmüş kontrast oranları — `tests/unit/tokens.test.ts` bu tabloyu doğrular. */
+const CONTRAST = [
+  ["text-primary", "surface-canvas", "16.63:1", "AA / AAA"],
+  ["text-secondary", "surface-canvas", "7.20:1", "AA / AAA"],
+  ["text-muted", "surface-canvas", "5.29:1", "AA"],
+  ["signal", "surface-canvas", "4.51:1", "AA"],
+  ["action", "surface-canvas", "4.55:1", "AA"],
+  ["border-strong", "surface-canvas", "3.78:1", "AA (UI)"],
+  ["focus-ring", "surface-canvas", "3.85:1", "AA (UI)"],
+  ["focus-ring", "koyu yüzey", "4.32:1", "AA (UI)"],
+  ["brand-cyan", "surface-canvas", "2.60:1", "GEÇMEZ — dekoratif"],
+];
+---
+
+<BaseLayout
+  locale="tr"
+  title="Tasarım Sistemi"
+  description="Command Atlas tasarım sistemi önizlemesi. Yalnızca geliştirme amaçlıdır; yayın dizinine girmez."
+  noindex={true}
+  wide={true}
+>
+  <Section tone="light" width="wide" id="ds-top">
+    <SectionHeading
+      eyebrow="Command Atlas"
+      as="h1"
+      lead="Duosis tasarım sistemi önizlemesi. Bu sayfa noindex'tir ve hiçbir üretim sayfasından bağlantı almaz."
+    >
+      Tasarım sistemi
+    </SectionHeading>
+
+    <div class="ds-note">
+      <StatusLabel tone="warning" srPrefix="Durum:">Dev preview</StatusLabel>
+      <p>
+        Renk değerleri logo masterından ölçülmüştür; türetilen erişilebilir karşılıklar <strong
+          >marka sahibi onayı beklemektedir</strong
+        > (ADR-008).
+      </p>
+    </div>
+  </Section>
+
+  <!-- ------------------------------------------------------------- logo -->
+  <Section tone="light" width="wide" id="ds-logo">
+    <SectionHeading
+      eyebrow="Marka"
+      as="h2"
+      lead="Vektör geometrisi logo masterından birebir çıkarılmıştır; yeniden çizilmemiştir."
+    >
+      Logo kullanımı
+    </SectionHeading>
+
+    <div class="ds-grid ds-grid--3">
+      <figure class="ds-swatch">
+        <div class="ds-swatch__stage"><LogoMark variant="lockup" width="14rem" /></div>
+        <figcaption>Tam kilit — açık zemin</figcaption>
+      </figure>
+      <figure class="ds-swatch">
+        <div class="ds-swatch__stage ds-swatch__stage--dark">
+          <LogoMark variant="lockup-dark" width="14rem" />
+        </div>
+        <figcaption>Tam kilit — koyu zemin</figcaption>
+      </figure>
+      <figure class="ds-swatch">
+        <div class="ds-swatch__stage"><LogoMark variant="wordmark" width="12rem" /></div>
+        <figcaption>Wordmark — dar alan varyantı</figcaption>
+      </figure>
+      <figure class="ds-swatch">
+        <div class="ds-swatch__stage ds-mono-ink">
+          <LogoMark variant="wordmark-mono" width="12rem" />
+        </div>
+        <figcaption>Monochrome — tek renk</figcaption>
+      </figure>
+      <figure class="ds-swatch">
+        <div class="ds-swatch__stage"><LogoMark variant="mark" width="4rem" /></div>
+        <figcaption>Mark — favicon kaynağı</figcaption>
+      </figure>
+      <figure class="ds-swatch">
+        <div class="ds-swatch__stage">
+          <img
+            class="ds-favicon"
+            src="/favicon.svg"
+            alt="Duosis favicon 32 piksel"
+            width="32"
+            height="32"
+          />
+        </div>
+        <figcaption>Favicon — 32px gerçek boyut</figcaption>
+      </figure>
+    </div>
+
+    <p class="ds-caption">
+      Header'da okunamayan küçük tagline kullanılmaz: dar alanda tam kilit yerine wordmark tercih
+      edilir.
+    </p>
+  </Section>
+
+  <!-- ------------------------------------------------------------ renk -->
+  <Section tone="light" width="wide" id="ds-color">
+    <SectionHeading
+      eyebrow="Token"
+      as="h2"
+      lead="Bileşenler ham renk yazmaz; yalnızca semantic token okur."
+    >
+      Renk ve kontrast
+    </SectionHeading>
+
+    <div class="ds-grid ds-grid--4">
+      <div class="ds-color">
+        <span
+          class="ds-color__chip"
+          style="background:var(--surface-raised);border-color:var(--border-strong)"
+        ></span>surface-raised
+      </div>
+      <div class="ds-color">
+        <span
+          class="ds-color__chip"
+          style="background:var(--surface-canvas);border-color:var(--border-strong)"
+        ></span>surface-canvas
+      </div>
+      <div class="ds-color">
+        <span
+          class="ds-color__chip"
+          style="background:var(--surface-sunken);border-color:var(--border-strong)"
+        ></span>surface-sunken
+      </div>
+      <div class="ds-color">
+        <span class="ds-color__chip" style="background:var(--surface-inverse)"
+        ></span>surface-inverse
+      </div>
+      <div class="ds-color">
+        <span class="ds-color__chip" style="background:var(--text-primary)"></span>text-primary
+      </div>
+      <div class="ds-color">
+        <span class="ds-color__chip" style="background:var(--text-secondary)"></span>text-secondary
+      </div>
+      <div class="ds-color">
+        <span class="ds-color__chip" style="background:var(--signal)"></span>signal
+      </div>
+      <div class="ds-color">
+        <span class="ds-color__chip" style="background:var(--action)"></span>action
+      </div>
+      <div class="ds-color">
+        <span class="ds-color__chip" style="background:var(--status-success)"></span>status-success
+      </div>
+      <div class="ds-color">
+        <span class="ds-color__chip" style="background:var(--status-warning)"></span>status-warning
+      </div>
+      <div class="ds-color">
+        <span class="ds-color__chip" style="background:var(--status-critical)"
+        ></span>status-critical
+      </div>
+      <div class="ds-color">
+        <span class="ds-color__chip" style="background:var(--brand-cyan)"></span>brand-cyan
+        (dekoratif)
+      </div>
+    </div>
+
+    <div
+      class="scroll-x"
+      tabindex="0"
+      role="region"
+      aria-label="Ölçülmüş kontrast oranları tablosu"
+    >
+      <table class="ds-table" data-testid="contrast-table">
+        <caption>Ölçülmüş kontrast oranları</caption>
+        <thead>
+          <tr
+            ><th scope="col">Ön plan</th><th scope="col">Zemin</th><th scope="col">Oran</th><th
+              scope="col">Sonuç</th
+            ></tr
+          >
+        </thead>
+        <tbody>
+          {
+            CONTRAST.map(([fg, bg, ratio, verdict]) => (
+              <tr>
+                <td>
+                  <code>{fg}</code>
+                </td>
+                <td>
+                  <code>{bg}</code>
+                </td>
+                <td>{ratio}</td>
+                <td>{verdict}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </Section>
+
+  <!-- ------------------------------------------------------ tipografi -->
+  <Section tone="light" width="wide" id="ds-type">
+    <SectionHeading
+      eyebrow="Token"
+      as="h2"
+      lead="İki aile: Inter (değişken sans) ve JetBrains Mono (sınırlı sistem etiketi). Her ikisi de self-host edilir."
+    >
+      Tipografi ölçeği
+    </SectionHeading>
+
+    <dl class="ds-type">
+      {
+        TYPE_SCALE.map(([token, sample, size]) => (
+          <div class="ds-type__row">
+            <dt>
+              <code>{token}</code> <span class="ds-type__size">{size}</span>
+            </dt>
+            <dd style={`font-size:var(--${token})`}>{sample}</dd>
+          </div>
+        ))
+      }
+    </dl>
+
+    <p class="ds-caption">
+      Gövde satır uzunluğu <code>--container-text</code> ile 55–75 karakter aralığında tutulur.
+    </p>
+  </Section>
+
+  <!-- ----------------------------------------------- boşluk ve ızgara -->
+  <Section tone="light" width="wide" id="ds-space">
+    <SectionHeading eyebrow="Token" as="h2">Boşluk ve ızgara</SectionHeading>
+
+    <ul class="ds-space">
+      {
+        SPACING.map(([name, value]) => (
+          <li>
+            <span class="ds-space__bar" style={`inline-size:var(--space-${name})`} />
+            <code>--space-{name}</code>
+            <span class="ds-space__value">{value}</span>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="ds-cols" aria-hidden="true">
+      {Array.from({ length: 12 }).map(() => <span />)}
+    </div>
+    <p class="ds-caption">12 kolonluk görünür ızgara; boşluk ritmi 4px tabanlıdır.</p>
+  </Section>
+
+  <!-- ---------------------------------------------------------- buton -->
+  <Section tone="light" width="wide" id="ds-button">
+    <SectionHeading
+      eyebrow="Bileşen"
+      as="h2"
+      lead="Hiyerarşi görsel olarak ayrışır: sayfada tek birincil eylem bulunur, her metin buton görünmez."
+    >
+      Button / Link
+    </SectionHeading>
+
+    <div class="ds-row">
+      <Button variant="primary" href="#ds-top">Birincil eylem</Button>
+      <Button variant="secondary" href="#ds-top">İkincil eylem</Button>
+      <Button variant="quiet" href="#ds-top">Sessiz bağlantı</Button>
+    </div>
+
+    <h3 class="ds-subhead">Durumlar</h3>
+    <div class="ds-row">
+      <Button variant="primary" disabled>Devre dışı</Button>
+      <Button variant="secondary" disabled>Devre dışı</Button>
+      <Button variant="primary" loading loadingLabel="Yükleniyor">Yükleniyor</Button>
+      <Button variant="quiet" href="#ds-top" disabled>Devre dışı bağlantı</Button>
+      <Button variant="secondary" size="sm" href="#ds-top">Küçük boy</Button>
+    </div>
+    <p class="ds-caption">
+      Hover, active ve focus durumları canlıdır; klavye ile <kbd>Tab</kbd>
+      tuşuna basarak odak halkası doğrulanabilir. Devre dışı bağlantı
+      <code>aria-disabled</code> taşır ve odak sırasından çıkarılır.
+    </p>
+  </Section>
+
+  <!-- --------------------------------------------------------- metrik -->
+  <Section tone="light" width="wide" id="ds-metric">
+    <SectionHeading
+      eyebrow="Bileşen"
+      as="h2"
+      lead="Doğrulanmamış rakam onaylı görünmez: kaynak etiketi zorunludur."
+    >
+      Metric ve Status
+    </SectionHeading>
+
+    <div class="ds-grid ds-grid--3">
+      <Metric
+        value="—"
+        label="Kurumsal müşteri"
+        note="Kaynakta mevcut, iş sahibi doğrulaması bekliyor"
+        verified={false}
+        unverifiedLabel="Doğrulanmadı"
+      />
+      <Metric value="15" label="Üretilen sayfa" note="S03 build çıktısı" verified={true} />
+      <Metric value="0 B" label="İstemci JavaScript" note="Ölçülen bundle" verified={true} />
+    </div>
+
+    <div class="ds-row ds-row--tight">
+      <StatusLabel tone="success" srPrefix="Durum:">Doğrulandı</StatusLabel>
+      <StatusLabel tone="warning" srPrefix="Durum:">Karar bekliyor</StatusLabel>
+      <StatusLabel tone="critical" srPrefix="Durum:">Reddedildi</StatusLabel>
+      <StatusLabel tone="signal" srPrefix="Durum:">Aktif</StatusLabel>
+      <StatusLabel tone="neutral" srPrefix="Durum:">Taslak</StatusLabel>
+    </div>
+  </Section>
+
+  <!-- ----------------------------------------------- koyu yüzey bloğu -->
+  <Section tone="dark" width="wide" id="ds-dark">
+    <SectionHeading
+      eyebrow="Tema bağlamı"
+      as="h2"
+      lead="Aynı bileşenler, aynı token adları. Koyu yüzeyde orijinal marka cyanı kullanılabilir: 6.41:1 ölçüldü."
+    >
+      Koyu yüzey
+    </SectionHeading>
+
+    <div class="ds-row">
+      <Button variant="primary" href="#ds-top">Birincil eylem</Button>
+      <Button variant="secondary" href="#ds-top">İkincil eylem</Button>
+      <Button variant="quiet" href="#ds-top">Sessiz bağlantı</Button>
+      <Button variant="secondary" disabled>Devre dışı</Button>
+    </div>
+
+    <div class="ds-grid ds-grid--2 ds-grid--gap">
+      <Metric
+        value="6.41:1"
+        label="Cyan kontrastı (koyu yüzey)"
+        note="WCAG AA geçer"
+        verified={true}
+      />
+      <Quote verificationStatus="pending" pendingLabel="Atıf doğrulanmadı — yayına alınmaz">
+        <p>
+          Bu blok, doğrulanmamış bir müşteri sözünün nasıl görüneceğini gösterir: isim ve şirket <strong
+            >uydurulmaz</strong
+          >, bekleme etiketi gösterilir.
+        </p>
+      </Quote>
+    </div>
+
+    <div class="ds-row ds-row--tight">
+      <StatusLabel tone="success" srPrefix="Durum:">Doğrulandı</StatusLabel>
+      <StatusLabel tone="warning" srPrefix="Durum:">Karar bekliyor</StatusLabel>
+      <StatusLabel tone="critical" srPrefix="Durum:">Reddedildi</StatusLabel>
+      <StatusLabel tone="signal" srPrefix="Durum:">Aktif</StatusLabel>
+    </div>
+  </Section>
+
+  <!-- ----------------------------------------------------------- form -->
+  <Section tone="light" width="wide" id="ds-form">
+    <SectionHeading
+      eyebrow="Bileşen"
+      as="h2"
+      lead="Etiket her zaman görünür; hata rengi tek başına anlam taşımaz."
+    >
+      Form durumları
+    </SectionHeading>
+
+    <form class="ds-form" novalidate>
+      <FormField id="ds-name" label="Ad soyad" placeholder="Örn. Ada Lovelace" required />
+      <FormField
+        id="ds-email"
+        label="Kurumsal e-posta"
+        type="email"
+        hint="Yalnızca kurumsal adresler kabul edilir."
+      />
+      <FormField
+        id="ds-error"
+        label="Telefon"
+        type="tel"
+        value="12"
+        error="Telefon numarası en az 10 hane olmalıdır."
+      />
+      <FormField id="ds-disabled" label="Devre dışı alan" value="Düzenlenemez" disabled />
+      <FormField
+        id="ds-readonly"
+        label="Salt okunur alan"
+        value="Sistem tarafından dolduruldu"
+        readonly
+      />
+      <FormField id="ds-message" label="Mesaj" multiline hint="En fazla 500 karakter." />
+      <div class="ds-row">
+        <Button variant="primary" type="submit">Gönder</Button>
+        <Button variant="quiet" type="reset">Temizle</Button>
+      </div>
+    </form>
+  </Section>
+</BaseLayout>
+
+<style>
+  .ds-note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    border: var(--border-width) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--surface-raised);
+  }
+
+  .ds-note p {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+
+  .ds-subhead {
+    margin-top: var(--space-lg);
+    font-size: var(--text-lg);
+  }
+
+  .ds-caption {
+    margin-top: var(--space-md);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+
+  /* ---------------------------------------------------------- ızgaralar */
+
+  .ds-grid {
+    display: grid;
+    gap: var(--space-md);
+  }
+
+  .ds-grid--gap {
+    gap: var(--space-lg);
+  }
+
+  @media (min-width: 40rem) {
+    .ds-grid--2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .ds-grid--3 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .ds-grid--4 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 60rem) {
+    .ds-grid--3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .ds-grid--4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .ds-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-md);
+    margin-top: var(--space-md);
+  }
+
+  .ds-row--tight {
+    gap: var(--space-2xs);
+  }
+
+  /* ---------------------------------------------------------- logo */
+
+  .ds-swatch {
+    margin: 0;
+  }
+
+  .ds-swatch__stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 8rem;
+    padding: var(--space-md);
+    border: var(--border-width) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--surface-raised);
+  }
+
+  .ds-swatch__stage--dark {
+    background: var(--surface-inverse);
+    border-color: var(--surface-inverse);
+  }
+
+  .ds-mono-ink {
+    color: var(--text-primary);
+  }
+
+  .ds-swatch figcaption {
+    margin-top: var(--space-2xs);
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+  }
+
+  .ds-favicon {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* ---------------------------------------------------------- renk */
+
+  .ds-color {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--text-secondary);
+  }
+
+  .ds-color__chip {
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    border: var(--border-width) solid transparent;
+    border-radius: var(--radius-sm);
+    flex: none;
+  }
+
+  .ds-table {
+    width: 100%;
+    min-width: 24rem;
+    margin-top: var(--space-lg);
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+  }
+
+  .ds-table caption {
+    margin-bottom: var(--space-2xs);
+    text-align: left;
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+  }
+
+  .ds-table th,
+  .ds-table td {
+    padding: var(--space-2xs) var(--space-xs);
+    border-bottom: var(--border-width) solid var(--border-subtle);
+    text-align: left;
+  }
+
+  .ds-table th {
+    font-weight: var(--weight-semibold);
+    border-bottom-color: var(--border-strong);
+  }
+
+  /* ---------------------------------------------------------- tipografi */
+
+  .ds-type {
+    margin: 0;
+  }
+
+  .ds-type__row {
+    padding: var(--space-xs) 0;
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .ds-type dt {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--text-secondary);
+  }
+
+  .ds-type__size {
+    margin-left: var(--space-2xs);
+  }
+
+  .ds-type dd {
+    margin: var(--space-3xs) 0 0;
+    line-height: var(--leading-snug);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  /* ---------------------------------------------------------- boşluk */
+
+  .ds-space {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .ds-space li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-3xs) 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--text-secondary);
+  }
+
+  .ds-space__bar {
+    block-size: 0.75rem;
+    background: var(--signal);
+    flex: none;
+  }
+
+  .ds-space__value {
+    color: var(--text-muted);
+  }
+
+  .ds-cols {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--grid-gap);
+    margin-top: var(--space-lg);
+  }
+
+  .ds-cols span {
+    block-size: 3rem;
+    background: var(--surface-sunken);
+    border-top: var(--border-width-strong) solid var(--border-strong);
+  }
+
+  /* ---------------------------------------------------------- form */
+
+  .ds-form {
+    display: grid;
+    gap: var(--space-md);
+  }
+
+  @media (min-width: 48rem) {
+    .ds-form {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+    }
+  }
+</style>

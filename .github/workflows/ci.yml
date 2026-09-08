@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "duosis-web/**"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+# Aynı ref için yeni push geldiğinde önceki koşuyu iptal et.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  ASTRO_TELEMETRY_DISABLED: "1"
+
+jobs:
+  quality:
+    name: Quality gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout (temiz)
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      # pnpm, Node'dan ÖNCE kurulur; aksi halde setup-node'un pnpm cache'i
+      # paket yöneticisini bulamaz.
+      - name: pnpm kurulumu (package.json > packageManager ile pinli)
+        uses: pnpm/action-setup@v4
+
+      - name: Node kurulumu (.nvmrc ile pinli)
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - name: Sürümleri doğrula
+        run: |
+          node --version
+          pnpm --version
+
+      - name: Bağımlılıkları kur (lockfile'a bağlı)
+        run: pnpm install --frozen-lockfile
+
+      - name: Playwright tarayıcısını kur (Chromium)
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Lokal ile TAM AYNI komut: pnpm quality
+      # (format:check -> lint -> typecheck -> test -> test:e2e -> build)
+      - name: Kalite kapıları
+        run: pnpm quality
+
+      - name: Playwright raporunu yükle (hata durumunda)
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
