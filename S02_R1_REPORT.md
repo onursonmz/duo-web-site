@@ -45,14 +45,14 @@ ana sürecin portunda vardı. Sabit port kullanıldığında ise makinede kalmı
 
 ### Uygulanan çözüm
 
-| Gereksinim | Uygulama |
-|---|---|
-| Her çalıştırmada dinamik ve boş loopback port | `tests/support/run-e2e.mjs` `listen(0)` ile **tek yerde** seçer |
-| Aynı env değişkeniyle baseURL + web server | `E2E_PORT` → `playwright.config.ts` hem `baseURL`'e hem `webServer.command`'a verir; worker'lar devralır |
-| Sunucu başlatılamazsa testler başlamasın | `preview-server.mjs` `server.on("error")` → `process.exit(1)`; config `E2E_PORT` yoksa **throw** eder |
-| `reuseExistingServer: false` | Korundu |
-| Sabit porttaki süreçler öldürülmesin | Hiçbir süreç öldürülmüyor; yabancı sunucuya dokunulmuyor |
-| Güvenli child process kapanışı | `SIGTERM`/`SIGINT` → `server.close()` + 2 sn sonra zorunlu çıkış; `run-e2e.mjs` çocuğun exit code'unu aynen döndürür, sinyalle ölürse 1 |
+| Gereksinim                                    | Uygulama                                                                                                                                |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Her çalıştırmada dinamik ve boş loopback port | `tests/support/run-e2e.mjs` `listen(0)` ile **tek yerde** seçer                                                                         |
+| Aynı env değişkeniyle baseURL + web server    | `E2E_PORT` → `playwright.config.ts` hem `baseURL`'e hem `webServer.command`'a verir; worker'lar devralır                                |
+| Sunucu başlatılamazsa testler başlamasın      | `preview-server.mjs` `server.on("error")` → `process.exit(1)`; config `E2E_PORT` yoksa **throw** eder                                   |
+| `reuseExistingServer: false`                  | Korundu                                                                                                                                 |
+| Sabit porttaki süreçler öldürülmesin          | Hiçbir süreç öldürülmüyor; yabancı sunucuya dokunulmuyor                                                                                |
+| Güvenli child process kapanışı                | `SIGTERM`/`SIGINT` → `server.close()` + 2 sn sonra zorunlu çıkış; `run-e2e.mjs` çocuğun exit code'unu aynen döndürür, sinyalle ölürse 1 |
 
 ### Zorunlu regresyon kanıtı
 
@@ -87,10 +87,10 @@ Loglar: `evidence/logs/e2e-dynamic-port.log`, `evidence/logs/stale-server-marker
 
 ## 2. Teknoloji envanteri eksiksiz taşındı
 
-| | Önce | Sonra |
-|---|---:|---:|
-| Kayıt sayısı | 17 | **35** |
-| Eksik ID | 18 | **0** |
+|              | Önce |  Sonra |
+| ------------ | ---: | -----: |
+| Kayıt sayısı |   17 | **35** |
+| Eksik ID     |   18 |  **0** |
 
 Eksik olan 18 kaydın tamamı eklendi: `airflow, awx, elastic, foglight, kron, n8n, nifi, opentext, opentext-cms, opentext-oo, opentext-sa, pandora-fms, postgresql, quest, runecast, smax, stor2rrd, vertica`.
 
@@ -104,11 +104,11 @@ birebir eşitlik testi var.
 
 Boolean `active` kaldırıldı; yerine `active | inactive | pending`:
 
-| S00 `active` | S02 `lifecycle` | Public'te |
-|---|---|---|
-| `unknown` (35/35) | **`pending`** | **Görünmez** |
-| `true` | `active` | Görünür |
-| `false` | `inactive` | Görünmez |
+| S00 `active`      | S02 `lifecycle` | Public'te    |
+| ----------------- | --------------- | ------------ |
+| `unknown` (35/35) | **`pending`**   | **Görünmez** |
+| `true`            | `active`        | Görünür      |
+| `false`           | `inactive`      | Görünmez     |
 
 **S00'da hiçbir kayıt onaylı değildi; hiçbiri sessizce `active` yapılmadı.** Sonuç:
 **public teknoloji listesi tamamen boştur** — fail-closed ve bilinçli.
@@ -126,16 +126,16 @@ lifecycle dönüşümü ve gerekçe).
 
 ### Zorunlu testler (`tests/unit/technology-inventory.test.ts`, 26 test)
 
-| Test | Sonuç |
-|---|---|
-| S00 ↔ S02 ID/sayı paritesi **35/35** | PASS |
-| Eksik/fazla ID varsa fail | PASS (0/0) |
-| `decisionNeeded`, `logoPermission`, `licenseModel`, `source`, `officialUrl` birebir | PASS |
-| `active:unknown` sessizce `active` yapılmamış | PASS |
-| Pending/inactive public seçicide **fail-closed** | PASS |
-| GLPI/Jira/Tableau/CyclOps public'te yok | PASS |
-| 35 kaydın tamamı `technologySchema`'yı geçiyor | PASS |
-| Geçersiz `lifecycle` reddediliyor | PASS |
+| Test                                                                                | Sonuç      |
+| ----------------------------------------------------------------------------------- | ---------- |
+| S00 ↔ S02 ID/sayı paritesi **35/35**                                                | PASS       |
+| Eksik/fazla ID varsa fail                                                           | PASS (0/0) |
+| `decisionNeeded`, `logoPermission`, `licenseModel`, `source`, `officialUrl` birebir | PASS       |
+| `active:unknown` sessizce `active` yapılmamış                                       | PASS       |
+| Pending/inactive public seçicide **fail-closed**                                    | PASS       |
+| GLPI/Jira/Tableau/CyclOps public'te yok                                             | PASS       |
+| 35 kaydın tamamı `technologySchema`'yı geçiyor                                      | PASS       |
+| Geçersiz `lifecycle` reddediliyor                                                   | PASS       |
 
 ---
 
@@ -161,13 +161,13 @@ Bir birim testi, `REFERENCE_FIELDS` listesinin beş alanı da kapsadığını do
 
 ### Gerçek `astro build` kullanan negatif testler
 
-| Senaryo | Sonuç |
-|---|---|
-| Bozuk `solution → technology` | Build **non-zero** ile durdu |
+| Senaryo                             | Sonuç                        |
+| ----------------------------------- | ---------------------------- |
+| Bozuk `solution → technology`       | Build **non-zero** ile durdu |
 | Bozuk `solution → proof/case study` | Build **non-zero** ile durdu |
-| Bozuk `milestone → solution` | Build **non-zero** ile durdu |
-| Bozuk `insight → author` | Build **non-zero** ile durdu |
-| Bozuk `insight → relatedSolution` | Build **non-zero** ile durdu |
+| Bozuk `milestone → solution`        | Build **non-zero** ile durdu |
+| Bozuk `insight → author`            | Build **non-zero** ile durdu |
+| Bozuk `insight → relatedSolution`   | Build **non-zero** ile durdu |
 
 Ek olarak yinelenen `translationKey + locale` ve `slug + locale` de build'i kırıyor.
 Log: `evidence/logs/graph-negative-tests.log`
@@ -194,9 +194,9 @@ Result (36 files):
 
 ## 5. Solution şeması sözleşmeyle tamamlandı
 
-| Alan | Durum |
-|---|---|
-| `aiRole: { detect, understand, act }` | Eklendi — **strict + optional** |
+| Alan                                           | Durum                           |
+| ---------------------------------------------- | ------------------------------- |
+| `aiRole: { detect, understand, act }`          | Eklendi — **strict + optional** |
 | `scenario: { title, context, flow[], result }` | Eklendi — **strict + optional** |
 
 **Fixture'lara doğrulanmamış AI yeteneği yazılmadı.** İki alan da boş; veri gelene kadar
@@ -239,19 +239,19 @@ arama motoru indekslemesi kapalı.
 
 ## 7. Test sonuçları (gerçek exit code'lar)
 
-| Komut | Exit | Sonuç |
-|---|---:|---|
-| `pnpm install --frozen-lockfile` (silinmiş `node_modules`) | **0** | Temiz kurulum |
-| `pnpm format:check` | **0** | Temiz |
-| `pnpm lint` | **0** | 0 hata, 0 uyarı |
-| `pnpm typecheck` | **0** | **0 error / 0 warning / 0 hint** |
-| `pnpm test` | **0** | **114 passed** (6 dosya) |
-| `pnpm test:e2e` | **0** | **44 passed** |
-| `pnpm build` | **0** | 15 sayfa |
-| **`pnpm quality`** | **0** | Zincirin tamamı — `EADDRINUSE`/`Unhandled`/reuse **0** |
-| `pnpm audit --prod` | **0** | **No known vulnerabilities found** |
-| `git bundle verify` | **0** | "bundle is okay" |
-| `git diff --check` | **0** | Whitespace hatası yok |
+| Komut                                                      |  Exit | Sonuç                                                  |
+| ---------------------------------------------------------- | ----: | ------------------------------------------------------ |
+| `pnpm install --frozen-lockfile` (silinmiş `node_modules`) | **0** | Temiz kurulum                                          |
+| `pnpm format:check`                                        | **0** | Temiz                                                  |
+| `pnpm lint`                                                | **0** | 0 hata, 0 uyarı                                        |
+| `pnpm typecheck`                                           | **0** | **0 error / 0 warning / 0 hint**                       |
+| `pnpm test`                                                | **0** | **114 passed** (6 dosya)                               |
+| `pnpm test:e2e`                                            | **0** | **44 passed**                                          |
+| `pnpm build`                                               | **0** | 15 sayfa                                               |
+| **`pnpm quality`**                                         | **0** | Zincirin tamamı — `EADDRINUSE`/`Unhandled`/reuse **0** |
+| `pnpm audit --prod`                                        | **0** | **No known vulnerabilities found**                     |
+| `git bundle verify`                                        | **0** | "bundle is okay"                                       |
+| `git diff --check`                                         | **0** | Whitespace hatası yok                                  |
 
 Unit dağılımı: `schema` 32 · `technology-inventory` 26 · `i18n` 20 · `selectors` 15 ·
 `content-validation` 14 · `pageTitle` 7.
@@ -262,15 +262,15 @@ Unit dağılımı: `schema` 32 · `technology-inventory` 26 · `i18n` 20 · `sel
 
 Teknoloji filtresi değiştiği için ekran görüntüleri **yeniden üretildi** (10 adet).
 
-| Ölçüm | Değer |
-|---|---:|
-| AIOps sayfasında `cyclops` | **yok** |
-| Görünür teknoloji sayısı (TR çözüm sayfası) | **0** — tamamı `pending` |
-| "Teknoloji kaydı bulunmuyor" gösterimi | **var** |
-| `#main-content` içindeki `<img>` | **0** — izinsiz logo yok |
-| Console hatası | **yok** |
-| İç bağlantı / kırık | 14 / **0** |
-| Dil değiştirici TR→EN→TR | Doğru karşılıklara gidiyor, `lang` doğru |
+| Ölçüm                                       |                                    Değer |
+| ------------------------------------------- | ---------------------------------------: |
+| AIOps sayfasında `cyclops`                  |                                  **yok** |
+| Görünür teknoloji sayısı (TR çözüm sayfası) |                 **0** — tamamı `pending` |
+| "Teknoloji kaydı bulunmuyor" gösterimi      |                                  **var** |
+| `#main-content` içindeki `<img>`            |                 **0** — izinsiz logo yok |
+| Console hatası                              |                                  **yok** |
+| İç bağlantı / kırık                         |                               14 / **0** |
+| Dil değiştirici TR→EN→TR                    | Doğru karşılıklara gidiyor, `lang` doğru |
 
 Teknoloji filtreleme kanıtı: `evidence/10-aiops-filtered-1440.png` ve
 `evidence/03-solution-tr-1440.png`.
@@ -284,10 +284,10 @@ Teknoloji filtreleme kanıtı: `evidence/10-aiops-filtered-1440.png` ve
 
 ## 9. Teslim paketleri
 
-| Paket | İçerik | Boyut | SHA-256 |
-|---|---|---:|---|
+| Paket                             | İçerik            |     Boyut | SHA-256                                                            |
+| --------------------------------- | ----------------- | --------: | ------------------------------------------------------------------ |
 | `duosis-web-S02-R1-review.bundle` | 4 ref, tam geçmiş | 264.549 B | `14f05a9508626b8e6cc1d6eace1fbbe37870f5e825745c3c6f55986dbc0abc7e` |
-| `duosis-web-S02-R1-evidence.zip` | 19 dosya | 546.278 B | `257b9bff0d02508f20539a3041237ddbfcbdcd0fb9c97be16dfe6783a5c62a41` |
+| `duosis-web-S02-R1-evidence.zip`  | 19 dosya          | 546.278 B | `257b9bff0d02508f20539a3041237ddbfcbdcd0fb9c97be16dfe6783a5c62a41` |
 
 ```
 $ git bundle verify duosis-web-S02-R1-review.bundle

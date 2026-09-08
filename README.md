@@ -123,17 +123,17 @@ tests/
 
 ## İçerik kuralları
 
-| Kural                                                               | Nerede uygulanıyor                         |
-| ------------------------------------------------------------------- | ------------------------------------------ |
-| Şema dışı alan build'i kırar                                        | Tüm şemalar `.strict()`                    |
-| Enumlar kapalı (status, verificationStatus, logoPermission, locale) | `@lib/content/schema`                      |
-| Yinelenen `translationKey + locale` reddedilir                      | `assertUniqueTranslations`                 |
-| Bozuk içerik referansı build'i kırar (TÜM referans alanları)        | `assertContentGraph` + `src/middleware.ts` |
-| `status !== published` public'te görünmez                           | `selectors` — public mod                   |
-| `verificationStatus !== verified` iddia public'te görünmez          | `selectors` — public mod                   |
-| `logoPermission !== allowed` logo hiç render edilmez                | `logoPathIfAllowed`                        |
-| `lifecycle !== active` teknoloji public listede yok                  | `isVisibleTechnology` — **kod değişikliği gerekmez** |
-| Eksik çeviri sessiz fallback üretmez                                | `LanguageSwitcher` + `t()`                 |
+| Kural                                                               | Nerede uygulanıyor                                   |
+| ------------------------------------------------------------------- | ---------------------------------------------------- |
+| Şema dışı alan build'i kırar                                        | Tüm şemalar `.strict()`                              |
+| Enumlar kapalı (status, verificationStatus, logoPermission, locale) | `@lib/content/schema`                                |
+| Yinelenen `translationKey + locale` reddedilir                      | `assertUniqueTranslations`                           |
+| Bozuk içerik referansı build'i kırar (TÜM referans alanları)        | `assertContentGraph` + `src/middleware.ts`           |
+| `status !== published` public'te görünmez                           | `selectors` — public mod                             |
+| `verificationStatus !== verified` iddia public'te görünmez          | `selectors` — public mod                             |
+| `logoPermission !== allowed` logo hiç render edilmez                | `logoPathIfAllowed`                                  |
+| `lifecycle !== active` teknoloji public listede yok                 | `isVisibleTechnology` — **kod değişikliği gerekmez** |
+| Eksik çeviri sessiz fallback üretmez                                | `LanguageSwitcher` + `t()`                           |
 
 Üretim sayfaları filtreleri **açıkça** `PUBLIC` moduyla çağırır.
 
