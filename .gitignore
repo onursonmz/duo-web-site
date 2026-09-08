@@ -39,6 +39,16 @@ duosis-web-*.zip
 *.pptx
 *.pdf
 
+# --- S03 kurumsal kaynak masterlari (repoya girmez) ---
+# Illustrator masterlari ve dogrulanmamis anlatI kaynaklari is belgeleridir.
+# Repo su an PRIVATE olsa da her an public'e cevrilebilir; bu yuzden daha KATI
+# politika uygulanir: yalnizca sanitize edilmis web turevleri ve hash/provenance
+# kayitlari commit edilir. Bkz. docs/source-materials/SOURCE_MATERIALS.md
+*.ai
+duosis-10-yil-manifesto.html
+# Kaynak teslim klasoru (Cyclops_v1.pdf, logo masterlari, manifesto).
+/Re_*/
+
 # --- discovery görsel kanıtları (büyük binary) ---
 # Ölçüm metinleri (MEASUREMENTS.md) commit edilir; PNG kanıtlar teslim paketiyle dağıtılır.
 discovery/baseline/*.png
