@@ -12,6 +12,7 @@ import type { Locale, TechnologyLifecycle } from "@lib/content/schema";
  * - `verificationStatus !== "verified"` iddia/metrik görünmez
  * - `logoPermission !== "allowed"` logo görünmez
  * - `lifecycle !== "active"` teknoloji görünmez (pending ve inactive dahil)
+ * - `decisionNeeded === true` teknoloji görünmez (lifecycle "active" olsa bile)
  */
 
 export type ViewMode = "public" | "preview";
@@ -40,14 +41,33 @@ export function canShowLogo(logoPermission: string): boolean {
   return logoPermission === "allowed";
 }
 
+/** Görünürlük kararı için gereken asgari teknoloji alanları. */
+export interface TechnologyVisibility {
+  lifecycle: TechnologyLifecycle;
+  decisionNeeded: boolean;
+}
+
 /**
- * Teknoloji görünürlüğü — FAIL-CLOSED.
- * Public modda yalnızca `active`. `pending` (karar bekliyor) ve `inactive`
- * (kapsam dışı) public çıktıya girmez.
+ * Teknoloji görünürlüğü — FAIL-CLOSED, İKİ KOŞUL BİRLİKTE.
+ *
+ * Public modda bir teknoloji YALNIZCA şu ikisi birden sağlanırsa görünür:
+ * - `lifecycle === "active"`
+ * - `decisionNeeded === false`
+ *
+ * `pending` (karar bekliyor) ve `inactive` (kapsam dışı) public çıktıya girmez.
+ * `decisionNeeded` koşulu ikinci savunma katmanıdır: şema zaten
+ * `active + decisionNeeded:true` çelişkisini reddeder (bkz. `technologySchema`),
+ * fakat seçici de bağımsız olarak kontrol eder ki şema atlansa bile
+ * karar bekleyen bir kayıt public çıktıya sızmasın.
+ *
+ * Preview modda `pending` görünür (iç inceleme için), `inactive` görünmez.
+ * Logo izni bu fonksiyondan ETKİLENMEZ ve preview'da da gevşemez — bkz.
+ * `canShowLogo`.
  */
-export function isVisibleTechnology(lifecycle: TechnologyLifecycle, mode: ViewMode): boolean {
-  if (mode === "preview") return lifecycle !== "inactive";
-  return lifecycle === "active";
+export function isVisibleTechnology(technology: TechnologyVisibility, mode: ViewMode): boolean {
+  if (technology.lifecycle === "inactive") return false;
+  if (mode === "preview") return true;
+  return technology.lifecycle === "active" && technology.decisionNeeded === false;
 }
 
 // ---------------------------------------------------------------- doğrulama
@@ -140,7 +160,7 @@ export async function findSolutionByTranslationKey(
 export async function getTechnologies(mode: ViewMode): Promise<Technology[]> {
   const all = await getCollection("technologies");
   return all
-    .filter((e) => isVisibleTechnology(e.data.lifecycle, mode))
+    .filter((e) => isVisibleTechnology(e.data, mode))
     .sort((a, b) => a.data.name.localeCompare(b.data.name, "en"));
 }
 

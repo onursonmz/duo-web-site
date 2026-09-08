@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { REFERENCE_FIELDS } from "@lib/content/graph";
@@ -129,11 +129,54 @@ describe("şema doğrulaması — bozuk frontmatter reddediliyor", () => {
     expect(runSync(), "tanımsız cta.labelKey reddedilmeliydi").not.toBeNull();
   });
 
+  /**
+   * Teknoloji envanteri TEK bir JSON dosyasıdır; fixture eklenemez. Bu yüzden
+   * dosya geçici olarak değiştirilir ve `finally` içinde AYNEN geri yazılır.
+   */
+  function withMutatedInventory(
+    mutate: (records: Record<string, unknown>[]) => void
+  ): string | null {
+    const inventoryPath = join(ROOT, "src/content/technologies/technologies.json");
+    const original = readFileSync(inventoryPath, "utf8");
+    try {
+      const records = JSON.parse(original) as Record<string, unknown>[];
+      mutate(records);
+      writeFileSync(inventoryPath, `${JSON.stringify(records, null, 2)}\n`, "utf8");
+      return runSync();
+    } finally {
+      writeFileSync(inventoryPath, original, "utf8");
+    }
+  }
+
   it("GEÇERSİZ technology lifecycle reddediliyor", () => {
-    // Geçici olarak envantere geçersiz lifecycle'lı bir kayıt ekleyemeyiz
-    // (tek dosya), bu yüzden ayrı bir koleksiyon dosyası yerine şemayı
-    // doğrudan sınayan birim testi tests/unit/technology-inventory.test.ts'te.
-    expect(true).toBe(true);
+    const output = withMutatedInventory((records) => {
+      const first = records[0];
+      if (first !== undefined) first["lifecycle"] = "retired";
+    });
+    expect(output, "kapalı küme dışı lifecycle reddedilmeliydi").not.toBeNull();
+  });
+
+  it("ÇELİŞKİLİ kayıt reddediliyor: lifecycle active + decisionNeeded true", () => {
+    const output = withMutatedInventory((records) => {
+      const first = records[0];
+      if (first !== undefined) {
+        first["lifecycle"] = "active";
+        first["decisionNeeded"] = true;
+      }
+    });
+    expect(output, "active + decisionNeeded:true reddedilmeliydi").not.toBeNull();
+    expect(output).toMatch(/decisionNeeded/);
+  });
+
+  it("TUTARLI kayıt kabul ediliyor: lifecycle active + decisionNeeded false", () => {
+    const output = withMutatedInventory((records) => {
+      const first = records[0];
+      if (first !== undefined) {
+        first["lifecycle"] = "active";
+        first["decisionNeeded"] = false;
+      }
+    });
+    expect(output, "tutarlı kayıt kabul edilmeliydi").toBeNull();
   });
 });
 

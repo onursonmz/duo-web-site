@@ -9,6 +9,7 @@ import {
   PREVIEW,
   PUBLIC,
 } from "@lib/content/selectors";
+import type { TechnologyLifecycle } from "@lib/content/schema";
 
 /**
  * MERKEZİ SEÇİCİ KATMANI TESTLERİ.
@@ -63,17 +64,62 @@ describe("canShowLogo — izinsiz logo hiçbir modda gösterilmez", () => {
   });
 });
 
-describe("isVisibleTechnology — fail-closed", () => {
-  it("public modda yalnızca active geçer", () => {
-    expect(isVisibleTechnology("active", PUBLIC)).toBe(true);
-    expect(isVisibleTechnology("pending", PUBLIC)).toBe(false);
-    expect(isVisibleTechnology("inactive", PUBLIC)).toBe(false);
+describe("isVisibleTechnology — fail-closed, iki koşul birlikte", () => {
+  it("public: active + decisionNeeded:false GÖRÜNÜR (tek geçerli kombinasyon)", () => {
+    expect(isVisibleTechnology({ lifecycle: "active", decisionNeeded: false }, PUBLIC)).toBe(true);
+  });
+
+  it("public: active + decisionNeeded:true GÖRÜNMEZ", () => {
+    expect(isVisibleTechnology({ lifecycle: "active", decisionNeeded: true }, PUBLIC)).toBe(false);
+  });
+
+  it("public: pending her iki decision değerinde de GÖRÜNMEZ", () => {
+    expect(isVisibleTechnology({ lifecycle: "pending", decisionNeeded: false }, PUBLIC)).toBe(
+      false
+    );
+    expect(isVisibleTechnology({ lifecycle: "pending", decisionNeeded: true }, PUBLIC)).toBe(false);
+  });
+
+  it("public: inactive her iki decision değerinde de GÖRÜNMEZ", () => {
+    expect(isVisibleTechnology({ lifecycle: "inactive", decisionNeeded: false }, PUBLIC)).toBe(
+      false
+    );
+    expect(isVisibleTechnology({ lifecycle: "inactive", decisionNeeded: true }, PUBLIC)).toBe(
+      false
+    );
+  });
+
+  it("altı kombinasyonun TAMAMI beklenen sonucu veriyor", () => {
+    const matrix: [TechnologyLifecycle, boolean, boolean][] = [
+      ["active", false, true],
+      ["active", true, false],
+      ["pending", false, false],
+      ["pending", true, false],
+      ["inactive", false, false],
+      ["inactive", true, false],
+    ];
+    for (const [lifecycle, decisionNeeded, expected] of matrix) {
+      expect(
+        isVisibleTechnology({ lifecycle, decisionNeeded }, PUBLIC),
+        `${lifecycle} + decisionNeeded:${decisionNeeded}`
+      ).toBe(expected);
+    }
   });
 
   it("preview modda pending görünür, inactive görünmez", () => {
-    expect(isVisibleTechnology("pending", PREVIEW)).toBe(true);
-    expect(isVisibleTechnology("active", PREVIEW)).toBe(true);
-    expect(isVisibleTechnology("inactive", PREVIEW)).toBe(false);
+    expect(isVisibleTechnology({ lifecycle: "pending", decisionNeeded: true }, PREVIEW)).toBe(true);
+    expect(isVisibleTechnology({ lifecycle: "active", decisionNeeded: false }, PREVIEW)).toBe(true);
+    expect(isVisibleTechnology({ lifecycle: "inactive", decisionNeeded: false }, PREVIEW)).toBe(
+      false
+    );
+  });
+
+  it("preview modda LOGO İZNİ GEVŞEMEZ", () => {
+    // Görünürlük gevşese bile logo izni mod'dan bağımsızdır.
+    expect(canShowLogo("unknown")).toBe(false);
+    expect(canShowLogo("denied")).toBe(false);
+    expect(logoPathIfAllowed({ logoPath: "/x.svg", logoPermission: "unknown" })).toBeUndefined();
+    expect(logoPathIfAllowed({ logoPath: "/x.svg", logoPermission: "denied" })).toBeUndefined();
   });
 });
 

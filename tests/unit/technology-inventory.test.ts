@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { technologySchema } from "@lib/content/schemas";
 import { isVisibleTechnology, PREVIEW, PUBLIC } from "@lib/content/selectors";
-import { TECHNOLOGY_LIFECYCLES } from "@lib/content/schema";
+import { TECHNOLOGY_LIFECYCLES, type TechnologyLifecycle } from "@lib/content/schema";
 
 /**
  * S00 ENVANTERİ ↔ S02 İÇERİK VERİSİ PARİTE TESTLERİ.
@@ -215,27 +215,38 @@ describe("lifecycle dönüşümü — sessizce active yapılmadı", () => {
 });
 
 describe("public seçici FAIL-CLOSED", () => {
+  /** Gerçek kayıttan görünürlük girdisi üretir; iki alan birlikte taşınır. */
+  const visibilityOf = (record: Record<string, unknown> | undefined) => ({
+    lifecycle: record?.["lifecycle"] as TechnologyLifecycle,
+    decisionNeeded: record?.["decisionNeeded"] as boolean,
+  });
+
   it("pending teknoloji public'te GÖRÜNMEZ", () => {
-    expect(isVisibleTechnology("pending", PUBLIC)).toBe(false);
+    expect(isVisibleTechnology({ lifecycle: "pending", decisionNeeded: false }, PUBLIC)).toBe(
+      false
+    );
   });
 
   it("inactive teknoloji public'te GÖRÜNMEZ", () => {
-    expect(isVisibleTechnology("inactive", PUBLIC)).toBe(false);
+    expect(isVisibleTechnology({ lifecycle: "inactive", decisionNeeded: false }, PUBLIC)).toBe(
+      false
+    );
   });
 
-  it("yalnızca active public'te görünür", () => {
-    expect(isVisibleTechnology("active", PUBLIC)).toBe(true);
+  it("yalnızca active + decisionNeeded:false public'te görünür", () => {
+    expect(isVisibleTechnology({ lifecycle: "active", decisionNeeded: false }, PUBLIC)).toBe(true);
+    expect(isVisibleTechnology({ lifecycle: "active", decisionNeeded: true }, PUBLIC)).toBe(false);
   });
 
   it("preview modda pending görünür, inactive görünmez", () => {
-    expect(isVisibleTechnology("pending", PREVIEW)).toBe(true);
-    expect(isVisibleTechnology("inactive", PREVIEW)).toBe(false);
+    expect(isVisibleTechnology({ lifecycle: "pending", decisionNeeded: true }, PREVIEW)).toBe(true);
+    expect(isVisibleTechnology({ lifecycle: "inactive", decisionNeeded: false }, PREVIEW)).toBe(
+      false
+    );
   });
 
   it("mevcut envanterin TAMAMI public'te filtreleniyor (hiçbiri onaylı değil)", () => {
-    const visible = s02.filter((r) =>
-      isVisibleTechnology(r["lifecycle"] as "active" | "inactive" | "pending", PUBLIC)
-    );
+    const visible = s02.filter((r) => isVisibleTechnology(visibilityOf(r), PUBLIC));
     expect(visible).toEqual([]);
   });
 
@@ -243,11 +254,23 @@ describe("public seçici FAIL-CLOSED", () => {
     for (const id of ["glpi", "jira", "tableau", "cyclops"]) {
       const record = s02.find((r) => r["id"] === id);
       expect(record, `${id} kaydı bulunmalı`).toBeDefined();
-      expect(
-        isVisibleTechnology(record?.["lifecycle"] as "active" | "inactive" | "pending", PUBLIC),
-        `${id} public'te görünmemeli`
-      ).toBe(false);
+      expect(isVisibleTechnology(visibilityOf(record), PUBLIC), `${id} public'te görünmemeli`).toBe(
+        false
+      );
     }
+  });
+
+  it("ŞEMA çelişkili kaydı reddediyor: active + decisionNeeded:true", () => {
+    const base = s02.find((r) => r["id"] === "grafana");
+    expect(base, "grafana kaydı bulunmalı").toBeDefined();
+
+    const contradictory = { ...base, lifecycle: "active", decisionNeeded: true };
+    const result = technologySchema.safeParse(contradictory);
+    expect(result.success, "çelişkili kayıt şemadan geçmemeli").toBe(false);
+
+    // Aynı kayıt karar verilmiş haliyle geçmeli.
+    const consistent = { ...base, lifecycle: "active", decisionNeeded: false };
+    expect(technologySchema.safeParse(consistent).success).toBe(true);
   });
 });
 

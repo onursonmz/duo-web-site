@@ -117,7 +117,28 @@ export const technologySchema = z
     logoPath: z.string().optional(),
     note: z.string().optional(),
   })
-  .strict();
+  .strict()
+  /**
+   * ÇELİŞKİ REDDİ (S03 takip invariantı).
+   *
+   * Bir kayıt aynı anda "yayına hazır" (`lifecycle: active`) ve "karar bekliyor"
+   * (`decisionNeeded: true`) olamaz. Bu kombinasyon veri düzeyinde bir hatadır:
+   * public seçici zaten bunu gizler, fakat sessizce gizlemek yerine build'i
+   * kırmak daha güvenlidir — aksi halde onaylandığı sanılan bir kayıt
+   * fark edilmeden görünmez kalır.
+   */
+  .superRefine((value, ctx) => {
+    if (value.lifecycle === "active" && value.decisionNeeded) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["decisionNeeded"],
+        message:
+          `"${value.id}": lifecycle "active" iken decisionNeeded true olamaz. ` +
+          "Kayıt ya iş sahibi kararı beklemektedir (lifecycle: pending) " +
+          "ya da karar verilmiştir (decisionNeeded: false).",
+      });
+    }
+  });
 
 export const serviceSchema = z
   .object({
