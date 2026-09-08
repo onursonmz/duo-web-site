@@ -57,6 +57,15 @@ const dictionaries = {
     "solutions.technologiesEmpty": "Bu çözüm için yayınlanabilir teknoloji kaydı bulunmuyor.",
     "solutions.empty": "Yayınlanabilir çözüm kaydı bulunmuyor.",
 
+    "insights.title": "İçgörüler",
+    "insights.intro":
+      "Mühendislik ekibinin operasyon, veri ve mimari üzerine yazdığı kısa teknik notlar.",
+    "insights.empty": "Bu dilde yayınlanmış içgörü bulunmuyor.",
+    "insights.readMore": "Notu okuyun",
+    "insights.publishedAt": "Yayın tarihi",
+    "insights.series": "Seri",
+    "insights.backToIndex": "Tüm içgörüler",
+
     "translation.unavailableTitle": "Bu sayfa henüz Türkçe değil",
     // Dil değiştiricide kullanılır: hedef dilde karşılık YOK demektir.
     "translation.notAvailableInTarget": "bu dilde henüz yayınlanmadı",
@@ -117,6 +126,15 @@ const dictionaries = {
     "solutions.technologies": "Technology ecosystem",
     "solutions.technologiesEmpty": "No publishable technology record for this solution.",
     "solutions.empty": "No publishable solution record.",
+
+    "insights.title": "Insights",
+    "insights.intro":
+      "Short technical notes from the engineering team on operations, data and architecture.",
+    "insights.empty": "No insight has been published in this language yet.",
+    "insights.readMore": "Read the note",
+    "insights.publishedAt": "Published",
+    "insights.series": "Series",
+    "insights.backToIndex": "All insights",
 
     "translation.unavailableTitle": "This page is not available in English yet",
     // Used in the language switcher: no counterpart exists in the target language.

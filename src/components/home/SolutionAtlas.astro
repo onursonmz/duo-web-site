@@ -1,0 +1,92 @@
+---
+/**
+ * ÇÖZÜM ATLASI.
+ *
+ * Kart gridi DEĞİL: numaralı editorial liste. Her satır iş sonucu başlığı +
+ * tek satır açıklama taşır; teknoloji adı geçmez.
+ */
+import type { CollectionEntry } from "astro:content";
+import type { Locale } from "@lib/content/schema";
+import SectionHeading from "@components/ui/SectionHeading.astro";
+import { solutionPath } from "@lib/i18n/routes";
+
+interface Props {
+  locale: Locale;
+  copy: CollectionEntry<"homepage">["data"]["solutions"];
+  solutions: CollectionEntry<"solutions">[];
+}
+
+const { locale, copy, solutions }: Props = Astro.props;
+---
+
+<SectionHeading eyebrow={copy.eyebrow} as="h2" lead={copy.lead}>{copy.title}</SectionHeading>
+
+<ol class="atlas" data-testid="solution-atlas">
+  {
+    solutions.map((solution, index) => (
+      <li class="atlas__row">
+        <span class="atlas__index" aria-hidden="true">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <h3 class="atlas__title">
+          <a href={solutionPath(locale, solution.data.slug)}>{solution.data.title}</a>
+        </h3>
+        <p class="atlas__summary">{solution.data.summary}</p>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .atlas {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .atlas__row {
+    display: grid;
+    gap: var(--space-3xs) var(--space-md);
+    padding: var(--space-md) 0;
+    border-bottom: var(--border-width) solid var(--border-subtle);
+  }
+
+  /* Masaüstünde üç sütunlu asimetrik satır; mobilde tek sütun akış. */
+  @media (min-width: 56rem) {
+    .atlas__row {
+      grid-template-columns: 3rem minmax(0, 5fr) minmax(0, 6fr);
+      align-items: baseline;
+    }
+  }
+
+  .atlas__index {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    color: var(--text-muted);
+  }
+
+  .atlas__title {
+    margin: 0;
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+  }
+
+  .atlas__title a {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .atlas__title a:hover {
+    color: var(--signal);
+    text-decoration: underline;
+  }
+
+  .atlas__summary {
+    margin: 0;
+    max-width: 52ch;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+</style>

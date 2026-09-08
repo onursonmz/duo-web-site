@@ -1,0 +1,89 @@
+---
+/**
+ * İÇGÖRÜ LİSTESİ.
+ *
+ * Kayıt yoksa BOŞ KUTU değil, açık bir durum mesajı gösterilir; sahte
+ * "yakında" kartı üretilmez.
+ */
+import type { CollectionEntry } from "astro:content";
+import type { Locale } from "@lib/content/schema";
+import { t } from "@lib/i18n/dictionary";
+import { insightPath } from "@lib/i18n/routes";
+
+interface Props {
+  locale: Locale;
+  insights: CollectionEntry<"insights">[];
+}
+
+const { locale, insights }: Props = Astro.props;
+---
+
+{
+  insights.length === 0 ? (
+    <p class="insight-empty" data-testid="insights-empty">
+      {t(locale, "insights.empty")}
+    </p>
+  ) : (
+    <ul class="insight-list" data-testid="insight-list">
+      {insights.map((insight) => (
+        <li class="insight-list__item">
+          <p class="insight-list__meta">
+            {insight.data.series}
+            {insight.data.publishedAt !== undefined && (
+              <>
+                {" · "}
+                <time datetime={insight.data.publishedAt.toISOString().slice(0, 10)}>
+                  {insight.data.publishedAt.toISOString().slice(0, 10)}
+                </time>
+              </>
+            )}
+          </p>
+          <h2 class="insight-list__title">
+            <a href={insightPath(locale, insight.data.slug)}>{insight.data.title}</a>
+          </h2>
+          <p class="insight-list__excerpt">{insight.data.excerpt}</p>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+<style>
+  .insight-list {
+    margin: var(--space-lg) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .insight-list__item {
+    padding: var(--space-md) 0;
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .insight-list__meta {
+    margin: 0 0 var(--space-3xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .insight-list__title {
+    margin: 0 0 var(--space-3xs);
+    font-size: var(--text-lg);
+  }
+
+  .insight-list__excerpt {
+    margin: 0;
+    color: var(--text-secondary);
+  }
+
+  .insight-empty {
+    margin-top: var(--space-lg);
+    padding: var(--space-md);
+    border: var(--border-width) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+  }
+</style>

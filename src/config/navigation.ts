@@ -1,6 +1,6 @@
 import type { Locale } from "@lib/content/schema";
 import type { TranslationKey } from "@lib/i18n/dictionary";
-import { homePath, solutionsIndexPath } from "@lib/i18n/routes";
+import { homePath, insightsIndexPath, solutionsIndexPath } from "@lib/i18n/routes";
 
 /**
  * NAVİGASYON YAPILANDIRMASI — TEK KAYNAK.
@@ -42,8 +42,12 @@ export const PRIMARY_NAV: readonly NavItem[] = [
     status: "active",
     panel: "solutions",
   },
+  {
+    labelKey: "nav.insights",
+    href: (locale) => insightsIndexPath(locale),
+    status: "active",
+  },
   // --- Aşağıdakiler HENÜZ RENDER EDİLMEZ: rotaları yok. ---
-  { labelKey: "nav.insights", href: () => null, status: "planned", plannedIn: "S05" },
   { labelKey: "nav.cyclops", href: () => null, status: "planned", plannedIn: "S08" },
   { labelKey: "nav.services", href: () => null, status: "planned", plannedIn: "S09" },
   { labelKey: "nav.about", href: () => null, status: "planned", plannedIn: "S10" },

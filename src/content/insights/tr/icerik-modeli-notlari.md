@@ -2,7 +2,7 @@
 translationKey: content-model-notes
 locale: tr
 slug: icerik-modeli-notlari
-status: draft
+status: published
 title: İçerik modeli notları
 excerpt: >-
   Fail-closed bir içerik modeli neden doğrulanmamış iddiaları yayınlamaz ve bu

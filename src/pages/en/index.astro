@@ -1,37 +1,165 @@
 ---
+/**
+ * ANA SAYFA — S05 VERTICAL SLICE (EN).
+ *
+ * İÇERİK GÜVENLİĞİ KURALLARI:
+ * - Tüm metin `homepage` koleksiyonundan gelir; bileşene gömülü metin yoktur.
+ * - Doğrulanmamış müşteri/partner sayısı, bölge kapsamı veya başarı metriği
+ *   gösterilmez. Şema bunlar için alan bile tanımlamaz.
+ * - Verisi olmayan bölüm "veri bekleniyor" kutusu göstermez, TAMAMEN GİZLENİR:
+ *     · bölgeler   -> hiçbiri `verified` değil  -> bölüm yok
+ *     · içgörüler  -> yayınlanmış kayıt yoksa   -> bölüm yok
+ *     · milestone  -> yalnızca `verified` olanlar listelenir
+ * - Vendor logo duvarı üretilmez; teknoloji ekosistemi yetenek katmanlarıyla
+ *   anlatılır (tüm teknoloji kayıtları `pending`).
+ * - Hero animasyonu YOK (S06 kapsamı).
+ */
 import BaseLayout from "@layouts/BaseLayout.astro";
-import SolutionList from "@components/SolutionList.astro";
-import { PUBLIC, getSolutions } from "@lib/content/selectors";
-import { homePath, solutionsIndexPath } from "@lib/i18n/routes";
+import Section from "@components/ui/Section.astro";
+import SectionHeading from "@components/ui/SectionHeading.astro";
+import HeroSection from "@components/home/HeroSection.astro";
+import TrustSection from "@components/home/TrustSection.astro";
+import SolutionAtlas from "@components/home/SolutionAtlas.astro";
+import CyclopsTeaser from "@components/home/CyclopsTeaser.astro";
+import IntelligenceLayer from "@components/home/IntelligenceLayer.astro";
+import MethodSection from "@components/home/MethodSection.astro";
+import DecadeSection from "@components/home/DecadeSection.astro";
+import TechnologyLayers from "@components/home/TechnologyLayers.astro";
+import RoadmapCta from "@components/home/RoadmapCta.astro";
+import InsightList from "@components/InsightList.astro";
+import {
+  PUBLIC,
+  getHomepage,
+  getInsights,
+  getMilestones,
+  getRegions,
+  getSolutions,
+} from "@lib/content/selectors";
+import { homePath } from "@lib/i18n/routes";
 import { t } from "@lib/i18n/dictionary";
 
 const locale = "en" as const;
-// Üretim sayfası: PUBLIC modu AÇIKÇA kullanılır.
-const solutions = await getSolutions(locale, PUBLIC);
 
-// Her iki dilin de ana sayfası var; dil değiştirici karşılığa gider.
+// Üretim sayfası: PUBLIC modu AÇIKÇA kullanılır.
+const page = (await getHomepage(locale)).data;
+const solutions = await getSolutions(locale, PUBLIC);
+const milestones = await getMilestones(locale, PUBLIC);
+const regions = await getRegions(locale, PUBLIC);
+const insights = await getInsights(locale, PUBLIC);
+
 const alternates = { tr: homePath("tr"), en: homePath("en") };
-// İçerik olgunluk politikası: taslak içerik indekslenmez (docs/CONTENT_MATURITY.md).
 ---
 
 <BaseLayout
   locale={locale}
-  title={t(locale, "nav.home")}
-  description={t(locale, "site.tagline")}
+  title={page.seo.title}
+  description={page.seo.description}
   alternates={alternates}
-  noindex={true}
+  noindex={page.seo.noindex}
+  wide={true}
 >
-  <p class="badge">{t(locale, "draft.badge")}</p>
-  <h1>{t(locale, "site.name")} — {t(locale, "site.tagline")}</h1>
+  <Section tone="light" width="wide" id="hero">
+    <HeroSection hero={page.hero} />
+  </Section>
 
-  <h2>{t(locale, "solutions.title")}</h2>
-  <p>{t(locale, "solutions.intro")}</p>
+  <Section tone="light" width="wide" id="trust">
+    <TrustSection trust={page.trust} />
+  </Section>
 
-  <SolutionList locale={locale} solutions={solutions} />
+  <Section tone="light" width="wide" id="solutions">
+    <SolutionAtlas locale={locale} copy={page.solutions} solutions={solutions} />
+  </Section>
 
-  <p>
-    <a href={solutionsIndexPath(locale)}>{t(locale, "cta.exploreSolutions")}</a>
-  </p>
+  <Section tone="dark" width="wide" id="cyclops">
+    <CyclopsTeaser cyclops={page.cyclops} statusLabel={t(locale, "draft.badge")} />
+  </Section>
 
-  <p class="notice">{t(locale, "draft.notice")}</p>
+  <Section tone="light" width="wide" id="intelligence">
+    <IntelligenceLayer intelligence={page.intelligence} />
+  </Section>
+
+  <Section tone="light" width="wide" id="method">
+    <MethodSection method={page.method} />
+  </Section>
+
+  <Section tone="dark" width="wide" id="decade">
+    <DecadeSection decade={page.decade} milestones={milestones} />
+  </Section>
+
+  {
+    /*
+    BÖLGESEL ÇALIŞMA ALANI — yalnızca DOĞRULANMIŞ bölge varsa render edilir.
+    Şu an hiçbiri doğrulanmadığı için bölüm hiç oluşturulmaz.
+  */
+  }
+  {
+    regions.length > 0 && (
+      <Section tone="light" width="wide" id="regional">
+        <SectionHeading eyebrow={page.regional.eyebrow} as="h2" lead={page.regional.lead}>
+          {page.regional.title}
+        </SectionHeading>
+        <ul class="regions" data-testid="region-list">
+          {regions.map((region) => (
+            <li>
+              <span class="regions__name">{region.data.name}</span>
+              <span class="regions__summary">{region.data.summary}</span>
+            </li>
+          ))}
+        </ul>
+      </Section>
+    )
+  }
+
+  <Section tone="light" width="wide" id="technology">
+    <TechnologyLayers technology={page.technology} />
+  </Section>
+
+  {/* GÜNCEL İÇGÖRÜLER — yayınlanmış kayıt yoksa bölüm hiç oluşturulmaz. */}
+  {
+    insights.length > 0 && (
+      <Section tone="light" width="wide" id="insights">
+        <SectionHeading eyebrow={page.insights.eyebrow} as="h2" lead={page.insights.lead}>
+          {page.insights.title}
+        </SectionHeading>
+        <InsightList locale={locale} insights={insights} />
+      </Section>
+    )
+  }
+
+  <Section tone="dark" width="wide" id="roadmap">
+    <RoadmapCta roadmap={page.roadmap} />
+  </Section>
 </BaseLayout>
+
+<style>
+  .regions {
+    display: grid;
+    gap: var(--space-md);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 52rem) {
+    .regions {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .regions li {
+    padding-top: var(--space-sm);
+    border-top: var(--border-width) solid var(--border-strong);
+  }
+
+  .regions__name {
+    display: block;
+    font-weight: var(--weight-semibold);
+  }
+
+  .regions__summary {
+    display: block;
+    margin-top: var(--space-3xs);
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+</style>

@@ -1,0 +1,27 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import InsightList from "@components/InsightList.astro";
+import { PUBLIC, getInsights } from "@lib/content/selectors";
+import { insightsIndexPath } from "@lib/i18n/routes";
+import { t } from "@lib/i18n/dictionary";
+
+const locale = "en" as const;
+const insights = await getInsights(locale, PUBLIC);
+const alternates = { tr: insightsIndexPath("tr"), en: insightsIndexPath("en") };
+---
+
+<BaseLayout
+  locale={locale}
+  title={t(locale, "insights.title")}
+  description={t(locale, "insights.intro")}
+  alternates={alternates}
+  noindex={true}
+  breadcrumbs={[
+    { label: t(locale, "nav.home"), href: "/en/" },
+    { label: t(locale, "insights.title") },
+  ]}
+>
+  <h1>{t(locale, "insights.title")}</h1>
+  <p>{t(locale, "insights.intro")}</p>
+  <InsightList locale={locale} insights={insights} />
+</BaseLayout>

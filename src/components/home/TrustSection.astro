@@ -1,0 +1,73 @@
+---
+/**
+ * GÜVEN — PENDING-SAFE.
+ *
+ * Doğrulanmış müşteri/partner sayısı bulunmadığı için burada RAKAM YOKTUR.
+ * Şema zaten sayısal alan tanımlamaz; nitel anlatı numaralı sütunlarla verilir.
+ */
+import type { CollectionEntry } from "astro:content";
+import SectionHeading from "@components/ui/SectionHeading.astro";
+
+interface Props {
+  trust: CollectionEntry<"homepage">["data"]["trust"];
+}
+
+const { trust }: Props = Astro.props;
+---
+
+<SectionHeading eyebrow={trust.eyebrow} as="h2" lead={trust.lead}>{trust.title}</SectionHeading>
+
+<ol class="trust" data-testid="trust-points">
+  {
+    trust.points.map((point, index) => (
+      <li class="trust__item">
+        <span class="trust__index" aria-hidden="true">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <h3 class="trust__title">{point.title}</h3>
+        <p class="trust__body">{point.body}</p>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .trust {
+    display: grid;
+    gap: var(--space-lg);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 52rem) {
+    .trust {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-xl);
+    }
+  }
+
+  .trust__item {
+    padding-top: var(--space-sm);
+    border-top: var(--border-width-strong) solid var(--signal);
+  }
+
+  .trust__index {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    color: var(--text-muted);
+  }
+
+  .trust__title {
+    margin: var(--space-2xs) 0 var(--space-2xs);
+    font-size: var(--text-lg);
+  }
+
+  .trust__body {
+    margin: 0;
+    max-width: 42ch;
+    color: var(--text-secondary);
+  }
+</style>

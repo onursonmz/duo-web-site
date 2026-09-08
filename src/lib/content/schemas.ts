@@ -216,3 +216,115 @@ export const insightSchema = z
     seo: seoSchema,
   })
   .strict();
+
+/* ------------------------------------------------------------------ S05 */
+
+/** Bir bölümün üst metni. Tüm ana sayfa metni buradan gelir; koda gömülmez. */
+const sectionCopySchema = z
+  .object({
+    eyebrow: z.string().min(1),
+    title: z.string().min(1),
+    lead: z.string().min(1),
+  })
+  .strict();
+
+const homeCtaSchema = z
+  .object({
+    label: z.string().min(1),
+    /** Yalnızca MEVCUT rota veya aynı sayfadaki bir çapa. */
+    href: z.string().min(1),
+  })
+  .strict();
+
+const namedPointSchema = z
+  .object({
+    title: z.string().min(1),
+    body: z.string().min(1),
+  })
+  .strict();
+
+/**
+ * ANA SAYFA İÇERİĞİ.
+ *
+ * İÇERİK GÜVENLİĞİ: bu şemada müşteri sayısı, partner sayısı, bölge kapsamı
+ * veya başarı metriği için ALAN YOKTUR. Doğrulanmamış bir sayı buraya
+ * yazılamaz; yazılırsa `.strict()` build'i kırar.
+ *
+ * Bölümlerin gerçek verisi (çözümler, içgörüler, bölgeler) koleksiyonlardan
+ * gelir; burada yalnızca anlatı metni tutulur.
+ */
+export const homepageSchema = z
+  .object({
+    id: z.string().min(1),
+    locale: localeEnum,
+    status: statusEnum,
+    hero: z
+      .object({
+        eyebrow: z.string().min(1),
+        title: z.string().min(1),
+        lead: z.string().min(1),
+        primaryCta: homeCtaSchema,
+        secondaryCta: homeCtaSchema,
+      })
+      .strict(),
+    /** Güven bölümü: yalnızca NİTEL anlatı; sayı alanı yoktur. */
+    trust: sectionCopySchema.extend({ points: z.array(namedPointSchema).min(1) }).strict(),
+    solutions: sectionCopySchema,
+    /**
+     * CyclOps teaser — taslak/noindex kapsamda. Sürüm, müşteri kullanımı,
+     * MTTR oranı veya entegrasyon iddiası için alan YOKTUR.
+     */
+    cyclops: sectionCopySchema
+      .extend({
+        points: z.array(z.string().min(1)).min(1),
+        maturityNote: z.string().min(1),
+      })
+      .strict(),
+    /** Algıla → Anla → Harekete geç. Tam üç adım. */
+    intelligence: sectionCopySchema
+      .extend({
+        steps: z
+          .array(
+            z
+              .object({
+                stage: z.enum(["detect", "understand", "act"]),
+                title: z.string().min(1),
+                body: z.string().min(1),
+              })
+              .strict()
+          )
+          .length(3),
+      })
+      .strict(),
+    /** Doğrulanmış müşteri referansı yokken gösterilen içerik-duyarlı alternatif. */
+    method: sectionCopySchema.extend({ steps: z.array(namedPointSchema).min(1) }).strict(),
+    decade: sectionCopySchema,
+    regional: sectionCopySchema,
+    /** Teknoloji ekosistemi: VENDOR ADI değil, yetenek katmanları. */
+    technology: sectionCopySchema.extend({ layers: z.array(namedPointSchema).min(1) }).strict(),
+    insights: sectionCopySchema,
+    roadmap: sectionCopySchema
+      .extend({ primaryCta: homeCtaSchema, secondaryCta: homeCtaSchema })
+      .strict(),
+    seo: seoSchema,
+  })
+  .strict();
+
+/**
+ * BÖLGESEL ÇALIŞMA ALANI.
+ *
+ * Veri modeli hazırdır fakat public görünürlük YALNIZCA doğrulama
+ * statüsünden geçer: `verificationStatus !== "verified"` olan bölge public
+ * çıktıya girmez (`selectors.getRegions`).
+ */
+export const regionSchema = z
+  .object({
+    id: z.string().min(1),
+    locale: localeEnum,
+    name: z.string().min(1),
+    summary: z.string().min(1),
+    verificationStatus: verificationStatusEnum,
+    /** Hangi kaynakta geçtiği; doğrulama izini kaybetmemek için zorunlu. */
+    source: z.string().min(1),
+  })
+  .strict();

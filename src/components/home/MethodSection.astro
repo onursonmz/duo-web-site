@@ -1,0 +1,88 @@
+---
+/**
+ * YÖNTEM — DOĞRULANMIŞ PROOF YOKKEN GÖSTERİLEN İÇERİK-DUYARLI ALTERNATİF.
+ *
+ * Yayınlanabilir müşteri referansı bulunmadığı için burada rakam, logo veya
+ * müşteri adı YOKTUR. Bunun yerine çalışma biçimi anlatılır ve nedeni açıkça
+ * yazılır — "veri bekleniyor" kutusu veya sahte KPI gösterilmez.
+ */
+import type { CollectionEntry } from "astro:content";
+import SectionHeading from "@components/ui/SectionHeading.astro";
+
+interface Props {
+  method: CollectionEntry<"homepage">["data"]["method"];
+}
+
+const { method }: Props = Astro.props;
+---
+
+<SectionHeading eyebrow={method.eyebrow} as="h2" lead={method.lead}>{method.title}</SectionHeading>
+
+<ol class="method" data-testid="method-steps">
+  {
+    method.steps.map((step, index) => (
+      <li class="method__step">
+        <span class="method__rail" aria-hidden="true" />
+        <span class="method__index" aria-hidden="true">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <h3 class="method__title">{step.title}</h3>
+        <p class="method__body">{step.body}</p>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .method {
+    display: grid;
+    gap: var(--space-md);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 60rem) {
+    .method {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--space-lg);
+    }
+  }
+
+  .method__step {
+    position: relative;
+    padding-top: var(--space-md);
+  }
+
+  /* İnce yatay ray: adımların sırasını görselleştirir. */
+  .method__rail {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    block-size: 1px;
+    background: var(--border-strong);
+  }
+
+  .method__step:first-child .method__rail {
+    background: var(--signal);
+  }
+
+  .method__index {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    color: var(--text-muted);
+  }
+
+  .method__title {
+    margin: var(--space-3xs) 0 var(--space-2xs);
+    font-size: var(--text-lg);
+  }
+
+  .method__body {
+    margin: 0;
+    max-width: 34ch;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+</style>

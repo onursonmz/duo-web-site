@@ -1,0 +1,88 @@
+---
+/**
+ * TEKNOLOJİ EKOSİSTEMİ — VENDOR LOGO DUVARI DEĞİL.
+ *
+ * Tüm teknoloji kayıtları `pending` olduğu için ürün adı ve logo GÖSTERİLMEZ.
+ * Yerine birlikte çalışan yetenek katmanları anlatılır. Doğrulanmış teknoloji
+ * çıktığında ayrı bir bölüm eklenecektir; bu bölüm vendor adı taşımaz.
+ */
+import type { CollectionEntry } from "astro:content";
+import SectionHeading from "@components/ui/SectionHeading.astro";
+
+interface Props {
+  technology: CollectionEntry<"homepage">["data"]["technology"];
+}
+
+const { technology }: Props = Astro.props;
+---
+
+<div class="tech">
+  <div class="tech__head">
+    <SectionHeading eyebrow={technology.eyebrow} as="h2" lead={technology.lead}>
+      {technology.title}
+    </SectionHeading>
+  </div>
+
+  <ul class="tech__layers" data-testid="technology-layers">
+    {
+      technology.layers.map((layer, index) => (
+        <li class="tech__layer">
+          <span class="tech__index" aria-hidden="true">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <span class="tech__name">{layer.title}</span>
+          <span class="tech__body">{layer.body}</span>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<style>
+  /* Yığılmış katman listesi: kart gridi değil, üst üste binen ince çizgiler. */
+  @media (min-width: 60rem) {
+    .tech {
+      display: grid;
+      grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+      gap: var(--space-2xl);
+      align-items: start;
+    }
+  }
+
+  .tech__layers {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tech__layer {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: var(--space-3xs) var(--space-sm);
+    padding: var(--space-xs) 0;
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  @media (min-width: 44rem) {
+    .tech__layer {
+      grid-template-columns: 2.5rem minmax(0, 4fr) minmax(0, 6fr);
+      align-items: baseline;
+    }
+  }
+
+  .tech__index {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--text-muted);
+  }
+
+  .tech__name {
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-sm);
+  }
+
+  .tech__body {
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+</style>

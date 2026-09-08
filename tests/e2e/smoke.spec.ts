@@ -22,7 +22,20 @@ test.describe("ana sayfa", () => {
     const h1 = page.locator("h1");
     await expect(h1).toHaveCount(1);
     await expect(h1).toBeVisible();
-    await expect(h1).toHaveText(/Duosis/i);
+
+    /*
+     * S05 ile H1 marka adı DEĞİL, değer önerisidir. Sözleşme (01_PRODUCT...
+     * §5) "logo ve marka isimleri çözüm faydasının önüne geçmemeli" diyor;
+     * bu yüzden "Duosis" beklentisi kaldırıldı. Anlamlılık ölçütü korunuyor:
+     * H1 gerçek bir cümle olacak kadar dolu olmalı.
+     */
+    const text = (await h1.innerText()).trim();
+    expect(text.length, `H1 çok kısa: "${text}"`).toBeGreaterThan(20);
+    expect(text.split(/\s+/).length, "H1 tek kelime").toBeGreaterThan(3);
+
+    // Marka kimliği sayfada yine de bulunmalı — header'daki logo görselinin
+    // erişilebilir adı üzerinden (metin düğümü değil, alt metni).
+    await expect(page.getByTestId("site-header").getByAltText("Duosis")).toHaveCount(1);
   });
 
   test("kök html lang değeri tr", async ({ page }) => {

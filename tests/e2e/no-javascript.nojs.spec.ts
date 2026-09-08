@@ -16,7 +16,8 @@ test.describe("JavaScript kapalı", () => {
 
     const h1 = page.locator("h1");
     await expect(h1).toBeVisible();
-    await expect(h1).toHaveText(/Duosis/i);
+    // S05: H1 marka adı değil değer önerisidir (bkz. smoke.spec.ts).
+    expect((await h1.innerText()).trim().length).toBeGreaterThan(20);
 
     const main = page.locator("#main-content");
     await expect(main).toBeVisible();
@@ -34,7 +35,11 @@ test.describe("JavaScript kapalı", () => {
 
   test("iç bağlantılar çalışır durumda", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator('main a[href="/cozumler/"]')).toBeVisible();
+    // S05 ile ana sayfada çözümlere birden fazla bağlantı var (hero + roadmap
+    // CTA'ları); en az birinin görünür olması yeterlidir.
+    const links = page.locator('main a[href="/cozumler/"]');
+    await expect(links).not.toHaveCount(0);
+    await expect(links.first()).toBeVisible();
   });
 
   test("TR çözüm sayfası JavaScript olmadan tam okunabilir", async ({ page }) => {

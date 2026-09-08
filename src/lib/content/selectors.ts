@@ -25,6 +25,9 @@ type Solution = CollectionEntry<"solutions">;
 type Technology = CollectionEntry<"technologies">;
 type Proof = CollectionEntry<"proofs">;
 type Milestone = CollectionEntry<"milestones">;
+type Insight = CollectionEntry<"insights">;
+type Region = CollectionEntry<"regions">;
+type Homepage = CollectionEntry<"homepage">;
 
 // ---------------------------------------------------------------- yüklem katmanı
 
@@ -199,6 +202,38 @@ export async function getMilestones(locale: Locale, mode: ViewMode): Promise<Mil
         isVerifiedClaim(e.data.verificationStatus, mode)
     )
     .sort((a, b) => a.data.year - b.data.year);
+}
+
+/** Ana sayfa metni. Locale başına tek kayıt; bulunamazsa build kırılır. */
+export async function getHomepage(locale: Locale): Promise<Homepage> {
+  const all = await getCollection("homepage");
+  const entry = all.find((e) => e.data.locale === locale);
+  if (entry === undefined) {
+    throw new Error(`[homepage] "${locale}" için ana sayfa içeriği bulunamadı.`);
+  }
+  return entry;
+}
+
+/**
+ * Public modda YALNIZCA doğrulanmış bölgeler döner.
+ * Hiçbiri doğrulanmamışsa boş dizi döner ve çağıran taraf bölümü HİÇ
+ * render etmez — boş kutu veya "veri bekleniyor" yazısı gösterilmez.
+ */
+export async function getRegions(locale: Locale, mode: ViewMode): Promise<Region[]> {
+  const all = await getCollection("regions");
+  return all.filter(
+    (e) => e.data.locale === locale && isVerifiedClaim(e.data.verificationStatus, mode)
+  );
+}
+
+/** Public modda yalnızca yayınlanmış içgörüler; en yeniden eskiye. */
+export async function getInsights(locale: Locale, mode: ViewMode): Promise<Insight[]> {
+  const all = await getCollection("insights");
+  assertUniqueTranslations(all, "insights");
+
+  return all
+    .filter((e) => e.data.locale === locale && isPublishedStatus(e.data.status, mode))
+    .sort((a, b) => a.data.slug.localeCompare(b.data.slug, "en"));
 }
 
 /**
