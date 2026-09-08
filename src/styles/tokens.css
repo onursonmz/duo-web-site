@@ -146,6 +146,8 @@
   --status-critical: #d03939; /* 4.53:1 */
 
   --logo-counter: #ffffff;
+  /* Mobil menu karartmasi: yuzey degil ortu; her iki temada ayni. */
+  --overlay-scrim: rgb(10 14 18 / 55%);
   color-scheme: light;
 }
 
@@ -183,6 +185,7 @@
   --status-critical: #d75555; /* 4.52:1 */
 
   --logo-counter: #14181c;
+  --overlay-scrim: rgb(10 14 18 / 65%);
   color-scheme: dark;
 }
 

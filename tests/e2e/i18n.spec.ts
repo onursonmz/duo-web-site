@@ -26,7 +26,10 @@ test.describe("locale kökleri", () => {
     await page.goto("/");
 
     await expect(page.locator("html")).toHaveAttribute("lang", "tr");
-    await expect(page.getByRole("link", { name: "Çözümler", exact: true })).toBeVisible();
+    // S04 ile bağlantı hem ana menüde hem footer'da var; kapsam daraltılır.
+    await expect(
+      page.getByTestId("primary-nav").getByRole("link", { name: "Çözümler", exact: true })
+    ).toBeVisible();
     await expect(page.locator("body")).toContainText("Çözüm alanları");
   });
 
@@ -34,7 +37,9 @@ test.describe("locale kökleri", () => {
     await page.goto("/en/");
 
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
-    await expect(page.getByRole("link", { name: "Solutions", exact: true })).toBeVisible();
+    await expect(
+      page.getByTestId("primary-nav").getByRole("link", { name: "Solutions", exact: true })
+    ).toBeVisible();
     await expect(page.locator("body")).toContainText("Solution areas");
   });
 

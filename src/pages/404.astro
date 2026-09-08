@@ -1,7 +1,14 @@
 ---
+/**
+ * 404 — ORTAK SHELL.
+ *
+ * Header ve footer diğer sayfalarla aynı bileşenlerden gelir; kullanıcı
+ * kaybolduğunda navigasyonu kaybetmez.
+ */
 import BaseLayout from "@layouts/BaseLayout.astro";
-import { homePath } from "@lib/i18n/routes";
+import { homePath, solutionsIndexPath } from "@lib/i18n/routes";
 import { t } from "@lib/i18n/dictionary";
+import Button from "@components/ui/Button.astro";
 
 // 404 varsayılan locale ile sunulur (statik çıktıda tek 404 dosyası vardır).
 const locale = "tr" as const;
@@ -10,14 +17,35 @@ const locale = "tr" as const;
 <BaseLayout
   locale={locale}
   title="Sayfa bulunamadı"
-  description="Aradığınız sayfa bulunamadı. Ana sayfaya dönebilirsiniz."
+  description="Aradığınız sayfa bulunamadı. Ana sayfaya veya çözüm alanlarına dönebilirsiniz."
   noindex={true}
 >
+  <p class="notfound__code">404</p>
   <h1>Sayfa bulunamadı</h1>
 
   <p>Aradığınız adres bu sitede yok veya taşınmış olabilir.</p>
 
-  <p>
-    <a href={homePath(locale)}>{t(locale, "nav.home")}</a>
-  </p>
+  <div class="notfound__actions">
+    <Button variant="primary" href={homePath(locale)}>{t(locale, "nav.home")}</Button>
+    <Button variant="secondary" href={solutionsIndexPath(locale)}>
+      {t(locale, "nav.solutions")}
+    </Button>
+  </div>
 </BaseLayout>
+
+<style>
+  .notfound__code {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    letter-spacing: var(--tracking-wide);
+    color: var(--text-muted);
+  }
+
+  .notfound__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+  }
+</style>

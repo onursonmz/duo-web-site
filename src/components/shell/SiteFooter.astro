@@ -1,0 +1,174 @@
+---
+/**
+ * GLOBAL FOOTER.
+ *
+ * İÇERİK GÜVENLİĞİ: burada YALNIZCA doğrulanmış iletişim bilgileri görünür.
+ * S00 içerik doğruluk matrisinden `verified-on-site` olan kayıtlar:
+ *   C05 İstanbul ofisi (Brandium R2, Ataşehir)
+ *   C06 Ankara ofisi (Çankaya)
+ *   C07 Telefon: 0(216) 999 98 57 / 0(216) 212 51 52
+ *   C08 E-posta: info@duosis.com
+ *
+ * Sosyal medya hesabı, tam sokak adresi, bölge kapsamı veya çalışan bilgisi
+ * EKLENMEZ — hiçbiri doğrulanmadı. Yıl derleme zamanından üretilir.
+ */
+import type { Locale } from "@lib/content/schema";
+import { t } from "@lib/i18n/dictionary";
+import { activeNavItems, brandHref } from "@config/navigation";
+import LogoMark from "@components/ui/LogoMark.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale }: Props = Astro.props;
+
+const items = activeNavItems(locale);
+
+/** Derleme zamanından üretilir; elle güncellenmesi gereken sabit yıl yoktur. */
+const year = new Date().getFullYear();
+
+/** C07 — sitede yayınlanan iki numara. `tel:` için boşluklar temizlenir. */
+const PHONES = ["0(216) 999 98 57", "0(216) 212 51 52"] as const;
+const EMAIL = "info@duosis.com";
+const telHref = (phone: string): string => `tel:${phone.replace(/[^\d+]/g, "")}`;
+---
+
+<footer class="site-footer theme-dark" data-testid="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__brand">
+      <a href={brandHref(locale)} aria-label={t(locale, "nav.goToBrandHome")}>
+        <LogoMark variant="wordmark-mono" width="9rem" label="Duosis" class="site-footer__logo" />
+      </a>
+      <p class="site-footer__value">{t(locale, "footer.value")}</p>
+    </div>
+
+    <div class="site-footer__col">
+      <h2 class="site-footer__heading">{t(locale, "footer.offices")}</h2>
+      <ul class="site-footer__list">
+        <li>{t(locale, "footer.officeIstanbul")}</li>
+        <li>{t(locale, "footer.officeAnkara")}</li>
+      </ul>
+    </div>
+
+    <div class="site-footer__col">
+      <h2 class="site-footer__heading">{t(locale, "footer.contact")}</h2>
+      <ul class="site-footer__list">
+        {
+          PHONES.map((phone) => (
+            <li>
+              <a href={telHref(phone)}>{phone}</a>
+            </li>
+          ))
+        }
+        <li><a href={`mailto:${EMAIL}`}>{EMAIL}</a></li>
+      </ul>
+    </div>
+
+    {
+      items.length > 0 && (
+        <div class="site-footer__col">
+          <h2 class="site-footer__heading">{t(locale, "footer.nav")}</h2>
+          <ul class="site-footer__list">
+            {items.map(({ item, href }) => (
+              <li>
+                <a href={href}>{t(locale, item.labelKey)}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+  </div>
+
+  <div class="site-footer__bar">
+    <p class="site-footer__legal">
+      © {year} Duosis. {t(locale, "footer.rights")}
+    </p>
+    <p class="site-footer__note">{t(locale, "footer.buildNote")}</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: var(--border-width) solid var(--border-subtle);
+    background: var(--surface-canvas);
+    color: var(--text-primary);
+  }
+
+  .site-footer__inner {
+    display: grid;
+    gap: var(--space-lg);
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding: var(--space-2xl) var(--container-gutter) var(--space-lg);
+  }
+
+  @media (min-width: 48rem) {
+    .site-footer__inner {
+      grid-template-columns: 1.6fr repeat(3, minmax(0, 1fr));
+      gap: var(--space-xl);
+    }
+  }
+
+  .site-footer__logo {
+    color: var(--text-primary);
+  }
+
+  .site-footer__value {
+    margin: var(--space-md) 0 0;
+    max-width: 28rem;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .site-footer__heading {
+    margin: 0 0 var(--space-2xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .site-footer__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-sm);
+    line-height: 1.9;
+    color: var(--text-secondary);
+  }
+
+  .site-footer__list a {
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+
+  .site-footer__list a:hover {
+    color: var(--signal);
+    text-decoration: underline;
+  }
+
+  .site-footer__bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-md);
+    justify-content: space-between;
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding: var(--space-md) var(--container-gutter) var(--space-xl);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .site-footer__legal,
+  .site-footer__note {
+    margin: 0;
+    max-width: none;
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+  }
+</style>

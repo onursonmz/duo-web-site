@@ -1,0 +1,79 @@
+---
+/**
+ * BREADCRUMB ALTYAPISI.
+ *
+ * Son öğe bir bağlantı DEĞİLDİR ve `aria-current="page"` taşır (WAI-ARIA
+ * breadcrumb deseni). Ayırıcı CSS ile üretilir; ekran okuyucuya okunmaz.
+ *
+ * Kırık link üretmemek için: `href` verilmeyen ara öğeler düz metin kalır.
+ */
+import type { Locale } from "@lib/content/schema";
+import { t } from "@lib/i18n/dictionary";
+
+export interface Crumb {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  locale: Locale;
+  items: Crumb[];
+}
+
+const { locale, items }: Props = Astro.props;
+const last = items.length - 1;
+---
+
+{
+  items.length > 1 && (
+    <nav class="breadcrumb" aria-label={t(locale, "nav.breadcrumb")} data-testid="breadcrumb">
+      <ol class="breadcrumb__list">
+        {items.map((crumb, index) => (
+          <li class="breadcrumb__item">
+            {index === last || crumb.href === undefined ? (
+              <span aria-current={index === last ? "page" : undefined}>{crumb.label}</span>
+            ) : (
+              <a href={crumb.href}>{crumb.label}</a>
+            )}
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+
+<style>
+  .breadcrumb {
+    margin-bottom: var(--space-md);
+  }
+
+  .breadcrumb__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+  }
+
+  .breadcrumb__item + .breadcrumb__item::before {
+    content: "/";
+    margin-right: var(--space-2xs);
+    color: var(--text-muted);
+  }
+
+  .breadcrumb__item a {
+    color: var(--text-secondary);
+  }
+
+  .breadcrumb__item a:hover {
+    color: var(--signal);
+  }
+
+  .breadcrumb__item [aria-current="page"] {
+    color: var(--text-primary);
+    font-weight: var(--weight-medium);
+  }
+</style>

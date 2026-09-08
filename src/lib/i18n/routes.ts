@@ -13,9 +13,9 @@ export type { Locale };
 
 /** Locale başına segment adları. Rota haritası `03_CONTENT_AND_ROUTE_MAP.md` §2. */
 const SEGMENTS = {
-  tr: { solutions: "cozumler" },
-  en: { solutions: "solutions" },
-} as const satisfies Record<Locale, { solutions: string }>;
+  tr: { solutions: "cozumler", insights: "icgoruler" },
+  en: { solutions: "solutions", insights: "insights" },
+} as const satisfies Record<Locale, { solutions: string; insights: string }>;
 
 export function isLocale(value: string): value is Locale {
   return (LOCALES as readonly string[]).includes(value);
@@ -57,6 +57,16 @@ export function solutionsIndexPath(locale: Locale): string {
 /** Çözüm detay yolu: /cozumler/<slug>/ veya /en/solutions/<slug>/ */
 export function solutionPath(locale: Locale, slug: string): string {
   return localizedPath(locale, SEGMENTS[locale].solutions, slug);
+}
+
+/** İçgörüler landing yolu: /icgoruler/ veya /en/insights/ */
+export function insightsIndexPath(locale: Locale): string {
+  return localizedPath(locale, SEGMENTS[locale].insights);
+}
+
+/** İçgörü detay yolu: /icgoruler/<slug>/ veya /en/insights/<slug>/ */
+export function insightPath(locale: Locale, slug: string): string {
+  return localizedPath(locale, SEGMENTS[locale].insights, slug);
 }
 
 /** Ana sayfa yolu: / veya /en/ */
