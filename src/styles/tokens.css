@@ -125,14 +125,21 @@
   --border-subtle: #d8dde2; /*   1.27:1 — ayırıcı çizgi */
   --border-strong: #767f8a; /*   3.78:1 — form/UI bileşeni sınırı */
 
-  --signal: #107aa4; /*          4.51:1 — link ve vurgulu metin */
-  --signal-hover: #0e6c92;
+  /*
+   * GÜVENLİK PAYI (S03 takip düzeltmesi).
+   * Önceki değerler (#107aa4 = 4.51:1, #b5560f = 4.55:1) AA sınırına fazla
+   * yakındı; küçük bir yüzey değişikliği eşiğin altına düşürebilirdi.
+   * Ton (HSL H ve S) marka cyanıyla AYNI tutuldu, yalnızca açıklık düşürüldü —
+   * görsel marka bağı korunur.
+   */
+  --signal: #0f7197; /*          5.11:1 — link ve vurgulu metin */
+  --signal-hover: #0d6081; /*    6.51:1 */
   --signal-surface: #e6f2f8;
-  --signal-contrast: #ffffff; /*  4.84:1 (signal üzerinde) */
+  --signal-contrast: #ffffff; /*  5.48:1 (signal üzerinde) */
 
-  --action: #b5560f; /*          4.55:1 */
-  --action-hover: #99480c;
-  --action-contrast: #ffffff; /*  4.88:1 (action üzerinde) */
+  --action: #a44f0e; /*          5.29:1 */
+  --action-hover: #96480d; /*    6.06:1 */
+  --action-contrast: #ffffff; /*  5.67:1 (action üzerinde) */
 
   --status-success: #1a8246; /*  4.53:1 */
   --status-warning: #986800; /*  4.54:1 */

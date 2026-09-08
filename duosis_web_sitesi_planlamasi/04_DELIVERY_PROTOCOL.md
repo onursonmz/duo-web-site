@@ -2,7 +2,21 @@
 
 ## 1. Temel kural
 
-Her sprint tek başına incelenebilir, test edilebilir ve geri alınabilir bir artım üretir. Sonraki sprint, önceki sprint için Codex onayı gelmeden başlamaz.
+Her sprint tek başına incelenebilir, test edilebilir ve geri alınabilir bir artım üretir. Varsayılan düzende sonraki sprint, önceki sprint için Codex onayı gelmeden başlamaz.
+
+### 1.1 İkili sprint paketi (kullanıcı kararı, S04+S05 ile yürürlükte)
+
+Birbiriyle doğrudan ilişkili iki sprint tek branch üzerinde ardışık olarak yürütülebilir. Bu düzende:
+
+- Her sprint kendi **ayrı ve atomik checkpoint commit'ine** sahip olur; ikisi tek commit'te birleştirilmez.
+- **İlk sprint sonunda `pnpm quality` çalıştırılması zorunludur.**
+- İlk sprint kalite kapısı başarılıysa **Codex onayı beklenmeden** ikinci sprint başlayabilir.
+- **İkinci sprint sonunda** tekrar tam kalite zinciri ve **remote CI** çalıştırılır.
+- Birleşik raporda iki sprintin kabul kriterleri **ayrı ayrı** gösterilir; base/final commit ve kalite sonuçları da sprint bazında verilir.
+- Herhangi bir sprint **BLOCKED** olursa ikinciye geçilmez; blokaj olduğu yerde raporlanır.
+- İkili paket ancak Codex tarafından onaylandıktan sonra `main`'e merge edilir.
+
+Bu düzen varsayılan kuralı ortadan kaldırmaz; yalnızca Codex'in açıkça ikili paket ilan ettiği sprintlerde geçerlidir.
 
 ## 2. Git çalışma düzeni
 
@@ -13,6 +27,8 @@ Her sprint tek başına incelenebilir, test edilebilir ve geri alınabilir bir a
 - Commit mesajı: `feat(web): SXX <kısa sonuç>` veya uygun `chore/fix/test` türü.
 - Açık talimat olmadıkça push, merge, rebase, tag, deployment ve PR açma yok.
 - Büyük binary ve secret commit edilmez.
+- Onaylanan sprint `main`'e **merge commit** ile alınır; squash ve rebase kullanılmaz, sprint commit geçmişi korunur.
+- Merge sonrasında `main` CI sonucu beklenir; kırmızıysa yeni sprint başlatılmaz.
 
 Repo henüz yoksa S00 bunu raporlar; git init ve ilk commit yalnız S01 kapsamındadır.
 
@@ -39,6 +55,8 @@ Bir sprint ancak şunların tamamı karşılandığında “tamamlandı” deneb
 - Yerel commit oluşturulmuş.
 - Rapor teslim edilmiş ve Claude durmuş.
 
+İkili sprint paketinde ilk sprint için "rapor teslim edilmiş ve durulmuş" maddesi yerine "checkpoint commit oluşturulmuş ve `pnpm quality` başarılı" maddesi geçerlidir; rapor ve durma yalnızca paketin sonunda uygulanır.
+
 ## 5. Kanıt türleri
 
 | Alan | Beklenen kanıt |
@@ -50,6 +68,9 @@ Bir sprint ancak şunların tamamı karşılandığında “tamamlandı” deneb
 | Performans | İlgili bundle/Lighthouse ölçümü |
 | İçerik | Kullanılan fixture ve doğrulama durumları |
 | Git | base HEAD, final HEAD, branch ve commit |
+| CI | Remote run kimliği, sonuç ve süre |
+| Temiz kök | Üst dizinlerinde `node_modules` bulunmayan bir konumda `install --frozen-lockfile` + `quality` sonucu |
+| Paket | Review bundle ve evidence ZIP; ZIP yolları platform bağımsız `/` ayıracı kullanır, mutlak yol veya `..` içermez |
 
 ## 6. Stop koşulları
 

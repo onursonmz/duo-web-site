@@ -207,6 +207,61 @@ describe("kontrast — belgelenen oranlar gerçekten hesaplanıyor", () => {
     }
   });
 
+  /**
+   * GÜVENLİK PAYI (S03 takip düzeltmesi).
+   *
+   * Ham AA eşiği (4.5:1) tek başına yeterli değil: 4.51 gibi bir değer küçük
+   * bir yüzey değişikliğinde eşiğin altına düşer. Link ve aksiyon renkleri için
+   * daha yüksek bir taban zorunlu tutulur.
+   */
+  const AA_TEXT_MARGIN = 4.75;
+
+  it("SİNYAL ve AKSİYON açık yüzeyde güvenlik payını (>= 4.75:1) taşıyor", () => {
+    for (const surface of ["--surface-canvas", "--surface-raised", "--surface-sunken"]) {
+      const bg = tokenValue(surface, light);
+      for (const token of ["--signal", "--action"]) {
+        const ratio = contrast(tokenValue(token, light), bg);
+        expect(
+          ratio,
+          `${token} / ${surface} = ${ratio.toFixed(2)}:1 (taban ${AA_TEXT_MARGIN})`
+        ).toBeGreaterThanOrEqual(AA_TEXT_MARGIN);
+      }
+    }
+  });
+
+  it("SİNYAL açık yüzeyde tercih edilen 5.0:1 seviyesini yakalıyor", () => {
+    const ratio = contrast(tokenValue("--signal", light), tokenValue("--surface-canvas", light));
+    expect(ratio, `signal ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(5.0);
+  });
+
+  it("SİNYAL marka cyanıyla AYNI tonu koruyor (yalnızca açıklık düşürüldü)", () => {
+    /** Basit RGB -> HSL dönüşümü; ton ve doygunluk karşılaştırması için. */
+    const hs = (hex: string): [number, number] => {
+      const [r, g, b] = hexToRgb(hex).map((v) => v / 255) as [number, number, number];
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const l = (max + min) / 2;
+      const d = max - min;
+      if (d === 0) return [0, 0];
+      const s = d / (1 - Math.abs(2 * l - 1));
+      let h: number;
+      if (max === r) h = ((g - b) / d) % 6;
+      else if (max === g) h = (b - r) / d + 2;
+      else h = (r - g) / d + 4;
+      return [(((h * 60) % 360) + 360) % 360, s];
+    };
+
+    const [brandH, brandS] = hs(tokenValue("--brand-cyan", light));
+    const [signalH, signalS] = hs(tokenValue("--signal", light));
+
+    // Ton en fazla 2 derece, doygunluk en fazla 0.05 sapabilir.
+    expect(
+      Math.abs(brandH - signalH),
+      `ton sapması ${Math.abs(brandH - signalH).toFixed(2)}°`
+    ).toBeLessThanOrEqual(2);
+    expect(Math.abs(brandS - signalS)).toBeLessThanOrEqual(0.05);
+  });
+
   it("signal ve action her iki yüzeyde AA geçiyor", () => {
     for (const [scope, name] of [
       [light, "açık"],
