@@ -231,6 +231,9 @@ describe("içerik grafiği — TÜM referans alanları build'de doğrulanıyor",
         "solutionRefs:",
         "  - tr/bu-cozum-yok",
         "verificationStatus: pending",
+        // `source` S09'da ZORUNLU oldu. Fixture'a geçerli bir değer yazılır ki
+        // test yine REFERANS doğrulamasını ölçsün, eksik alan hatasını değil.
+        "source: test fixture",
         "---",
         "",
       ].join("\n")

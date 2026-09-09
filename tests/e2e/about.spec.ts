@@ -143,7 +143,7 @@ test.describe("içerik güvenliği", () => {
       }
 
       // Kısa terimler kelime sınırıyla: "katman" içindeki "atm" ihlal değildir.
-      for (const pattern of [/atm/, /bank/, /ibm/, /partner/]) {
+      for (const pattern of [/\batm\b/, /\bbank/, /\bibm\b/, /\bpartner/]) {
         expect(pattern.test(text), `${route.path} ${pattern} içeriyor`).toBe(false);
       }
 

@@ -48,7 +48,7 @@ const field = (frontmatter: string, key: string): string =>
  * SINIRIYLA aranır: "k-atm-an" ve "yatırım" gibi yanlış pozitifler gerçek
  * ihlalleri gürültüye boğuyordu. Kural gevşetilmedi, daha doğru arandı.
  */
-const FORBIDDEN_WORDS = [/atm/i, /bank/i, /ibm/i, /partner/i];
+const FORBIDDEN_WORDS = [/\batm\b/i, /\bbank/i, /\bibm\b/i, /\bpartner/i];
 
 const FORBIDDEN = [
   "müşteri",
