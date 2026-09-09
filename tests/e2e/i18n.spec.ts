@@ -12,7 +12,9 @@ import AxeBuilder from "@axe-core/playwright";
 
 const TR_SOLUTION = "/cozumler/operasyonel-gorunurluk/";
 const EN_SOLUTION = "/en/solutions/observability-and-apm/";
-const TR_UNTRANSLATED = "/cozumler/otomasyon/";
+// EN karşılığı OLMAYAN gerçek kayıt: içgörü. Sekiz çözümün ikisi de değil,
+// TAMAMI iki dilde yayımlandığı için fixture içgörüye taşındı.
+const TR_UNTRANSLATED = "/icgoruler/operasyon-verisinin-dort-hali/";
 
 function collectErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -74,12 +76,14 @@ test.describe("çözüm rotaları", () => {
     await expect(page.locator("body")).toContainText("Operational visibility");
   });
 
-  test("çözüm landing sayfaları sekiz TR / iki EN kaydı listeler", async ({ page }) => {
+  test("çözüm landing sayfaları iki dilde de sekiz kaydı listeler", async ({ page }) => {
+    // Kayıt sayısı = doğrudan satırlar. Kabiliyet etiketleri de <li> olduğu için
+    // torun eşleşmesi kayıt saymaz.
     await page.goto("/cozumler/");
-    await expect(page.getByTestId("solution-list").locator("li")).toHaveCount(8);
+    await expect(page.locator('[data-testid="solution-list"] > li')).toHaveCount(8);
 
     await page.goto("/en/solutions/");
-    await expect(page.getByTestId("solution-list").locator("li")).toHaveCount(2);
+    await expect(page.locator('[data-testid="solution-list"] > li')).toHaveCount(8);
   });
 });
 
@@ -137,7 +141,8 @@ test.describe("eksik çeviri — sessiz fallback YOK", () => {
     const main = await page.locator("#main-content").innerText();
     // TR sayfada EN gövde metni bulunmamalı.
     expect(main).not.toContain("Expected outcomes");
-    expect(main).toContain("Beklenen faydalar");
+    expect(main).not.toContain("Related solutions");
+    expect(main).toContain("Operasyon verisinin dört hâli");
   });
 });
 

@@ -21,10 +21,23 @@ const PUBLIC_ROUTES = [
   "/cozumler/",
   "/en/solutions/",
   "/cozumler/operasyonel-gorunurluk/",
+  "/cozumler/konfigurasyon-ve-varlik-yonetimi/",
+  "/cozumler/bt-hizmet-yonetimi/",
   "/cozumler/veri-akisi-ve-entegrasyon/",
+  "/cozumler/kurumsal-mimari-ve-yonetisim/",
   "/cozumler/aiops-ve-olay-yasam-dongusu/",
+  "/cozumler/otomasyon/",
   "/cozumler/muhendislik-ve-urun-gelistirme/",
   "/en/solutions/observability-and-apm/",
+  "/en/solutions/configuration-and-asset-management/",
+  "/en/solutions/it-service-management/",
+  "/en/solutions/data-streaming-and-integration/",
+  "/en/solutions/enterprise-architecture/",
+  "/en/solutions/aiops-and-event-lifecycle/",
+  "/en/solutions/automation/",
+  "/en/solutions/engineering-and-product-development/",
+  "/iletisim/",
+  "/en/contact/",
   "/icgoruler/",
   "/en/insights/",
   "/404-kontrol/",
@@ -37,9 +50,6 @@ const PUBLIC_ROUTES = [
  * normal kelimelerin geçmesi engellenmez.
  */
 const FORBIDDEN_PHRASES = [
-  "taslak",
-  "draft",
-  "olgunluk",
   "iş sahibi",
   "doğrulanmamış",
   "doğrulama bekl",
@@ -51,11 +61,25 @@ const FORBIDDEN_PHRASES = [
   "logo izni",
   "logopermission",
   "verificationstatus",
-  "pending",
-  "verification",
-  "maturity",
   "içerik modeli",
   "fail-closed",
+];
+
+/**
+ * Tek kelimelik terimler KELİME SINIRIYLA aranır.
+ *
+ * Alt dize taraması yanlış pozitif üretiyordu: "depending" içinde "pending",
+ * "vertical" içinde "vertica". Yanlış pozitif, gerçek ihlalleri gürültüye
+ * boğduğu için kural gevşetilmez — daha DOĞRU aranır. Sınır yalnızca kelimenin
+ * BAŞINA konur; Türkçe ekler ("taslağı", "olgunluğu") yakalanmaya devam eder.
+ */
+const FORBIDDEN_WORDS = [
+  /\btaslak/,
+  /\bolgunluk/,
+  /\bdraft\b/,
+  /\bpending\b/,
+  /\bverification/,
+  /\bmaturity\b/,
 ];
 
 test.describe("public arayüzde iç süreç dili yok", () => {
@@ -73,6 +97,10 @@ test.describe("public arayüzde iç süreç dili yok", () => {
           visible.includes(phrase),
           `${route} sayfasında görünür metin "${phrase}" içeriyor`
         ).toBe(false);
+      }
+
+      for (const word of FORBIDDEN_WORDS) {
+        expect(word.test(visible), `${route} görünür metni ${word} içeriyor`).toBe(false);
       }
     });
   }
