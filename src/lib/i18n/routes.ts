@@ -13,9 +13,12 @@ export type { Locale };
 
 /** Locale başına segment adları. Rota haritası `03_CONTENT_AND_ROUTE_MAP.md` §2. */
 const SEGMENTS = {
-  tr: { solutions: "cozumler", insights: "icgoruler", contact: "iletisim" },
-  en: { solutions: "solutions", insights: "insights", contact: "contact" },
-} as const satisfies Record<Locale, { solutions: string; insights: string; contact: string }>;
+  tr: { solutions: "cozumler", insights: "icgoruler", contact: "iletisim", cyclops: "cyclops" },
+  en: { solutions: "solutions", insights: "insights", contact: "contact", cyclops: "cyclops" },
+} as const satisfies Record<
+  Locale,
+  { solutions: string; insights: string; contact: string; cyclops: string }
+>;
 
 export function isLocale(value: string): value is Locale {
   return (LOCALES as readonly string[]).includes(value);
@@ -89,6 +92,26 @@ export function contactPathForTopic(
 ): string {
   const base = contactPath(locale);
   return allowed.includes(topic) ? `${base}?topic=${encodeURIComponent(topic)}` : base;
+}
+
+/** CyclOps ürün sayfası: /cyclops/ veya /en/cyclops/ */
+export function cyclopsPath(locale: Locale): string {
+  return localizedPath(locale, SEGMENTS[locale].cyclops);
+}
+
+/**
+ * ÜRÜN CTA KONULARI — KAPALI KÜME.
+ *
+ * Çözüm slug'larından AYRI tutulur: ürün sayfası kendi konusunu taşır ve
+ * buraya yazılmayan hiçbir değer parametre olamaz. Serbest query kabul
+ * edilmez.
+ */
+export const PRODUCT_TOPICS = ["cyclops"] as const;
+export type ProductTopic = (typeof PRODUCT_TOPICS)[number];
+
+/** Ürün sayfasının iletişim CTA'sı; konu allowlist dışındaysa parametre eklenmez. */
+export function contactPathForProductTopic(locale: Locale, topic: string): string {
+  return contactPathForTopic(locale, topic, PRODUCT_TOPICS);
 }
 
 /** Ana sayfa yolu: / veya /en/ */

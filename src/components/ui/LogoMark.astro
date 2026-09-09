@@ -23,7 +23,8 @@ interface Props {
     | "wordmark-mono"
     | "wordmark-inverse"
     | "mark"
-    | "mark-mono";
+    | "mark-mono"
+    | "cyclops";
   /** CSS uzunluğu; SVG en-boy oranını korur. */
   width?: string;
   label?: string;
@@ -40,6 +41,8 @@ const FILE: Record<string, string> = {
   "wordmark-inverse": "/brand/duosis-wordmark-inverse.svg",
   mark: "/brand/duosis-mark.svg",
   "mark-mono": "/brand/duosis-mark-mono.svg",
+  // CyclOps: sunumdaki GERÇEK asset'ten kırpıldı, yeniden çizilmedi.
+  cyclops: "/brand/cyclops-wordmark.png",
 };
 
 // En-boy oranları üretilen SVG viewBox değerlerinden sabitlenir; böylece font
@@ -52,6 +55,7 @@ const RATIO: Record<string, string> = {
   "wordmark-inverse": "507.789 / 149.541",
   mark: "194.137 / 149.446",
   "mark-mono": "194.137 / 149.446",
+  cyclops: "108 / 36",
 };
 ---
 

@@ -1,6 +1,12 @@
 import type { Locale } from "@lib/content/schema";
 import type { TranslationKey } from "@lib/i18n/dictionary";
-import { contactPath, homePath, insightsIndexPath, solutionsIndexPath } from "@lib/i18n/routes";
+import {
+  contactPath,
+  cyclopsPath,
+  homePath,
+  insightsIndexPath,
+  solutionsIndexPath,
+} from "@lib/i18n/routes";
 
 /**
  * NAVİGASYON YAPILANDIRMASI — TEK KAYNAK.
@@ -10,8 +16,8 @@ import { contactPath, homePath, insightsIndexPath, solutionsIndexPath } from "@l
  *
  * FAIL-CLOSED KURAL: yalnızca `status: "active"` girdiler RENDER EDİLİR.
  * `status: "planned"` girdiler gelecekteki sprintleri belgeler ama çıktıya
- * girmez — böylece henüz var olmayan `/iletisim/`, `/hakkimizda/`, `/cyclops/`
- * gibi adreslere kırık veya placeholder link üretilmez.
+ * girmez — böylece henüz var olmayan adreslere kırık veya
+ * placeholder link üretilmez.
  * `tests/unit/navigation.test.ts` bunu denetler.
  *
  * Rota haritası: `03_CONTENT_AND_ROUTE_MAP.md` §1 — en fazla ALTI ana giriş.
@@ -48,7 +54,11 @@ export const PRIMARY_NAV: readonly NavItem[] = [
     status: "active",
   },
   // --- Aşağıdakiler HENÜZ RENDER EDİLMEZ: rotaları yok. ---
-  { labelKey: "nav.cyclops", href: () => null, status: "planned", plannedIn: "S08" },
+  {
+    labelKey: "nav.cyclops",
+    href: (locale) => cyclopsPath(locale),
+    status: "active",
+  },
   { labelKey: "nav.services", href: () => null, status: "planned", plannedIn: "S09" },
   { labelKey: "nav.about", href: () => null, status: "planned", plannedIn: "S10" },
   {

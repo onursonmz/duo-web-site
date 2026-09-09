@@ -1,0 +1,48 @@
+[
+  {
+    "asset": "src/assets/cyclops/event-browser-inspector.png",
+    "sourceObject": "PDF XObject 119",
+    "sourceScreen": "Observation > Event Browser (olay listesi + Inspector + baglam menusu)",
+    "originalSize": "1280x675",
+    "redactions": [],
+    "review": "Hostname/IP/kullanici/token taramasi yapildi. Gorunen tum degerler sentetik demo verisi (node-069, auth-node-01, INC0010004); musteri adi, gercek IP veya kimlik bilgisi yok.",
+    "bytes": 357366,
+    "sha256": "1a60512263e5a8add940f4df623044353ee2b14278ff2453a422e8d7c832a897",
+    "size": "1280x675"
+  },
+  {
+    "asset": "src/assets/cyclops/matchers-rules.png",
+    "sourceObject": "PDF XObject 182",
+    "sourceScreen": "Inference > Matchers (kural agaci) + datasource surum gecmisi acilir listesi",
+    "originalSize": "1280x676",
+    "redactions": ["kural degeri `vendor = <ucuncu taraf urun adi>` maskelendi"],
+    "review": "Diger kural degerleri jenerik (rx_temp, tx_temp, level=client). Hostname/IP/token yok.",
+    "bytes": 98490,
+    "sha256": "ddeb807732a9e8725881c5c852e7217481035182be906c09022ebe7944ea9d1b",
+    "size": "1280x676"
+  },
+  {
+    "asset": "src/assets/cyclops/operational-dashboard.png",
+    "sourceObject": "PDF XObject 188",
+    "sourceScreen": "Observation > Dashboard (olay dagilimi, bilet durumu, aktif biletler)",
+    "originalSize": "1536x810",
+    "redactions": [
+      "`AVG RESOLUTION` degeri maskelendi (performans/SLA sonucu iddiasi yayinlanmaz)"
+    ],
+    "review": "Bilet kimlikleri ve host adlari sentetik (INC-000103, node-061). Musteri adi, IP veya kimlik bilgisi yok.",
+    "bytes": 308709,
+    "sha256": "b63d8bd6eddf04b87fbb7d4a2a97a36fcd72e495441952d6fe1687a1a1272241",
+    "size": "1536x810"
+  },
+  {
+    "asset": "public/brand/cyclops-wordmark.png",
+    "sourceObject": "PDF XObject 181 (kirpma)",
+    "sourceScreen": "CyclOps uygulama kenar cubugundaki wordmark",
+    "originalSize": "108x36",
+    "redactions": [],
+    "review": "Yeniden cizilmedi, farklilastirilmadi; orijinal asset'ten piksel kirpma. Sunumda vektor wordmark YOK (baslik slaydi metin olarak dizilmis).",
+    "bytes": 5160,
+    "sha256": "6fea2aed850b946b001d185e436c2a54b658ff27d66e62945b4a8649f801ec04",
+    "size": "108x36"
+  }
+]

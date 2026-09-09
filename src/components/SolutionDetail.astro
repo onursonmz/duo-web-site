@@ -161,8 +161,13 @@ const aiStages = data.aiRole
             const logo = logoPathIfAllowed(tech.data);
             return (
               <li data-technology-id={tech.id}>
-                {logo !== undefined && <img src={logo} alt="" width="80" height="24" />}
-                {tech.data.officialUrl !== undefined ? (
+                {/*
+                  Logo YALNIZCA izin verilen kayıtta oluşur ve o durumda adı
+                  TEKRAR ETMEZ: `alt` metni adın kendisidir.
+                */}
+                {logo !== undefined ? (
+                  <img src={logo} alt={tech.data.name} width="80" height="27" />
+                ) : tech.data.officialUrl !== undefined ? (
                   <a
                     href={tech.data.officialUrl}
                     rel="noopener noreferrer nofollow"

@@ -27,6 +27,7 @@ type Proof = CollectionEntry<"proofs">;
 type Milestone = CollectionEntry<"milestones">;
 type Insight = CollectionEntry<"insights">;
 type Region = CollectionEntry<"regions">;
+type Product = CollectionEntry<"products">;
 type Homepage = CollectionEntry<"homepage">;
 
 // ---------------------------------------------------------------- yüklem katmanı
@@ -167,14 +168,25 @@ export async function getTechnologies(mode: ViewMode): Promise<Technology[]> {
     .sort((a, b) => a.data.name.localeCompare(b.data.name, "en"));
 }
 
+/**
+ * Referans taşıyan bir kaydın teknolojileri; görünür olmayanlar public modda
+ * DÜŞER. Çözüm ve ürün kayıtları aynı süzgeçten geçer.
+ */
+export async function getTechnologiesForRefs(
+  entry: { data: { technologyRefs: readonly { id: string }[] } },
+  mode: ViewMode
+): Promise<Technology[]> {
+  const allowedIds = new Set(entry.data.technologyRefs.map((r) => r.id));
+  const technologies = await getTechnologies(mode);
+  return technologies.filter((t) => allowedIds.has(t.id));
+}
+
 /** Bir çözümün teknolojileri; görünür olmayanlar public modda düşer. */
 export async function getTechnologiesForSolution(
   solution: Solution,
   mode: ViewMode
 ): Promise<Technology[]> {
-  const allowedIds = new Set(solution.data.technologyRefs.map((r) => r.id));
-  const technologies = await getTechnologies(mode);
-  return technologies.filter((t) => allowedIds.has(t.id));
+  return getTechnologiesForRefs(solution, mode);
 }
 
 /** Public modda yalnızca doğrulanmış referanslar döner. */
@@ -219,6 +231,42 @@ export async function getHomepage(locale: Locale): Promise<Homepage> {
  * Hiçbiri doğrulanmamışsa boş dizi döner ve çağıran taraf bölümü HİÇ
  * render etmez — boş kutu veya "veri bekleniyor" yazısı gösterilmez.
  */
+/**
+ * ÜRÜN SAYFASI.
+ *
+ * Public modda yalnızca `status: "published"` kayıt döner; yoksa `undefined`
+ * ve sayfa hiç üretilmez (fail-closed).
+ */
+export async function getProduct(
+  slug: string,
+  locale: Locale,
+  mode: ViewMode
+): Promise<Product | undefined> {
+  const all = await getCollection("products");
+  return all.find(
+    (entry) =>
+      entry.data.locale === locale &&
+      entry.data.slug === slug &&
+      isPublishedStatus(entry.data.status, mode)
+  );
+}
+
+/** Bir ürünün diğer dillerdeki yolları; karşılığı yoksa anahtar BULUNMAZ. */
+export async function getProductAlternates(
+  slug: string,
+  mode: ViewMode,
+  buildPath: (locale: Locale) => string
+): Promise<Partial<Record<Locale, string>>> {
+  const all = await getCollection("products");
+  const alternates: Partial<Record<Locale, string>> = {};
+  for (const entry of all) {
+    if (entry.data.slug === slug && isPublishedStatus(entry.data.status, mode)) {
+      alternates[entry.data.locale] = buildPath(entry.data.locale);
+    }
+  }
+  return alternates;
+}
+
 export async function getRegions(locale: Locale, mode: ViewMode): Promise<Region[]> {
   const all = await getCollection("regions");
   return all.filter(

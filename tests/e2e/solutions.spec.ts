@@ -153,7 +153,10 @@ test.describe("boş alan bölüm üretmez", () => {
                 .map((child) => child.textContent ?? "")
                 .join("")
                 .trim();
-              return rest.length === 0 || text.length === 0;
+              // Görselle anlatan bölüm (izinli logo) metinsiz olabilir; boş
+              // sayılmaz. Boş olan, HİÇBİR içerik taşımayan bölümdür.
+              const media = el.querySelectorAll("img, svg, picture").length;
+              return rest.length === 0 || (text.length === 0 && media === 0);
             })
             .map((el) => el.getAttribute("aria-labelledby") ?? "?")
         );
@@ -165,12 +168,35 @@ test.describe("boş alan bölüm üretmez", () => {
 // ---------------------------------------------------------------- 4. teknoloji sunumu
 
 test.describe("teknoloji sunumu", () => {
-  test("teknolojiler YALNIZCA metin: logo yok, görsel yok", async ({ page }) => {
+  /**
+   * Logo YALNIZCA yazılı izinle görünür (ADR-012 ile açılan tek kayıt:
+   * CyclOps). Kural "hiç görsel olmasın" değil, "izinsiz görsel olmasın"dır;
+   * test bunu kayıt kimliğine bakarak denetler.
+   */
+  const LOGO_ALLOWED_IDS = ["cyclops"];
+
+  test("logo YALNIZCA izinli kayıtta var; diğerleri metin", async ({ page }) => {
     for (const solution of SOLUTIONS) {
       await page.goto(trPath(solution.tr));
       const list = page.locator('[data-testid="technology-list"]');
       if ((await list.count()) === 0) continue;
-      await expect(list.locator("img, svg, picture")).toHaveCount(0);
+
+      const items = await list.locator("li").evaluateAll((els) =>
+        els.map((el) => ({
+          id: el.getAttribute("data-technology-id") ?? "",
+          images: el.querySelectorAll("img, svg, picture").length,
+          alt: el.querySelector("img")?.getAttribute("alt") ?? "",
+        }))
+      );
+
+      for (const item of items) {
+        if (LOGO_ALLOWED_IDS.includes(item.id)) {
+          expect(item.images, `${item.id} logosu render edilmedi`).toBe(1);
+          expect(item.alt.length, `${item.id} alt metni boş`).toBeGreaterThan(0);
+        } else {
+          expect(item.images, `${item.id} İZİNSİZ logo gösteriyor`).toBe(0);
+        }
+      }
     }
   });
 

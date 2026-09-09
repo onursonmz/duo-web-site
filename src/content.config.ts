@@ -5,6 +5,7 @@ import {
   homepageSchema,
   insightSchema,
   milestoneSchema,
+  productSchema,
   proofSchema,
   regionSchema,
   serviceSchema,
@@ -60,6 +61,11 @@ export const collections = {
     // Ana sayfa metni TEK veri kaynağıdır; bileşenlere gömülmez.
     loader: file("./src/content/homepage/homepage.json"),
     schema: homepageSchema,
+  }),
+  products: defineCollection({
+    // Ürün sayfası metni TEK veri kaynağıdır; şablona gömülmez.
+    loader: file("./src/content/products/products.json"),
+    schema: productSchema,
   }),
   regions: defineCollection({
     // Veri modeli hazır; public görünürlük doğrulama statüsünden geçer.

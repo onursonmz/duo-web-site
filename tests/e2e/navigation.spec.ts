@@ -336,8 +336,9 @@ test.describe("shell erişilebilirliği", () => {
   });
 
   test("HİÇBİR sayfa planlanan (rotasız) adrese link vermiyor", async ({ page }) => {
-    // `/iletisim/` S07'de gerçek rota oldu; listeden ÇIKARILDI, gevşetilmedi.
-    const forbidden = ["/hakkimizda/", "/blog/", "/cyclops/", "/hizmetler/"];
+    // `/iletisim/` S07'de, `/cyclops/` S08'de gerçek rota oldu; listeden
+    // ÇIKARILDILAR, kural gevşetilmedi.
+    const forbidden = ["/hakkimizda/", "/blog/", "/hizmetler/"];
     for (const route of ["/", "/en/", "/cozumler/", "/cozumler/otomasyon/"]) {
       await page.goto(route);
       const hrefs = await page

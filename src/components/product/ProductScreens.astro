@@ -1,0 +1,138 @@
+---
+/**
+ * ÜRÜN EKRANI GALERİSİ.
+ *
+ * KAYNAK: CyclOps ürün sunumunun İÇİNE GÖMÜLÜ orijinal raster asset'ler
+ * (`src/assets/cyclops/MANIFEST.json` slayt ↔ asset ilişkisini kaydeder).
+ * Slayt rasterize EDİLMEDİ; her görsel tek tek incelendi ve hassas alanlar
+ * maskelendi.
+ *
+ * TEKNİK KARARLAR
+ * - `astro:assets` `<Picture>`: AVIF + WebP türevleri ve `srcset` derleme
+ *   zamanında üretilir; hiçbir dış istek oluşmaz.
+ * - `width`/`height` her zaman yazılır ve kap `aspect-ratio` taşır → CLS 0.
+ * - İlk görsel `eager`, kalanlar `lazy`.
+ * - Modal YOK. Büyütme gerekmediği için sahte "button gibi görünen div" de yok;
+ *   klavye tuzağı üretilmez.
+ */
+import { Picture } from "astro:assets";
+import type { CollectionEntry } from "astro:content";
+import eventBrowser from "@assets/cyclops/event-browser-inspector.png";
+import matchers from "@assets/cyclops/matchers-rules.png";
+import dashboard from "@assets/cyclops/operational-dashboard.png";
+
+type Product = CollectionEntry<"products">;
+
+interface Props {
+  title: string;
+  note: string;
+  screens: Product["data"]["gallery"];
+  /** Ekranın "gerçek ürün ekranı" olduğunu söyleyen kısa etiket. */
+  realScreenLabel: string;
+}
+
+const { title, note, screens, realScreenLabel }: Props = Astro.props;
+
+/** Kapalı anahtar → gerçek asset eşlemesi. Serbest dosya yolu kabul edilmez. */
+const ASSETS = {
+  "event-browser": eventBrowser,
+  matchers: matchers,
+  dashboard: dashboard,
+} as const;
+
+const WIDTHS = [640, 960, 1280];
+const SIZES = "(min-width: 64rem) 60rem, 100vw";
+---
+
+<section aria-labelledby="screens-heading" data-testid="product-screens">
+  <h2 id="screens-heading">{title}</h2>
+  <p class="screens__note">{note}</p>
+
+  <ol class="screens">
+    {
+      screens.map((screen, index) => (
+        <li class="screens__item">
+          <figure class="screens__figure">
+            <div class="screens__frame">
+              <Picture
+                src={ASSETS[screen.key]}
+                formats={["avif", "webp"]}
+                fallbackFormat="png"
+                widths={WIDTHS}
+                sizes={SIZES}
+                alt={screen.alt}
+                loading={index === 0 ? "eager" : "lazy"}
+                decoding={index === 0 ? "sync" : "async"}
+                fetchpriority={index === 0 ? "high" : "auto"}
+                class="screens__img"
+                data-testid="product-screen"
+              />
+            </div>
+            <figcaption class="screens__caption">
+              <span class="screens__badge">{realScreenLabel}</span>
+              {screen.caption}
+            </figcaption>
+          </figure>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<style>
+  .screens__note {
+    max-width: 62ch;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .screens {
+    display: grid;
+    gap: var(--space-xl);
+    margin: var(--space-lg) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .screens__figure {
+    margin: 0;
+  }
+
+  /*
+   * Kap en-boy oranını GÖRSELDEN alır (`aspect-ratio: attr` yerine img'in
+   * kendi width/height'ı yeterlidir); ek yer ayırma yapılmaz, düzen kaymaz.
+   */
+  .screens__frame {
+    border: var(--border-width) solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    background: var(--surface-raised);
+    overflow: hidden;
+  }
+
+  .screens__img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .screens__caption {
+    margin-top: var(--space-2xs);
+    max-width: 68ch;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .screens__badge {
+    display: inline-block;
+    margin-right: var(--space-2xs);
+    padding: 0 var(--space-3xs);
+    border: var(--border-width) solid var(--product-accent, var(--signal));
+    border-radius: var(--radius-sm);
+    color: var(--product-accent, var(--signal));
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    vertical-align: 0.1em;
+  }
+</style>

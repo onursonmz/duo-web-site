@@ -1,0 +1,49 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import ProductPage from "@components/product/ProductPage.astro";
+import {
+  PUBLIC,
+  getInsights,
+  getProduct,
+  getProductAlternates,
+  getSolutions,
+} from "@lib/content/selectors";
+import { cyclopsPath } from "@lib/i18n/routes";
+import { t } from "@lib/i18n/dictionary";
+
+// Üretim sayfası: PUBLIC modu AÇIKÇA kullanılır.
+const product = await getProduct("cyclops", "tr", PUBLIC);
+if (product === undefined) {
+  // Kayıt yayında değilse sayfa üretilmez; sessiz boş sayfa çıkmaz.
+  throw new Error("cyclops ürün kaydı public modda bulunamadı");
+}
+
+const alternates = await getProductAlternates("cyclops", PUBLIC, cyclopsPath);
+
+const allSolutions = await getSolutions("tr", PUBLIC);
+const relatedIds = new Set(product.data.relatedSolutionRefs.map((ref) => ref.id));
+const relatedSolutions = allSolutions.filter((solution) => relatedIds.has(solution.id));
+
+const allInsights = await getInsights("tr", PUBLIC);
+const relatedInsights = allInsights.filter((insight) =>
+  insight.data.relatedSolutionRefs.some((ref) => relatedIds.has(ref.id))
+);
+---
+
+<BaseLayout
+  locale="tr"
+  title={product.data.seo.title}
+  description={product.data.seo.description}
+  alternates={alternates}
+  noindex={product.data.seo.noindex}
+  wide={true}
+  breadcrumbs={[{ label: t("tr", "nav.home"), href: "/" }, { label: product.data.name }]}
+>
+  <ProductPage
+    locale="tr"
+    product={product}
+    mode={PUBLIC}
+    solutions={relatedSolutions}
+    insights={relatedInsights}
+  />
+</BaseLayout>

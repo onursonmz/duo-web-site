@@ -128,3 +128,30 @@ test.describe("JavaScript kapalı", () => {
     await expect(footer.locator('a[href^="tel:"]')).not.toHaveCount(0);
   });
 });
+
+/**
+ * CYCLOPS ÜRÜN SAYFASI — JS KAPALIYKEN (S08).
+ *
+ * Ürün hikâyesi, ekran görselleri ve CTA JavaScript'e bağlı değildir.
+ */
+test.describe("JavaScript kapalı — CyclOps", () => {
+  test("ürün hikâyesi ve ekranlar JS olmadan görünüyor", async ({ page }) => {
+    await page.goto("/cyclops/");
+
+    await expect(page.locator("h1")).toBeVisible();
+    await expect(page.locator(".hero__wordmark img")).toBeVisible();
+    await expect(page.getByTestId("product-flow").locator("li")).toHaveCount(5);
+    await expect(page.getByTestId("product-screens")).toBeVisible();
+
+    // Görseller `loading="lazy"` olsa bile JS'siz tarayıcıda işaretlenmiş olarak durur.
+    await expect(page.getByTestId("product-screen")).toHaveCount(3);
+    await expect(page.getByTestId("product-screen").first()).toBeVisible();
+  });
+
+  test("JS KAPALIYKEN CTA gerçek bir bağlantı", async ({ page }) => {
+    await page.goto("/cyclops/");
+    const cta = page.locator('[data-analytics-event="product-cta"]').first();
+    await expect(cta).toBeVisible();
+    await expect(cta).toHaveAttribute("href", "/iletisim/?topic=cyclops");
+  });
+});

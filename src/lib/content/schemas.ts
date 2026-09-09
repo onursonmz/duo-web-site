@@ -341,3 +341,90 @@ export const regionSchema = z
     source: z.string().min(1),
   })
   .strict();
+
+/* ------------------------------------------------------------------ S08 */
+
+/**
+ * ÜRÜN SAYFASI — CyclOps.
+ *
+ * İÇERİK GÜVENLİĞİ: bu şemada müşteri sayısı, SLA, MTTR, sürüm numarası,
+ * fiyat, node sayısı veya pazar istatistiği için ALAN YOKTUR. Sunumun
+ * pazarlama cümleleri ("every event", "fully autonomous", "self-healing")
+ * veriye yazılamaz; yazılırsa `.strict()` build'i kırar.
+ *
+ * Ürün ekranı listesi KAPALI bir anahtar kümesidir: şablon yalnızca gerçekten
+ * incelenmiş ve redakte edilmiş asset'leri render eder, serbest dosya yolu
+ * kabul etmez.
+ */
+const productScreenSchema = z
+  .object({
+    key: z.enum(["event-browser", "matchers", "dashboard"]),
+    caption: z.string().min(1),
+    /** Görselin erişilebilir karşılığı; boş bırakılamaz. */
+    alt: z.string().min(1),
+  })
+  .strict();
+
+const productFlowStepSchema = z
+  .object({
+    key: z.enum(["signal", "context", "correlate", "decide", "act"]),
+    title: z.string().min(1),
+    body: z.string().min(1),
+  })
+  .strict();
+
+export const productSchema = z
+  .object({
+    id: z.string().min(1),
+    locale: localeEnum,
+    slug: slugSchema,
+    status: statusEnum,
+    /** Ürünün sahibi: yalnızca Duosis'in kendi ürünü bu sayfada anlatılır. */
+    ownership: z.literal("duosis-own-product"),
+    name: z.string().min(1),
+    eyebrow: z.string().min(1),
+    /** Tek cümlelik değer önerisi. */
+    valueProposition: z.string().min(1),
+    /** İzleme araçlarının yerine geçmediğini söyleyen konumlandırma cümlesi. */
+    positioning: z.string().min(1),
+    problem: z.object({ title: z.string().min(1), body: z.string().min(1) }).strict(),
+    /** Signal → Context → Correlate → Decide → Act: TAM BEŞ, sıra kapalı. */
+    flowTitle: z.string().min(1),
+    flow: z.array(productFlowStepSchema).length(5),
+    scenario: z
+      .object({
+        title: z.string().min(1),
+        beforeTitle: z.string().min(1),
+        before: z.array(z.string().min(1)).min(2),
+        afterTitle: z.string().min(1),
+        after: z.array(z.string().min(1)).min(2),
+      })
+      .strict(),
+    galleryTitle: z.string().min(1),
+    /** Her görselin "gerçek ürün ekranı" olduğu ziyaretçiye açıkça söylenir. */
+    galleryNote: z.string().min(1),
+    gallery: z.array(productScreenSchema).min(3),
+    approval: z
+      .object({
+        title: z.string().min(1),
+        body: z.string().min(1),
+        boundaries: z.array(z.string().min(1)).min(2),
+      })
+      .strict(),
+    integrationsTitle: z.string().min(1),
+    integrationsNote: z.string().min(1),
+    /** Yalnızca envanterdeki kayıtlar; görünürlük seçiciden geçer. */
+    technologyRefs: z.array(reference("technologies")).default([]),
+    relatedSolutionRefs: z.array(reference("solutions")).default([]),
+    cta: z
+      .object({
+        title: z.string().min(1),
+        body: z.string().min(1),
+        labelKey: z.string().min(1),
+        /** CTA konusu KAPALI ürün allowlist'inden gelir. */
+        topic: z.enum(["cyclops"]),
+      })
+      .strict(),
+    seo: seoSchema,
+  })
+  .strict();

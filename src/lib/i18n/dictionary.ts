@@ -59,6 +59,8 @@ const dictionaries = {
     "solutions.scenario": "Örnek akış",
     "solutions.scenarioResult": "Sonuç",
     "solutions.relatedInsights": "İlgili notlar",
+    "product.realScreen": "Gerçek ürün ekranı",
+    "product.relatedSolutions": "İlgili çözüm alanları",
     "solutions.technologies": "Çözüm kapsamında kullandığımız teknolojiler",
     "solutions.empty": "Yayınlanabilir çözüm kaydı bulunmuyor.",
 
@@ -137,6 +139,8 @@ const dictionaries = {
     "solutions.scenario": "Example flow",
     "solutions.scenarioResult": "Outcome",
     "solutions.relatedInsights": "Related notes",
+    "product.realScreen": "Real product screen",
+    "product.relatedSolutions": "Related solution areas",
     "solutions.technologies": "Technologies we work with in this area",
     "solutions.empty": "No publishable solution record.",
 
