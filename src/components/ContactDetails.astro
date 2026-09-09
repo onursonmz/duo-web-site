@@ -1,0 +1,91 @@
+---
+/**
+ * İLETİŞİM BİLGİLERİ — YALNIZCA DOĞRULANMIŞ VERİ.
+ *
+ * S00 doğruluk matrisinde `verified-on-site` olan kayıtlar:
+ *   C05 İstanbul (Brandium R2, Ataşehir) · C06 Ankara (Çankaya)
+ *   C07 0(216) 999 98 57 / 0(216) 212 51 52 · C08 info@duosis.com
+ *
+ * Form, kişisel veri toplama veya analytics YOKTUR; S12'de genişletilmek üzere
+ * temiz bir kabuktur.
+ */
+import type { Locale } from "@lib/content/schema";
+import { t } from "@lib/i18n/dictionary";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale }: Props = Astro.props;
+
+const PHONES = ["0(216) 999 98 57", "0(216) 212 51 52"] as const;
+const EMAIL = "info@duosis.com";
+const telHref = (phone: string): string => `tel:${phone.replace(/[^\d+]/g, "")}`;
+---
+
+<div class="contact" data-testid="contact-details">
+  <section class="contact__block">
+    <h2>{t(locale, "contact.offices")}</h2>
+    <ul>
+      <li>{t(locale, "footer.officeIstanbul")}</li>
+      <li>{t(locale, "footer.officeAnkara")}</li>
+    </ul>
+  </section>
+
+  <section class="contact__block">
+    <h2>{t(locale, "contact.phone")}</h2>
+    <ul>
+      {
+        PHONES.map((phone) => (
+          <li>
+            <a href={telHref(phone)}>{phone}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="contact__block">
+    <h2>{t(locale, "contact.email")}</h2>
+    <ul>
+      <li><a href={`mailto:${EMAIL}`}>{EMAIL}</a></li>
+    </ul>
+  </section>
+</div>
+
+<style>
+  .contact {
+    display: grid;
+    gap: var(--space-lg);
+    margin-top: var(--space-lg);
+  }
+
+  @media (min-width: 48rem) {
+    .contact {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-xl);
+    }
+  }
+
+  .contact__block {
+    padding-top: var(--space-sm);
+    border-top: var(--border-width-strong) solid var(--signal);
+  }
+
+  .contact__block h2 {
+    margin: 0 0 var(--space-2xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .contact__block ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    line-height: 1.9;
+  }
+</style>

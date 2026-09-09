@@ -1,0 +1,34 @@
+---
+/**
+ * İLETİŞİM — MİNİMAL KABUK (S07).
+ *
+ * S12'nin tam form kapsamı DEĞİLDİR: form, kişisel veri toplama ve analytics
+ * yoktur. Amaç, çözüm CTA'larının kırık bağlantı üretmemesidir.
+ *
+ * CTA `?topic=<slug>` bağlamı taşıyabilir; bu sayfa query değerini OKUMAZ ve
+ * İŞLEMEZ — yalnızca pasif bir işaret olarak kalır.
+ */
+import BaseLayout from "@layouts/BaseLayout.astro";
+import ContactDetails from "@components/ContactDetails.astro";
+import { contactPath } from "@lib/i18n/routes";
+import { t } from "@lib/i18n/dictionary";
+
+const locale = "en" as const;
+const alternates = { tr: contactPath("tr"), en: contactPath("en") };
+---
+
+<BaseLayout
+  locale={locale}
+  title={t(locale, "contact.title")}
+  description={t(locale, "contact.intro")}
+  alternates={alternates}
+  noindex={true}
+  breadcrumbs={[
+    { label: t(locale, "nav.home"), href: "/en/" },
+    { label: t(locale, "contact.title") },
+  ]}
+>
+  <h1>{t(locale, "contact.title")}</h1>
+  <p>{t(locale, "contact.intro")}</p>
+  <ContactDetails locale={locale} />
+</BaseLayout>

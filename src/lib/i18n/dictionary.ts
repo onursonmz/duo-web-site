@@ -53,6 +53,14 @@ const dictionaries = {
     "solutions.problem": "Problem",
     "solutions.approach": "Yaklaşımımız",
     "solutions.benefits": "Beklenen faydalar",
+    "solutions.capabilities": "Kabiliyetler",
+    "solutions.aiRole": "Yapay zekâ burada ne yapıyor?",
+    "solutions.aiDetect": "Algıla",
+    "solutions.aiUnderstand": "Anla",
+    "solutions.aiAct": "Harekete geç",
+    "solutions.scenario": "Örnek akış",
+    "solutions.scenarioResult": "Sonuç",
+    "solutions.relatedInsights": "İlgili notlar",
     "solutions.technologies": "Çözüm kapsamında kullandığımız teknolojiler",
     "solutions.empty": "Yayınlanabilir çözüm kaydı bulunmuyor.",
 
@@ -64,6 +72,13 @@ const dictionaries = {
     "insights.publishedAt": "Yayın tarihi",
     "insights.series": "Seri",
     "insights.backToIndex": "Tüm içgörüler",
+
+    "contact.title": "İletişim",
+    "contact.intro":
+      "Operasyonunuzu birlikte inceleyelim. Aşağıdaki adreslerden doğrudan ulaşabilirsiniz.",
+    "contact.offices": "Ofisler",
+    "contact.phone": "Telefon",
+    "contact.email": "E-posta",
 
     "translation.unavailableTitle": "Bu sayfa henüz Türkçe değil",
     // Dil değiştiricide kullanılır: hedef dilde karşılık YOK demektir.
@@ -118,6 +133,14 @@ const dictionaries = {
     "solutions.problem": "Problem",
     "solutions.approach": "Our approach",
     "solutions.benefits": "Expected outcomes",
+    "solutions.capabilities": "Capabilities",
+    "solutions.aiRole": "What does AI do here?",
+    "solutions.aiDetect": "Detect",
+    "solutions.aiUnderstand": "Understand",
+    "solutions.aiAct": "Act",
+    "solutions.scenario": "Example flow",
+    "solutions.scenarioResult": "Outcome",
+    "solutions.relatedInsights": "Related notes",
     "solutions.technologies": "Technologies we work with in this area",
     "solutions.empty": "No publishable solution record.",
 
@@ -129,6 +152,13 @@ const dictionaries = {
     "insights.publishedAt": "Published",
     "insights.series": "Series",
     "insights.backToIndex": "All insights",
+
+    "contact.title": "Contact",
+    "contact.intro":
+      "Let us review your operation together. You can reach us directly at the details below.",
+    "contact.offices": "Offices",
+    "contact.phone": "Phone",
+    "contact.email": "Email",
 
     "translation.unavailableTitle": "This page is not available in English yet",
     // Used in the language switcher: no counterpart exists in the target language.
