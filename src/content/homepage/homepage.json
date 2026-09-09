@@ -54,10 +54,10 @@
         },
         {
           "title": "Kendi ürünümüzü geliştiriyoruz",
-          "body": "Entegratör olmanın ötesinde kendi ürünümüzü yazıyoruz; bu, ihtiyaç duyulduğunda çözümü vendor yol haritasına bağımlı kalmadan derinleştirebilmek demektir."
+          "body": "Entegratör olmanın ötesinde kendi ürünümüzü yazıyoruz; bu, ihtiyaç duyulduğunda çözümü tek bir teknoloji üreticisinin yol haritasına bağımlı kalmadan derinleştirebilmek demektir."
         },
         {
-          "title": "Açık kaynak ve vendor bir arada",
+          "title": "Açık kaynak ve ticari ürünler bir arada",
           "body": "Teknoloji üreticisi ürünleri, açık kaynak bileşenler ve kendi ürünlerimiz aynı mimaride yan yana durabilir; seçim kurumun kısıtlarına göre yapılır."
         }
       ]
@@ -246,11 +246,11 @@
         },
         {
           "title": "We build our own product",
-          "body": "Beyond integration we write our own product, which means we can go deeper without waiting on a vendor roadmap."
+          "body": "Beyond integration we write our own product, which means we can go deeper without depending on a single technology vendor's roadmap."
         },
         {
-          "title": "Open source and vendor together",
-          "body": "Vendor products, open-source components and our own software can sit in one architecture; the choice follows the organisation's constraints."
+          "title": "Open source and commercial products together",
+          "body": "Commercial products, open-source components and our own software can sit in one architecture; the choice follows the organisation's constraints."
         }
       ]
     },

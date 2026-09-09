@@ -1,7 +1,7 @@
 ---
 translationKey: measured-site-baseline
 locale: tr
-status: published
+status: draft
 year: 2024
 datePrecision: year
 title: Mevcut sitenin son geniş güncellemesi
@@ -13,3 +13,6 @@ verificationStatus: verified
 ---
 
 S00 ölçüm kanıtı: discovery/baseline/MEASUREMENTS.md
+
+Bu kayıt bir ölçüm bulgusudur, kurumsal bir kilometre taşı değildir; ziyaretçiye
+iç süreç anlatmamak için `draft` bırakılır ve kamuya açık çıktıda görünmez.

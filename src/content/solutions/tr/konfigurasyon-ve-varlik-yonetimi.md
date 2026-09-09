@@ -24,11 +24,11 @@ capabilities:
   - Yaşam döngüsü ve sahiplik yönetimi
 technologyRefs:
   - device42
-  - glpi
+  - opentext-cms
 proofRefs: []
 cta:
-  labelKey: cta.exploreSolutions
-  href: /cozumler/
+  labelKey: cta.contactUs
+  href: /iletisim/
 seo:
   title: Konfigürasyon ve varlık yönetimi
   description: >-

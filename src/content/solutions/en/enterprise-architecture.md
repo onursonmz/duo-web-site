@@ -24,10 +24,11 @@ capabilities:
   - Technical debt visibility
 technologyRefs:
   - ardoq
+  - quest
 proofRefs: []
 cta:
-  labelKey: cta.exploreSolutions
-  href: /en/solutions/
+  labelKey: cta.contactUs
+  href: /en/contact/
 seo:
   title: Enterprise architecture and governance
   description: >-

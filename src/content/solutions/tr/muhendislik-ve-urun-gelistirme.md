@@ -25,8 +25,8 @@ capabilities:
 technologyRefs: []
 proofRefs: []
 cta:
-  labelKey: cta.exploreSolutions
-  href: /cozumler/
+  labelKey: cta.contactUs
+  href: /iletisim/
 seo:
   title: Mühendislik ve ürün geliştirme
   description: >-

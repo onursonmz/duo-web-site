@@ -26,14 +26,19 @@ technologyRefs:
   - cyclops
 proofRefs: []
 cta:
-  labelKey: cta.exploreSolutions
-  href: /cozumler/
+  labelKey: cta.contactUs
+  href: /iletisim/
 seo:
   title: AIOps ve olay yaşam döngüsü yönetimi
   description: >-
     Alarm gürültüsünü anlamlı olaylara indirger ve aksiyona bağlar.
   noindex: true
 ---
+
+Bu alanın merkezinde kendi geliştirdiğimiz ürün **CyclOps** yer alır: alarm
+gürültüsünü anlamlı bir olaya indirger ve olayı onaylı bir aksiyona bağlar.
+İzleme ürünleri sinyali üretir; CyclOps o sinyalin ne anlama geldiğine ve
+sonrasında ne yapılacağına odaklanır.
 
 Bu alandaki çalışmalarımızda ürünü değil, kurumun operasyonunu merkeze
 alırız. Kapsam ve öncelik sırası her kurumda farklıdır; birlikte çıkarırız.

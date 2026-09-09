@@ -23,12 +23,15 @@ capabilities:
   - Olay tabanlı otomatik aksiyon
   - Operasyon platformlarıyla entegrasyon
 technologyRefs:
+  - opentext-oo
+  - opentext-sa
   - ansible
-  - zabbix
+  - awx
+  - n8n
 proofRefs: []
 cta:
-  labelKey: cta.exploreSolutions
-  href: /cozumler/
+  labelKey: cta.contactUs
+  href: /iletisim/
 seo:
   title: Otomasyon
   description: >-
