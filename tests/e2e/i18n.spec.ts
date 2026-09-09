@@ -12,7 +12,9 @@ import AxeBuilder from "@axe-core/playwright";
 
 const TR_SOLUTION = "/cozumler/operasyonel-gorunurluk/";
 const EN_SOLUTION = "/en/solutions/observability-and-apm/";
-const TR_UNTRANSLATED = "/cozumler/otomasyon/";
+// EN karşılığı OLMAYAN gerçek kayıt: içgörü. Sekiz çözümün ikisi de değil,
+// TAMAMI iki dilde yayımlandığı için fixture içgörüye taşındı.
+const TR_UNTRANSLATED = "/icgoruler/operasyon-verisinin-dort-hali/";
 
 function collectErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -74,12 +76,14 @@ test.describe("çözüm rotaları", () => {
     await expect(page.locator("body")).toContainText("Operational visibility");
   });
 
-  test("çözüm landing sayfaları sekiz TR / iki EN kaydı listeler", async ({ page }) => {
+  test("çözüm landing sayfaları iki dilde de sekiz kaydı listeler", async ({ page }) => {
+    // Kayıt sayısı = doğrudan satırlar. Kabiliyet etiketleri de <li> olduğu için
+    // torun eşleşmesi kayıt saymaz.
     await page.goto("/cozumler/");
-    await expect(page.getByTestId("solution-list").locator("li")).toHaveCount(8);
+    await expect(page.locator('[data-testid="solution-list"] > li')).toHaveCount(8);
 
     await page.goto("/en/solutions/");
-    await expect(page.getByTestId("solution-list").locator("li")).toHaveCount(2);
+    await expect(page.locator('[data-testid="solution-list"] > li')).toHaveCount(8);
   });
 });
 
@@ -137,18 +141,108 @@ test.describe("eksik çeviri — sessiz fallback YOK", () => {
     const main = await page.locator("#main-content").innerText();
     // TR sayfada EN gövde metni bulunmamalı.
     expect(main).not.toContain("Expected outcomes");
-    expect(main).toContain("Beklenen faydalar");
+    expect(main).not.toContain("Related solutions");
+    expect(main).toContain("Operasyon verisinin dört hâli");
   });
 });
 
+/** ADR-011 ile onaylanan kayıt kimlikleri. */
+const APPROVED_TECHNOLOGY_IDS = [
+  "airflow",
+  "ansible",
+  "ardoq",
+  "awx",
+  "confluent",
+  "cyclops",
+  "datadog",
+  "device42",
+  "elastic",
+  "foglight",
+  "freshservice",
+  "instana",
+  "n8n",
+  "nifi",
+  "opentelemetry",
+  "opentext-cms",
+  "opentext-oo",
+  "opentext-sa",
+  "quest",
+  "smax",
+  "zabbix",
+];
+
+/** ADR-011 ile metin olarak yayınlanması onaylanan teknoloji adları. */
+const APPROVED_TECHNOLOGY_NAMES = [
+  "Datadog",
+  "Zabbix",
+  "IBM Instana",
+  "OpenTelemetry",
+  "Quest Foglight",
+  "Device42",
+  "OpenText CMS",
+  "OpenText SMAX",
+  "Freshservice",
+  "Confluent",
+  "Apache NiFi",
+  "Apache Airflow",
+  "Elastic",
+  "Ardoq",
+  "Quest Change Auditor",
+  "CyclOps",
+  "OpenText Operations Orchestration (OO)",
+  "OpenText Server Automation (SA)",
+  "Red Hat Ansible",
+  "AWX",
+  "n8n",
+];
+
 test.describe("public içerik filtreleri — FAIL-CLOSED", () => {
-  test("hiçbir teknoloji public çıktıda görünmüyor (tamamı pending)", async ({ page }) => {
-    // S00 envanterindeki 35 kaydın tamamı `lifecycle: pending`; iş sahibi
-    // doğrulaması gelmeden hiçbiri yayınlanmaz (docs/CONTENT_MATURITY.md).
-    for (const route of [TR_SOLUTION, EN_SOLUTION, "/cozumler/aiops-ve-olay-yasam-dongusu/"]) {
+  /**
+   * ADR-011 sonrası: 21 kayıt `lifecycle: active` ve `decisionNeeded: false`.
+   * Artık teknoloji ADI metin olarak görünebilir — LOGO hâlâ görünemez.
+   */
+  test("görünen teknolojilerin TAMAMI onaylı listede", async ({ page }) => {
+    for (const route of [
+      "/",
+      "/en/",
+      "/cozumler/",
+      "/en/solutions/",
+      TR_SOLUTION,
+      EN_SOLUTION,
+      "/cozumler/aiops-ve-olay-yasam-dongusu/",
+    ]) {
       await page.goto(route);
-      await expect(page.getByTestId("technology-list"), route).toHaveCount(0);
-      await expect(page.getByTestId("technology-empty"), route).toBeVisible();
+      const names = await page
+        .getByTestId("technology-list")
+        .locator("li")
+        .evaluateAll((els) => els.map((e) => (e.textContent ?? "").trim()));
+
+      for (const name of names) {
+        expect(APPROVED_TECHNOLOGY_NAMES, `${route}: onaysız teknoloji "${name}"`).toContain(name);
+      }
+
+      // Render edilmiş hiçbir kayıt onaysız olamaz (ada değil KİMLİĞE bakar).
+      const renderedIds = await page
+        .locator("[data-technology-id]")
+        .evaluateAll((els) => els.map((e) => e.getAttribute("data-technology-id") ?? ""));
+      for (const id of renderedIds) {
+        expect(APPROVED_TECHNOLOGY_IDS, `${route}: onaysız kayıt "${id}"`).toContain(id);
+      }
+    }
+  });
+
+  test("teknoloji LOGOSU hiçbir sayfada render edilmiyor", async ({ page }) => {
+    for (const route of [TR_SOLUTION, EN_SOLUTION, "/cozumler/otomasyon/"]) {
+      await page.goto(route);
+      await expect(page.getByTestId("technology-list").locator("img"), route).toHaveCount(0);
+    }
+  });
+
+  test("teknoloji başlığı PARTNER ilişkisi ima etmiyor", async ({ page }) => {
+    await page.goto(TR_SOLUTION);
+    const body = (await page.locator("body").innerText()).toLocaleLowerCase("tr");
+    for (const claim of ["partner", "iş ortağı", "sertifikalı", "yetkili satıcı", "resmî bayi"]) {
+      expect(body.includes(claim), `çözüm sayfası "${claim}" ilişkisi ima ediyor`).toBe(false);
     }
   });
 
@@ -172,22 +266,24 @@ test.describe("public içerik filtreleri — FAIL-CLOSED", () => {
    * doğrulanmamış iddia taşımadığı ayrıca test edilir.
    */
   test("karar bekleyen teknolojiler HTML'de hiç geçmiyor", async ({ page }) => {
+    // ADR-011 sonrası PENDING kalan kayıtların benzersiz adları.
+    // (Genel `opentext` kaydı burada YOK: "OpenText CMS"/"SMAX" gibi onaylı
+    // adların alt dizesi olduğu için substring taraması yanlış pozitif verir;
+    // o kayıt yukarıdaki "onaylı listede" testiyle kapsanır.)
     const forbidden = [
       "glpi",
-      "jira",
-      "tableau",
-      "zabbix",
       "grafana",
-      "datadog",
-      "instana",
-      "opentelemetry",
-      "confluent",
-      "ardoq",
-      "device42",
-      "freshservice",
-      "solarwinds",
-      "runzero",
+      "jira",
       "kace",
+      "kron",
+      "pandora",
+      "postgresql",
+      "runecast",
+      "runzero",
+      "solarwinds",
+      "stor2rrd",
+      "tableau",
+      "vertica",
     ];
 
     for (const route of [
@@ -200,19 +296,27 @@ test.describe("public içerik filtreleri — FAIL-CLOSED", () => {
       "/cozumler/aiops-ve-olay-yasam-dongusu/",
     ]) {
       await page.goto(route);
-      const html = (await page.content()).toLowerCase();
+
+      /*
+       * HAM HTML DEĞİL, GÖRÜNÜR METİN taranır ve KELİME SINIRI aranır.
+       * Ham HTML taraması "vertica" ifadesini `vertical-align` CSS değeri
+       * içinde yakalayıp yanlış pozitif üretiyordu.
+       */
+      const visible = (await page.locator("body").innerText()).toLocaleLowerCase("tr");
       for (const id of forbidden) {
-        expect(html.includes(id), `${route} sayfasında "${id}" bulundu`).toBe(false);
+        const pattern = new RegExp(`\b${id}\b`, "i");
+        expect(pattern.test(visible), `${route} sayfasında "${id}" görünüyor`).toBe(false);
       }
     }
   });
 
-  test("CYCLOPS ENVANTER KAYDI public teknoloji listesinde GÖRÜNMÜYOR", async ({ page }) => {
-    for (const route of ["/", "/cozumler/", "/cozumler/aiops-ve-olay-yasam-dongusu/"]) {
+  test("ANA SAYFADA teknoloji listesi YOK: ekosistem yetenek katmanlarıyla anlatılır", async ({
+    page,
+  }) => {
+    for (const route of ["/", "/en/"]) {
       await page.goto(route);
-      // Hiçbir sayfada render edilmiş bir teknoloji listesi olmamalı;
-      // 35/35 kayıt pending olduğu için liste hiç oluşmaz.
       await expect(page.getByTestId("technology-list"), route).toHaveCount(0);
+      await expect(page.getByTestId("technology-layers"), route).toHaveCount(1);
     }
   });
 
@@ -235,8 +339,8 @@ test.describe("public içerik filtreleri — FAIL-CLOSED", () => {
     expect(text, "teaser müşteri sayısı iddiası içeriyor").not.toMatch(
       /\d+\s*\+?\s*(müşteri|customer|kurum)/i
     );
-    // Olgunluk notu GÖRÜNÜR olmalı.
-    await expect(teaser).toContainText(/taslak olgunluk/i);
+    // ADR-011: iç süreç/olgunluk açıklaması ZİYARETÇİYE GÖSTERİLMEZ.
+    await expect(teaser).not.toContainText(/taslak|olgunluk|doğrulama/i);
   });
 
   test("CYCLOPS teaser yalnızca NOINDEX sayfada görünüyor", async ({ page }) => {

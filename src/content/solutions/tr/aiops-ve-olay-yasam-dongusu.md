@@ -13,7 +13,7 @@ summary: >-
 problem: >-
   Operasyon ekibi çok sayıda alarm alıyor; hangisinin gerçekten önemli olduğu ayırt edilemiyor.
 approach: >-
-  Olay korelasyonu, önceliklendirme ve kök neden analizini otomasyon akışlarıyla destekleriz. Bu alanda kullanılacak ürün ve yetenek kapsamı doğrulama beklemektedir.
+  Olay korelasyonu, önceliklendirme ve kök neden analizini otomasyon akışlarıyla destekleriz.
 benefits:
   - Alarm gürültüsü azalır
   - Kritik olaylar daha hızlı önceliklendirilir
@@ -26,8 +26,8 @@ technologyRefs:
   - cyclops
 proofRefs: []
 cta:
-  labelKey: cta.exploreSolutions
-  href: /cozumler/
+  labelKey: cta.contactUs
+  href: /iletisim/
 seo:
   title: AIOps ve olay yaşam döngüsü yönetimi
   description: >-
@@ -35,5 +35,10 @@ seo:
   noindex: true
 ---
 
-Bu sayfa taslak içerik modelinden üretilmiştir. Metinler nötr tutulmuştur ve
-doğrulanmamış müşteri, metrik, bölgesel kapsam veya ürün yeteneği iddiası içermez.
+Bu alanın merkezinde kendi geliştirdiğimiz ürün **CyclOps** yer alır: alarm
+gürültüsünü anlamlı bir olaya indirger ve olayı onaylı bir aksiyona bağlar.
+İzleme ürünleri sinyali üretir; CyclOps o sinyalin ne anlama geldiğine ve
+sonrasında ne yapılacağına odaklanır.
+
+Bu alandaki çalışmalarımızda ürünü değil, kurumun operasyonunu merkeze
+alırız. Kapsam ve öncelik sırası her kurumda farklıdır; birlikte çıkarırız.

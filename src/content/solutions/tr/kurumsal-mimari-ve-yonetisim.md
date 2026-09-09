@@ -24,10 +24,11 @@ capabilities:
   - Teknik borç görünürlüğü
 technologyRefs:
   - ardoq
+  - quest
 proofRefs: []
 cta:
-  labelKey: cta.exploreSolutions
-  href: /cozumler/
+  labelKey: cta.contactUs
+  href: /iletisim/
 seo:
   title: Kurumsal mimari ve yönetişim
   description: >-
@@ -35,5 +36,5 @@ seo:
   noindex: true
 ---
 
-Bu sayfa taslak içerik modelinden üretilmiştir. Metinler nötr tutulmuştur ve
-doğrulanmamış müşteri, metrik, bölgesel kapsam veya ürün yeteneği iddiası içermez.
+Bu alandaki çalışmalarımızda ürünü değil, kurumun operasyonunu merkeze
+alırız. Kapsam ve öncelik sırası her kurumda farklıdır; birlikte çıkarırız.

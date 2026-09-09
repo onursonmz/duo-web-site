@@ -208,7 +208,8 @@ test.describe("dil değiştirici ve TR/EN eşleme", () => {
   });
 
   test("karşılığı OLMAYAN sayfada bağlantı üretilmiyor", async ({ page }) => {
-    await page.goto("/cozumler/otomasyon/");
+    // Sekiz çözümün tamamı iki dilde yayımlandı; çevirisiz kayıt içgörüdür.
+    await page.goto("/icgoruler/operasyon-verisinin-dort-hali/");
     await expect(page.getByTestId("lang-link-en")).toHaveCount(0);
     await expect(page.getByTestId("lang-unavailable-en")).toHaveCount(1);
   });
@@ -335,7 +336,8 @@ test.describe("shell erişilebilirliği", () => {
   });
 
   test("HİÇBİR sayfa planlanan (rotasız) adrese link vermiyor", async ({ page }) => {
-    const forbidden = ["/iletisim/", "/hakkimizda/", "/blog/", "/cyclops/", "/hizmetler/"];
+    // `/iletisim/` S07'de gerçek rota oldu; listeden ÇIKARILDI, gevşetilmedi.
+    const forbidden = ["/hakkimizda/", "/blog/", "/cyclops/", "/hizmetler/"];
     for (const route of ["/", "/en/", "/cozumler/", "/cozumler/otomasyon/"]) {
       await page.goto(route);
       const hrefs = await page

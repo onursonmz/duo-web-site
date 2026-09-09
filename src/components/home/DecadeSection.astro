@@ -19,9 +19,12 @@ const { decade, milestones }: Props = Astro.props;
 ---
 
 <div class="decade" data-testid="decade-section">
-  <SectionHeading eyebrow={decade.eyebrow} as="h2" lead={decade.lead}>
-    {decade.title}
-  </SectionHeading>
+  <div class="decade__intro">
+    <SectionHeading eyebrow={decade.eyebrow} as="h2">
+      {decade.title}
+    </SectionHeading>
+    <p class="decade__lead">{decade.lead}</p>
+  </div>
 
   {
     milestones.length > 0 && (
@@ -39,7 +42,36 @@ const { decade, milestones }: Props = Astro.props;
 </div>
 
 <style>
+  /*
+   * Anlatı iki sütuna kurulur: başlık solda, açıklama sağda. Doğrulanmış
+   * kilometre taşı yoksa bölüm tek sütunluk bir metin bloğuna düşüp sağ yarıyı
+   * boş bırakıyordu; uydurma kayıt eklemeden düzenle dengelenir.
+   */
+  .decade__intro {
+    display: grid;
+    gap: var(--space-sm) var(--space-2xl);
+  }
+
+  @media (min-width: 60rem) {
+    .decade__intro {
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+      align-items: end;
+    }
+  }
+
+  .decade__intro :global(.heading) {
+    margin-bottom: 0;
+  }
+
+  .decade__lead {
+    margin: 0;
+    max-width: 46ch;
+    color: var(--text-secondary);
+    font-size: var(--text-md);
+  }
+
   .decade__rail {
+    margin-top: var(--space-xl);
     display: grid;
     gap: var(--space-lg);
     margin: 0;

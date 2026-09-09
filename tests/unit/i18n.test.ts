@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_LOCALE,
+  contactPath,
+  contactPathForTopic,
   homePath,
   isLocale,
   localeFromPath,
@@ -145,5 +147,32 @@ describe("CTA anahtar kümesi kapalı", () => {
     for (const key of CTA_LABEL_KEYS) {
       expect(key.startsWith("cta.")).toBe(true);
     }
+  });
+});
+
+describe("CTA konu parametresi (S07 §16)", () => {
+  const allowed = ["operasyonel-gorunurluk", "veri-akisi-ve-entegrasyon"];
+
+  it("ALLOWLIST'teki slug parametre olarak taşınır", () => {
+    expect(contactPathForTopic("tr", "operasyonel-gorunurluk", allowed)).toBe(
+      "/iletisim/?topic=operasyonel-gorunurluk"
+    );
+    expect(contactPathForTopic("en", "veri-akisi-ve-entegrasyon", allowed)).toBe(
+      "/en/contact/?topic=veri-akisi-ve-entegrasyon"
+    );
+  });
+
+  it("ALLOWLIST dışındaki değer parametre HİÇ üretmez", () => {
+    for (const topic of ["bilinmeyen", "", "../gizli", "a@b.com", "<script>"]) {
+      expect(contactPathForTopic("tr", topic, allowed)).toBe(contactPath("tr"));
+    }
+  });
+
+  it("boş allowlist ile hiçbir parametre üretilmez", () => {
+    expect(contactPathForTopic("tr", "operasyonel-gorunurluk", [])).toBe("/iletisim/");
+  });
+
+  it("parametre değeri URL olarak kodlanır", () => {
+    expect(contactPathForTopic("tr", "a b", ["a b"])).toBe("/iletisim/?topic=a%20b");
   });
 });

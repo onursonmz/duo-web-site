@@ -2,13 +2,14 @@
 /**
  * İÇGÖRÜ LİSTESİ.
  *
- * Kayıt yoksa BOŞ KUTU değil, açık bir durum mesajı gösterilir; sahte
- * "yakında" kartı üretilmez.
+ * O dilde kayıt yoksa BOŞ KUTU veya "yakında" kartı gösterilmez: ziyaretçi
+ * içeriğin bulunduğu dile yönlendirilir. İç yayın süreci anlatılmaz.
  */
 import type { CollectionEntry } from "astro:content";
 import type { Locale } from "@lib/content/schema";
 import { t } from "@lib/i18n/dictionary";
-import { insightPath } from "@lib/i18n/routes";
+import { insightPath, insightsIndexPath } from "@lib/i18n/routes";
+import { DEFAULT_LOCALE } from "@lib/content/schema";
 
 interface Props {
   locale: Locale;
@@ -20,8 +21,9 @@ const { locale, insights }: Props = Astro.props;
 
 {
   insights.length === 0 ? (
-    <p class="insight-empty" data-testid="insights-empty">
-      {t(locale, "insights.empty")}
+    <p class="insight-empty" data-testid="insights-other-language">
+      {t(locale, "insights.otherLanguage")}{" "}
+      <a href={insightsIndexPath(DEFAULT_LOCALE)}>{t(locale, "insights.title")}</a>
     </p>
   ) : (
     <ul class="insight-list" data-testid="insight-list">

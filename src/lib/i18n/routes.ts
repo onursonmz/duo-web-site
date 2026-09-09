@@ -13,9 +13,9 @@ export type { Locale };
 
 /** Locale başına segment adları. Rota haritası `03_CONTENT_AND_ROUTE_MAP.md` §2. */
 const SEGMENTS = {
-  tr: { solutions: "cozumler", insights: "icgoruler" },
-  en: { solutions: "solutions", insights: "insights" },
-} as const satisfies Record<Locale, { solutions: string; insights: string }>;
+  tr: { solutions: "cozumler", insights: "icgoruler", contact: "iletisim" },
+  en: { solutions: "solutions", insights: "insights", contact: "contact" },
+} as const satisfies Record<Locale, { solutions: string; insights: string; contact: string }>;
 
 export function isLocale(value: string): value is Locale {
   return (LOCALES as readonly string[]).includes(value);
@@ -67,6 +67,28 @@ export function insightsIndexPath(locale: Locale): string {
 /** İçgörü detay yolu: /icgoruler/<slug>/ veya /en/insights/<slug>/ */
 export function insightPath(locale: Locale, slug: string): string {
   return localizedPath(locale, SEGMENTS[locale].insights, slug);
+}
+
+/** İletişim yolu: /iletisim/ veya /en/contact/ */
+export function contactPath(locale: Locale): string {
+  return localizedPath(locale, SEGMENTS[locale].contact);
+}
+
+/**
+ * ÇÖZÜM CTA BAĞLAMI.
+ *
+ * CTA, hangi çözümden gelindiğini `?topic=<slug>` ile taşıyabilir. Değer
+ * ALLOWLIST dışındaysa parametre HİÇ eklenmez — serbest metin taşınamaz,
+ * hassas veri giremez. Bu yalnızca pasif bir işarettir; analytics isteği
+ * başlatmaz.
+ */
+export function contactPathForTopic(
+  locale: Locale,
+  topic: string,
+  allowed: readonly string[]
+): string {
+  const base = contactPath(locale);
+  return allowed.includes(topic) ? `${base}?topic=${encodeURIComponent(topic)}` : base;
 }
 
 /** Ana sayfa yolu: / veya /en/ */

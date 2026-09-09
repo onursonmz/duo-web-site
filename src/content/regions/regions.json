@@ -3,48 +3,48 @@
     "id": "tr-turkiye",
     "locale": "tr",
     "name": "Türkiye",
-    "summary": "Kurumsal müşteri projelerinin yürütüldüğü ana çalışma alanı.",
-    "verificationStatus": "pending",
-    "source": "SRC-02 brief (bölge listesi) — iş sahibi doğrulaması yok"
+    "summary": "Kurumsal projelerimizin yürütüldüğü ana çalışma alanı.",
+    "verificationStatus": "verified",
+    "source": "Kullanıcı proje brief'i (S06 yayın yönlendirmesi) — bölge adı yayınlanabilir; ofis, yerel ekip veya müşteri sayısı iddiası İÇERMEZ"
   },
   {
     "id": "tr-central-asia",
     "locale": "tr",
     "name": "Orta Asya",
-    "summary": "Brief'te belirtilen genişleme alanı.",
-    "verificationStatus": "pending",
-    "source": "SRC-02 brief (bölge listesi) — proje veya müşteri kanıtı yok"
+    "summary": "Bölgedeki kurumsal projelerde çalıştığımız alan.",
+    "verificationStatus": "verified",
+    "source": "Kullanıcı proje brief'i (S06 yayın yönlendirmesi) — bölge adı yayınlanabilir; ofis, yerel ekip veya müşteri sayısı iddiası İÇERMEZ"
   },
   {
     "id": "tr-middle-east",
     "locale": "tr",
     "name": "Orta Doğu",
-    "summary": "Brief'te belirtilen genişleme alanı.",
-    "verificationStatus": "pending",
-    "source": "SRC-02 brief (bölge listesi) — proje veya müşteri kanıtı yok"
+    "summary": "Bölgedeki kurumsal projelerde çalıştığımız alan.",
+    "verificationStatus": "verified",
+    "source": "Kullanıcı proje brief'i (S06 yayın yönlendirmesi) — bölge adı yayınlanabilir; ofis, yerel ekip veya müşteri sayısı iddiası İÇERMEZ"
   },
   {
     "id": "en-turkiye",
     "locale": "en",
     "name": "Türkiye",
-    "summary": "Primary delivery region for enterprise engagements.",
-    "verificationStatus": "pending",
-    "source": "SRC-02 brief (region list) — no owner verification"
+    "summary": "Our primary delivery area for enterprise engagements.",
+    "verificationStatus": "verified",
+    "source": "Kullanıcı proje brief'i (S06 yayın yönlendirmesi) — bölge adı yayınlanabilir; ofis, yerel ekip veya müşteri sayısı iddiası İÇERMEZ"
   },
   {
     "id": "en-central-asia",
     "locale": "en",
     "name": "Central Asia",
-    "summary": "Expansion area named in the brief.",
-    "verificationStatus": "pending",
-    "source": "SRC-02 brief (region list) — no project or customer evidence"
+    "summary": "An area where we work on enterprise engagements.",
+    "verificationStatus": "verified",
+    "source": "Kullanıcı proje brief'i (S06 yayın yönlendirmesi) — bölge adı yayınlanabilir; ofis, yerel ekip veya müşteri sayısı iddiası İÇERMEZ"
   },
   {
     "id": "en-middle-east",
     "locale": "en",
     "name": "Middle East",
-    "summary": "Expansion area named in the brief.",
-    "verificationStatus": "pending",
-    "source": "SRC-02 brief (region list) — no project or customer evidence"
+    "summary": "An area where we work on enterprise engagements.",
+    "verificationStatus": "verified",
+    "source": "Kullanıcı proje brief'i (S06 yayın yönlendirmesi) — bölge adı yayınlanabilir; ofis, yerel ekip veya müşteri sayısı iddiası İÇERMEZ"
   }
 ]

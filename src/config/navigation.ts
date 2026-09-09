@@ -1,6 +1,6 @@
 import type { Locale } from "@lib/content/schema";
 import type { TranslationKey } from "@lib/i18n/dictionary";
-import { homePath, insightsIndexPath, solutionsIndexPath } from "@lib/i18n/routes";
+import { contactPath, homePath, insightsIndexPath, solutionsIndexPath } from "@lib/i18n/routes";
 
 /**
  * NAVİGASYON YAPILANDIRMASI — TEK KAYNAK.
@@ -51,7 +51,11 @@ export const PRIMARY_NAV: readonly NavItem[] = [
   { labelKey: "nav.cyclops", href: () => null, status: "planned", plannedIn: "S08" },
   { labelKey: "nav.services", href: () => null, status: "planned", plannedIn: "S09" },
   { labelKey: "nav.about", href: () => null, status: "planned", plannedIn: "S10" },
-  { labelKey: "nav.contact", href: () => null, status: "planned", plannedIn: "S12" },
+  {
+    labelKey: "nav.contact",
+    href: (locale) => contactPath(locale),
+    status: "active",
+  },
 ] as const;
 
 /** Sözleşme sınırı: en fazla altı ana giriş. */

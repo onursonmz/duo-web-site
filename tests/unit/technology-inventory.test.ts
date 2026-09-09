@@ -12,6 +12,38 @@ import { TECHNOLOGY_LIFECYCLES, type TechnologyLifecycle } from "@lib/content/sc
  * İçerik verisi ondan türetilir; sessiz veri kaybı kabul edilmez.
  */
 
+/**
+ * ADR-011 ile metin olarak yayınlanması onaylanan kayıtlar.
+ * Bu liste TEK doğruluk kaynağıdır: envanterdeki her `active` kayıt burada
+ * bulunmalı, buradaki her kayıt `active` olmalıdır.
+ */
+const ADR011_APPROVED = [
+  "airflow",
+  "ansible",
+  "ardoq",
+  "awx",
+  "confluent",
+  "cyclops",
+  "datadog",
+  "device42",
+  "elastic",
+  "foglight",
+  "freshservice",
+  "instana",
+  "n8n",
+  "nifi",
+  "opentelemetry",
+  "opentext-cms",
+  "opentext-oo",
+  "opentext-sa",
+  "quest",
+  "smax",
+  "zabbix",
+];
+
+/** ADR-011 ile adı kesinleştirilen kayıt (aynı ürün iki kez temsil edilmez). */
+const ADR011_RENAMED = { id: "quest", from: "Quest Software", to: "Quest Change Auditor" };
+
 const root = new URL("../../", import.meta.url);
 const read = (p: string) => readFileSync(fileURLToPath(new URL(p, root)), "utf8");
 
@@ -125,11 +157,33 @@ describe("alan korunumu — sessiz veri kaybı yok", () => {
     }
   });
 
-  it("decisionNeeded S00 ile birebir aynı", () => {
+  /**
+   * ADR-011 KONTROLLÜ SAPMA.
+   *
+   * Parite artık "S00 ile birebir eşitlik" değil: yalnızca ADR-011 listesindeki
+   * kayıtlar `decisionNeeded: false` yapılmış olabilir. Liste DIŞINDAKİ her
+   * kayıt S00 değerini AYNEN korur — sessiz bir onay imkânsızdır.
+   */
+  it("decisionNeeded: ADR-011 dışındaki kayıtlar S00 değerini koruyor", () => {
     for (const src of s00) {
       const id = src["id"] ?? "";
+      if (ADR011_APPROVED.includes(id)) continue;
       const expected = src["decisionNeeded"] === "yes";
-      expect(byId.get(id)?.["decisionNeeded"], `${id} decisionNeeded`).toBe(expected);
+      expect(byId.get(id)?.["decisionNeeded"], `${id} S00 değerinden saptı`).toBe(expected);
+    }
+  });
+
+  it("decisionNeeded: ADR-011 listesindeki her kayıt false", () => {
+    for (const id of ADR011_APPROVED) {
+      expect(byId.get(id)?.["decisionNeeded"], `${id}`).toBe(false);
+    }
+  });
+
+  it("ad paritesi: yalnızca ADR-011 ile kesinleştirilen kayıt farklı", () => {
+    for (const src of s00) {
+      const id = src["id"] ?? "";
+      if (id === ADR011_RENAMED.id) continue;
+      expect(byId.get(id)?.["name"], `${id} adı değişmiş`).toBe(src["officialName"]);
     }
   });
 
@@ -184,15 +238,41 @@ describe("lifecycle dönüşümü — sessizce active yapılmadı", () => {
     expect(s00.every((r) => r["active"] === "unknown")).toBe(true);
   });
 
-  it("S00 active:unknown -> S02 lifecycle:pending", () => {
+  it("ADR-011 DIŞINDAKİ her kayıt hâlâ pending", () => {
     for (const src of s00) {
       const id = src["id"] ?? "";
-      expect(byIdLifecycle(id), `${id} lifecycle`).toBe("pending");
+      if (ADR011_APPROVED.includes(id)) continue;
+      expect(byIdLifecycle(id), `${id} sessizce açılmış`).toBe("pending");
     }
   });
 
-  it("hiçbir kayıt sessizce active yapılmamış", () => {
-    expect(s02.filter((r) => r["lifecycle"] === "active")).toEqual([]);
+  it("ACTIVE kayıt kümesi ADR-011 listesiyle BİREBİR aynı", () => {
+    const active = s02.filter((r) => r["lifecycle"] === "active").map((r) => String(r["id"]));
+    expect(active.sort()).toEqual([...ADR011_APPROVED].sort());
+    expect(active).toHaveLength(21);
+  });
+
+  it("hiçbir ACTIVE kayıt karar bekliyor olamaz (şema + veri)", () => {
+    for (const record of s02) {
+      if (record["lifecycle"] !== "active") continue;
+      expect(record["decisionNeeded"], `${String(record["id"])}`).toBe(false);
+    }
+  });
+
+  it("LOGO İZNİ hiçbir kayıtta gevşemedi", () => {
+    for (const record of s02) {
+      expect(record["logoPermission"], `${String(record["id"])}`).toBe("unknown");
+    }
+  });
+
+  it("quest kaydı ürüne KESİNLEŞTİRİLDİ, ikinci kayıt açılmadı", () => {
+    const quest = byId.get(ADR011_RENAMED.id);
+    expect(quest?.["name"]).toBe(ADR011_RENAMED.to);
+    // Aynı ürünü temsil eden ikinci bir kayıt olmamalı.
+    const duplicates = s02.filter((r) => String(r["name"]).includes("Change Auditor"));
+    expect(duplicates).toHaveLength(1);
+    // S00 kaynak izi korunmuş olmalı.
+    expect(String(quest?.["source"] ?? "").length).toBeGreaterThan(3);
   });
 
   it("lifecycle değerleri kapalı enumda", () => {
@@ -204,6 +284,7 @@ describe("lifecycle dönüşümü — sessizce active yapılmadı", () => {
   it("MAPPING.json dönüşüm kuralını belgeliyor", () => {
     expect(mapping.lifecycleMapping["unknown"]).toBe("pending");
     expect(mapping.lifecycleTransforms).toHaveLength(35);
+    // MAPPING.json S02 ANINI belgeler; ADR-011 sonrası durum ADR'de yaşar.
     expect(mapping.lifecycleTransforms.every((t) => t.s02Lifecycle === "pending")).toBe(true);
   });
 
@@ -245,13 +326,35 @@ describe("public seçici FAIL-CLOSED", () => {
     );
   });
 
-  it("mevcut envanterin TAMAMI public'te filtreleniyor (hiçbiri onaylı değil)", () => {
-    const visible = s02.filter((r) => isVisibleTechnology(visibilityOf(r), PUBLIC));
-    expect(visible).toEqual([]);
+  it("CyclOps ADR-011 ile ONAYLI ve public'te görünüyor", () => {
+    const cyclops = s02.find((r) => r["id"] === "cyclops");
+    expect(cyclops, "cyclops kaydı bulunmalı").toBeDefined();
+    expect(isVisibleTechnology(visibilityOf(cyclops), PUBLIC)).toBe(true);
+    // Logo izni yine de gevşemedi.
+    expect(cyclops?.["logoPermission"]).toBe("unknown");
   });
 
-  it("özellikle GLPI, Jira, Tableau ve CyclOps public'te görünmüyor", () => {
-    for (const id of ["glpi", "jira", "tableau", "cyclops"]) {
+  it("public'te görünen küme ADR-011 listesiyle BİREBİR aynı", () => {
+    const visible = s02
+      .filter((r) => isVisibleTechnology(visibilityOf(r), PUBLIC))
+      .map((r) => String(r["id"]));
+    expect(visible.sort()).toEqual([...ADR011_APPROVED].sort());
+  });
+
+  it("ADR-011 DIŞINDAKİ hiçbir kayıt public'te görünmüyor", () => {
+    const leaked = s02
+      .filter((r) => !ADR011_APPROVED.includes(String(r["id"])))
+      .filter((r) => isVisibleTechnology(visibilityOf(r), PUBLIC))
+      .map((r) => String(r["id"]));
+    expect(leaked, `sızan kayıt: ${leaked.join(", ")}`).toEqual([]);
+  });
+
+  /**
+   * CyclOps bu listeden ÇIKARILDI: ADR-011 ile Duosis'in kendi çözümü olarak
+   * yayınlanması onaylandı. GLPI, Jira ve Tableau ONAY ALMADI ve hâlâ kapalıdır.
+   */
+  it("GLPI, Jira ve Tableau public'te görünmüyor", () => {
+    for (const id of ["glpi", "jira", "tableau"]) {
       const record = s02.find((r) => r["id"] === id);
       expect(record, `${id} kaydı bulunmalı`).toBeDefined();
       expect(isVisibleTechnology(visibilityOf(record), PUBLIC), `${id} public'te görünmemeli`).toBe(

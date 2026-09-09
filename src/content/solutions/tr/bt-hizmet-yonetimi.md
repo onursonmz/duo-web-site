@@ -23,13 +23,12 @@ capabilities:
   - Değişiklik ve sürüm yönetimi
   - Self-servis portal ve servis kataloğu
 technologyRefs:
+  - smax
   - freshservice
-  - glpi
-  - jira
 proofRefs: []
 cta:
-  labelKey: cta.exploreSolutions
-  href: /cozumler/
+  labelKey: cta.contactUs
+  href: /iletisim/
 seo:
   title: BT hizmet yönetimi
   description: >-
@@ -37,5 +36,5 @@ seo:
   noindex: true
 ---
 
-Bu sayfa taslak içerik modelinden üretilmiştir. Metinler nötr tutulmuştur ve
-doğrulanmamış müşteri, metrik, bölgesel kapsam veya ürün yeteneği iddiası içermez.
+Bu alandaki çalışmalarımızda ürünü değil, kurumun operasyonunu merkeze
+alırız. Kapsam ve öncelik sırası her kurumda farklıdır; birlikte çıkarırız.

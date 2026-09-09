@@ -160,7 +160,10 @@ samp {
 }
 
 main {
-  max-width: var(--container-text);
+  /* Okuma sütunu ORTALANIR; aksi halde geniş ekranda sola yapışıp sağ yarıyı
+     boş bırakıyordu. */
+  max-width: calc(var(--container-text) + 2 * var(--container-gutter));
+  margin-inline: auto;
   padding: var(--space-lg) var(--container-gutter) var(--space-xl);
 }
 

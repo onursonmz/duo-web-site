@@ -49,32 +49,42 @@ const dictionaries = {
 
     "solutions.title": "Çözüm alanları",
     "solutions.intro":
-      "Aşağıdaki çözüm alanları taslak içerik modelinden üretilmektedir. Başlıklar ve kapsamlar iş sahibi onayı beklemektedir.",
+      "Sekiz çözüm alanı. Her biri bir iş sonucuyla başlar; hangi ürünle çözüldüğü ikinci sorudur.",
     "solutions.problem": "Problem",
     "solutions.approach": "Yaklaşımımız",
     "solutions.benefits": "Beklenen faydalar",
-    "solutions.technologies": "Teknoloji ekosistemi",
-    "solutions.technologiesEmpty": "Bu çözüm için yayınlanabilir teknoloji kaydı bulunmuyor.",
+    "solutions.capabilities": "Kabiliyetler",
+    "solutions.aiRole": "Yapay zekâ burada ne yapıyor?",
+    "solutions.aiDetect": "Algıla",
+    "solutions.aiUnderstand": "Anla",
+    "solutions.aiAct": "Harekete geç",
+    "solutions.scenario": "Örnek akış",
+    "solutions.scenarioResult": "Sonuç",
+    "solutions.relatedInsights": "İlgili notlar",
+    "solutions.technologies": "Çözüm kapsamında kullandığımız teknolojiler",
     "solutions.empty": "Yayınlanabilir çözüm kaydı bulunmuyor.",
 
     "insights.title": "İçgörüler",
     "insights.intro":
       "Mühendislik ekibinin operasyon, veri ve mimari üzerine yazdığı kısa teknik notlar.",
-    "insights.empty": "Bu dilde yayınlanmış içgörü bulunmuyor.",
+    "insights.otherLanguage": "İçgörüler şu anda Türkçe olarak yayımlanıyor.",
     "insights.readMore": "Notu okuyun",
     "insights.publishedAt": "Yayın tarihi",
     "insights.series": "Seri",
     "insights.backToIndex": "Tüm içgörüler",
 
+    "contact.title": "İletişim",
+    "contact.intro":
+      "Operasyonunuzu birlikte inceleyelim. Aşağıdaki adreslerden doğrudan ulaşabilirsiniz.",
+    "contact.offices": "Ofisler",
+    "contact.phone": "Telefon",
+    "contact.email": "E-posta",
+
     "translation.unavailableTitle": "Bu sayfa henüz Türkçe değil",
     // Dil değiştiricide kullanılır: hedef dilde karşılık YOK demektir.
     "translation.notAvailableInTarget": "bu dilde henüz yayınlanmadı",
-    "translation.unavailableBody":
-      "Bu içeriğin Türkçe çevirisi henüz yayınlanmadı. Size yanlış dilde içerik göstermiyoruz.",
+    "translation.unavailableBody": "Bu içerik şu anda yalnızca aşağıdaki dilde mevcut.",
     "translation.availableIn": "İçerik şu dilde mevcut:",
-
-    "draft.badge": "TASLAK",
-    "draft.notice": "Bu sayfa taslak içerik modelinden üretilmiştir; doğrulanmış iddia içermez.",
 
     "lang.tr": "Türkçe",
     "lang.en": "English",
@@ -119,33 +129,42 @@ const dictionaries = {
 
     "solutions.title": "Solution areas",
     "solutions.intro":
-      "These solution areas are generated from the draft content model. Titles and scope are pending owner verification.",
+      "Eight solution areas. Each starts from a business outcome; which product delivers it is the second question.",
     "solutions.problem": "Problem",
     "solutions.approach": "Our approach",
     "solutions.benefits": "Expected outcomes",
-    "solutions.technologies": "Technology ecosystem",
-    "solutions.technologiesEmpty": "No publishable technology record for this solution.",
+    "solutions.capabilities": "Capabilities",
+    "solutions.aiRole": "What does AI do here?",
+    "solutions.aiDetect": "Detect",
+    "solutions.aiUnderstand": "Understand",
+    "solutions.aiAct": "Act",
+    "solutions.scenario": "Example flow",
+    "solutions.scenarioResult": "Outcome",
+    "solutions.relatedInsights": "Related notes",
+    "solutions.technologies": "Technologies we work with in this area",
     "solutions.empty": "No publishable solution record.",
 
     "insights.title": "Insights",
     "insights.intro":
       "Short technical notes from the engineering team on operations, data and architecture.",
-    "insights.empty": "No insight has been published in this language yet.",
+    "insights.otherLanguage": "Insights are currently published in Turkish.",
     "insights.readMore": "Read the note",
     "insights.publishedAt": "Published",
     "insights.series": "Series",
     "insights.backToIndex": "All insights",
 
+    "contact.title": "Contact",
+    "contact.intro":
+      "Let us review your operation together. You can reach us directly at the details below.",
+    "contact.offices": "Offices",
+    "contact.phone": "Phone",
+    "contact.email": "Email",
+
     "translation.unavailableTitle": "This page is not available in English yet",
     // Used in the language switcher: no counterpart exists in the target language.
     "translation.notAvailableInTarget": "not published in this language yet",
-    "translation.unavailableBody":
-      "The English version of this content has not been published. We do not show you content in the wrong language.",
+    "translation.unavailableBody": "This content is currently available in the language below.",
     "translation.availableIn": "Available in:",
-
-    "draft.badge": "DRAFT",
-    "draft.notice":
-      "This page is generated from the draft content model and contains no verified claims.",
 
     "lang.tr": "Türkçe",
     "lang.en": "English",
