@@ -66,9 +66,14 @@ test.describe("ana sayfa akışı", () => {
       .locator("a")
       .evaluateAll((els) => els.map((e) => e.getAttribute("href") ?? ""));
     expect(hrefs).toHaveLength(8);
-    for (const href of hrefs) {
-      const res = await page.request.get(href);
-      expect(res.status(), `${href} -> ${res.status()}`).toBe(200);
+
+    // Sekiz istek PARALEL: sıralı çalıştırıldığında toplam gecikme tek testin
+    // süre bütçesini aşabiliyordu (ölçüldü). Süre limiti yükseltilmedi.
+    const statuses = await Promise.all(
+      hrefs.map(async (href) => ({ href, status: (await page.request.get(href)).status() }))
+    );
+    for (const { href, status } of statuses) {
+      expect(status, `${href} -> ${status}`).toBe(200);
     }
   });
 
