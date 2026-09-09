@@ -21,6 +21,8 @@ const EXPECTED_ORDER = [
   "intelligence",
   "method",
   "decade",
+  // ADR-011 ile bölgeler yayınlanabilir hâle geldi; bölüm artık render ediliyor.
+  "regional",
   "technology",
   "insights",
   "roadmap",
@@ -104,11 +106,30 @@ test.describe("ana sayfa akışı", () => {
 test.describe("ana sayfa içerik güvenliği", () => {
   test.use({ viewport: DESKTOP });
 
-  test("VERİSİ OLMAYAN bölüm boş kutu değil, HİÇ render edilmiyor", async ({ page }) => {
+  /**
+   * ADR-011 sonrası bölgeler yayınlanabilir. Gizleme MEKANİZMASI korunuyor:
+   * kanıtı, verisi olmayan içgörü bölümünün EN ana sayfasında hiç oluşmaması.
+   */
+  test("BÖLGESEL bölüm yayınlanabilir veriyle render ediliyor", async ({ page }) => {
     await page.goto("/");
-    // Hiçbir bölge `verified` değil -> bölüm hiç oluşmaz.
-    await expect(page.locator("#regional")).toHaveCount(0);
-    await expect(page.getByTestId("region-list")).toHaveCount(0);
+    await expect(page.locator("#regional")).toHaveCount(1);
+    await expect(page.getByTestId("region-list").locator("li")).toHaveCount(3);
+  });
+
+  test("VERİSİ OLMAYAN bölüm boş kutu değil, HİÇ render edilmiyor", async ({ page }) => {
+    // EN'de yayınlanmış içgörü yok -> bölüm hiç oluşmaz (boş kutu gösterilmez).
+    await page.goto("/en/");
+    await expect(page.locator("#insights")).toHaveCount(0);
+    await expect(page.getByTestId("insight-list")).toHaveCount(0);
+  });
+
+  test("BÖLGE kartları ofis/ekip/müşteri iddiası taşımıyor", async ({ page }) => {
+    await page.goto("/");
+    const text = (await page.getByTestId("region-list").innerText()).toLocaleLowerCase("tr");
+    for (const claim of ["ofis", "ekip", "müşteri"]) {
+      expect(text.includes(claim), `bölge listesi "${claim}" iddiası taşıyor`).toBe(false);
+    }
+    expect(text).not.toMatch(/\d/);
   });
 
   test("SAHTE KPI veya 'veri bekleniyor' kutusu YOK", async ({ page }) => {
@@ -194,12 +215,12 @@ test.describe("içgörüler rotası", () => {
   test("TR listesi gerçek koleksiyon verisiyle çalışıyor", async ({ page }) => {
     await page.goto("/icgoruler/");
     await expect(page.getByTestId("insight-list").locator("li")).not.toHaveCount(0);
-    await expect(page.getByTestId("insights-empty")).toHaveCount(0);
+    await expect(page.getByTestId("insights-other-language")).toHaveCount(0);
   });
 
-  test("EN listesinde yayınlanmış kayıt yok: durum AÇIKÇA bildiriliyor", async ({ page }) => {
+  test("EN listesinde kayıt yok: ziyaretçi içeriğin dilini görüyor", async ({ page }) => {
     await page.goto("/en/insights/");
-    await expect(page.getByTestId("insights-empty")).toHaveCount(1);
+    await expect(page.getByTestId("insights-other-language")).toHaveCount(1);
     await expect(page.getByTestId("insight-list")).toHaveCount(0);
   });
 
@@ -209,7 +230,10 @@ test.describe("içgörüler rotası", () => {
   });
 
   test("içgörü detayı breadcrumb ile geliyor", async ({ page }) => {
-    await page.goto("/icgoruler/icerik-modeli-notlari/");
+    // Slug listeden türetilir; içerik değişince test kırılmaz.
+    await page.goto("/icgoruler/");
+    const href = await page.getByTestId("insight-list").locator("a").first().getAttribute("href");
+    await page.goto(href ?? "/icgoruler/");
     const crumb = page.getByTestId("breadcrumb");
     await expect(crumb).toHaveCount(1);
     await expect(crumb.locator('[aria-current="page"]')).toHaveCount(1);
@@ -238,7 +262,11 @@ test.describe("ana sayfa erişilebilirliği ve reflow", () => {
 
   test("@a11y içgörüler sayfaları axe temiz", async ({ page }) => {
     await page.setViewportSize(DESKTOP);
-    for (const route of ["/icgoruler/", "/icgoruler/icerik-modeli-notlari/", "/en/insights/"]) {
+    for (const route of [
+      "/icgoruler/",
+      "/icgoruler/operasyon-verisinin-dort-hali/",
+      "/en/insights/",
+    ]) {
       await page.goto(route);
       const result = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
@@ -253,7 +281,12 @@ test.describe("ana sayfa erişilebilirliği ve reflow", () => {
       { name: "200% zoom", width: 640, height: 800 },
     ]) {
       await page.setViewportSize({ width: vp.width, height: vp.height });
-      for (const route of ["/", "/en/", "/icgoruler/", "/icgoruler/icerik-modeli-notlari/"]) {
+      for (const route of [
+        "/",
+        "/en/",
+        "/icgoruler/",
+        "/icgoruler/operasyon-verisinin-dort-hali/",
+      ]) {
         await page.goto(route);
         const r = await page.evaluate(() => ({
           vw: document.documentElement.clientWidth,

@@ -1,21 +1,19 @@
 ---
 /**
- * CYCLOPS TEASER — TASLAK OLGUNLUK.
+ * CYCLOPS TEASER.
  *
- * İÇERİK GÜVENLİĞİ: sürüm, lansman durumu, müşteri kullanımı, MTTR oranı veya
- * desteklenen entegrasyon iddiası YOKTUR. Şema bunlar için alan tanımlamaz.
- * Olgunluk notu görünür biçimde gösterilir.
+ * İÇERİK GÜVENLİĞİ: sürüm, lansman durumu, müşteri kullanımı, SLA veya
+ * ölçülmüş sonuç iddiası YOKTUR — şema bunlar için alan tanımlamaz.
+ * Ziyaretçiye iç yayın süreci veya olgunluk durumu ANLATILMAZ.
  */
 import type { CollectionEntry } from "astro:content";
 import SectionHeading from "@components/ui/SectionHeading.astro";
-import StatusLabel from "@components/ui/StatusLabel.astro";
 
 interface Props {
   cyclops: CollectionEntry<"homepage">["data"]["cyclops"];
-  statusLabel: string;
 }
 
-const { cyclops, statusLabel }: Props = Astro.props;
+const { cyclops }: Props = Astro.props;
 ---
 
 <div class="cyclops" data-testid="cyclops-teaser">
@@ -38,11 +36,6 @@ const { cyclops, statusLabel }: Props = Astro.props;
         ))
       }
     </ul>
-
-    <p class="cyclops__maturity">
-      <StatusLabel tone="warning" srPrefix="Durum:">{statusLabel}</StatusLabel>
-      <span class="cyclops__note">{cyclops.maturityNote}</span>
-    </p>
   </div>
 </div>
 
@@ -75,19 +68,5 @@ const { cyclops, statusLabel }: Props = Astro.props;
 
   .cyclops__bullet {
     color: var(--signal);
-  }
-
-  .cyclops__maturity {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2xs);
-    align-items: flex-start;
-    margin: var(--space-lg) 0 0;
-    max-width: none;
-  }
-
-  .cyclops__note {
-    font-size: var(--text-xs);
-    color: var(--text-muted);
   }
 </style>

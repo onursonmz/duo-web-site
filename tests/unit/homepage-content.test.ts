@@ -115,14 +115,24 @@ describe("ana sayfa içeriği — doğrulanmamış iddia yok", () => {
     }
   });
 
+  it("CyclOps teaser OLGUNLUK/İÇ SÜREÇ alanı taşımıyor (ADR-011)", () => {
+    for (const record of homepage) {
+      const cyclops = (record as Record<string, Record<string, unknown>>)["cyclops"] ?? {};
+      expect(cyclops["maturityNote"], "maturityNote alanı geri gelmiş").toBeUndefined();
+    }
+    // Şema da kabul etmemeli.
+    const first = homepage[0] as Record<string, unknown>;
+    const cyclops = first["cyclops"] as Record<string, unknown>;
+    const withNote = { ...first, cyclops: { ...cyclops, maturityNote: "x" } };
+    expect(homepageSchema.safeParse(withNote).success).toBe(false);
+  });
+
   it("CyclOps teaser sürüm veya ölçüm iddiası taşımıyor", () => {
     for (const record of homepage) {
       const parsed = homepageSchema.parse(record);
       const blob = textValues(parsed.cyclops).join(" ");
       expect(blob, "sürüm numarası").not.toMatch(/\bv?\d+\.\d+/);
       expect(blob, "yüzde/metrik").not.toMatch(/%|\bMTTR\b|\bSLA\b/i);
-      // Olgunluk notu ZORUNLU ve dolu.
-      expect(parsed.cyclops.maturityNote.length).toBeGreaterThan(20);
     }
   });
 
@@ -164,10 +174,30 @@ describe("bölgeler — public görünürlük doğrulamaya bağlı", () => {
     }
   });
 
-  it("ŞU AN hiçbir bölge doğrulanmadı: public'te HİÇBİRİ görünmez", () => {
+  /**
+   * ADR-011: kullanıcı brief'i bölge ADLARI için açık yayın yönlendirmesidir.
+   * Üç bölge TR/EN için `verified` yapıldı ve public'te görünür.
+   */
+  it("üç bölge her iki dilde de yayınlanabilir", () => {
     const parsed = regions.map((r) => regionSchema.parse(r));
-    const visible = parsed.filter((r) => isVerifiedClaim(r.verificationStatus, PUBLIC));
-    expect(visible).toEqual([]);
+    for (const locale of LOCALES) {
+      const visible = parsed.filter(
+        (r) => r.locale === locale && isVerifiedClaim(r.verificationStatus, PUBLIC)
+      );
+      expect(visible.map((r) => r.id).sort()).toHaveLength(3);
+    }
+  });
+
+  it("bölge kaydı OFİS, EKİP veya MÜŞTERİ iddiası TAŞIMIYOR", () => {
+    for (const record of regions) {
+      const parsed = regionSchema.parse(record);
+      const blob = `${parsed.name} ${parsed.summary}`.toLocaleLowerCase("tr");
+      for (const claim of ["ofis", "office", "ekip", "team", "müşteri", "customer"]) {
+        expect(blob.includes(claim), `${parsed.id}: "${claim}" iddiası`).toBe(false);
+      }
+      // Sayısal kapsam iddiası da olamaz.
+      expect(blob).not.toMatch(/\d/);
+    }
   });
 
   it("doğrulandığında KOD DEĞİŞİKLİĞİ olmadan görünür olur", () => {

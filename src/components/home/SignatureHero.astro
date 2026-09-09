@@ -1,0 +1,383 @@
+---
+/**
+ * COMMAND ATLAS — İMZA HERO (S06).
+ *
+ * Anlatı: kaynak → sinyal → bağlam → AI → aksiyon. Bu, dekoratif bir parçacık
+ * animasyonu değil, Duosis'in çalışma modelinin görsel karşılığıdır.
+ *
+ * MİMARİ KARARLAR
+ *
+ * 1. SIFIR EK CLIENT JS. Intro CSS animasyonu, vurgu ise `:has()` seçicisiyle
+ *    çözülür. Talimattaki "küçük vanilla TypeScript" bütçesi (≤8 KB gzip)
+ *    kullanılmadı; JS eklemek için bir gerekçe çıkmadı.
+ *
+ * 2. TOOLTIP YOK. Aşama açıklamaları KALICI METİNDİR: hover, pointer, touch ve
+ *    klavye aynı bilgiyi görür. Viewport dışına taşacak bir katman bulunmaz.
+ *
+ * 3. SVG DEKORATİFTİR (`aria-hidden`). Anlamın tamamı listede durur; SVG
+ *    yalnızca aşamalar arasındaki bağı çizer. JS kapalıyken de son
+ *    kompozisyonda görünür.
+ *
+ * 4. CLS = 0. SVG sabit `viewBox` ve `aspect-ratio` taşır; animasyon yalnızca
+ *    `transform` ve `opacity` kullanır, düzen özelliği değiştirmez.
+ *
+ * 5. Mobilde geniş topoloji gizlenir; liste CSS ile dikey bir sinyal rayına
+ *    dönüşür. İkinci bir SVG yüklenmez.
+ */
+import type { CollectionEntry } from "astro:content";
+import Button from "@components/ui/Button.astro";
+
+interface Props {
+  hero: CollectionEntry<"homepage">["data"]["hero"];
+  stages: CollectionEntry<"homepage">["data"]["heroStages"];
+}
+
+const { hero, stages }: Props = Astro.props;
+---
+
+<div class="hero" id="top">
+  <div class="hero__intro">
+    <p class="hero__eyebrow">{hero.eyebrow}</p>
+    <h1 class="hero__title">{hero.title}</h1>
+    <p class="hero__lead">{hero.lead}</p>
+    <div class="hero__actions">
+      <Button variant="primary" href={hero.primaryCta.href}>{hero.primaryCta.label}</Button>
+      <Button variant="secondary" href={hero.secondaryCta.href}>{hero.secondaryCta.label}</Button>
+    </div>
+  </div>
+
+  <div class="atlas" data-testid="hero-atlas">
+    <!--
+      Topoloji: dört sinyal kaynağı bağlama, bağlam AI'a, AI aksiyona akar.
+      Dekoratiftir; okunabilir karşılığı aşağıdaki listedir.
+    -->
+    <svg
+      class="atlas__svg"
+      viewBox="0 0 1200 230"
+      role="presentation"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <g class="atlas__links">
+        {
+          [40, 90, 140, 190].map((y, i) => (
+            <path class={`atlas__link atlas__link--s${i}`} d={`M132 ${y} H308`} />
+          ))
+        }
+        {
+          [40, 90, 140, 190].map((y, i) => (
+            <path
+              class={`atlas__link atlas__link--c${i}`}
+              d={`M372 ${y} C470 ${y} 480 115 550 115`}
+            />
+          ))
+        }
+        <path class="atlas__link atlas__link--ai" d="M606 115 H794"></path>
+        <path class="atlas__link atlas__link--act" d="M846 115 H1030"></path>
+      </g>
+
+      <g class="atlas__nodes">
+        {[40, 90, 140, 190].map((y) => <circle class="atlas__source" cx="116" cy={y} r="7" />)}
+        {
+          [40, 90, 140, 190].map((y) => (
+            <rect class="atlas__signal" x="324" y={y - 8} width="32" height="16" rx="2" />
+          ))
+        }
+        <circle class="atlas__hub" cx="580" cy="115" r="24"></circle>
+        <circle class="atlas__hub atlas__hub--ai" cx="820" cy="115" r="24"></circle>
+        <rect class="atlas__action" x="1032" y="93" width="44" height="44" rx="3"></rect>
+      </g>
+    </svg>
+
+    <ol class="atlas__stages" data-testid="hero-stages">
+      {
+        stages.map((stage, index) => (
+          <li class="stage" data-stage={stage.key}>
+            <span class="stage__index" aria-hidden="true">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <h2 class="stage__title">{stage.title}</h2>
+            <p class="stage__body">{stage.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</div>
+
+<style>
+  /* ---------------------------------------------------------------- düzen */
+
+  .hero__eyebrow {
+    margin: 0 0 var(--space-sm);
+    max-width: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .hero__title {
+    margin: 0;
+    max-width: 20ch;
+    font-size: var(--text-3xl);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .hero__lead {
+    margin: var(--space-md) 0 0;
+    max-width: 44ch;
+    font-size: var(--text-lg);
+    color: var(--text-secondary);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+  }
+
+  .atlas {
+    margin-top: var(--space-xl);
+    padding-top: var(--space-md);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  /* ---------------------------------------------------------------- SVG */
+
+  .atlas__svg {
+    display: none;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1200 / 230; /* CLS = 0 */
+    overflow: visible;
+  }
+
+  @media (min-width: 60rem) {
+    .atlas__svg {
+      display: block;
+    }
+  }
+
+  .atlas__link {
+    fill: none;
+    stroke: var(--border-strong);
+    stroke-width: 1.5;
+    /* Intro: çizgiler soldan sağa çizilir. */
+    stroke-dasharray: 260;
+    stroke-dashoffset: 260;
+    animation: atlas-draw 900ms var(--motion-ease) forwards;
+  }
+
+  .atlas__link--s0 {
+    animation-delay: 60ms;
+  }
+  .atlas__link--s1 {
+    animation-delay: 120ms;
+  }
+  .atlas__link--s2 {
+    animation-delay: 180ms;
+  }
+  .atlas__link--s3 {
+    animation-delay: 240ms;
+  }
+  .atlas__link--c0 {
+    animation-delay: 340ms;
+  }
+  .atlas__link--c1 {
+    animation-delay: 400ms;
+  }
+  .atlas__link--c2 {
+    animation-delay: 460ms;
+  }
+  .atlas__link--c3 {
+    animation-delay: 520ms;
+  }
+
+  .atlas__link--ai {
+    stroke: var(--signal);
+    animation-delay: 660ms;
+  }
+
+  .atlas__link--act {
+    stroke: var(--action);
+    animation-delay: 800ms;
+  }
+
+  @keyframes atlas-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  .atlas__source {
+    fill: var(--text-muted);
+  }
+
+  .atlas__signal {
+    fill: none;
+    stroke: var(--border-strong);
+    stroke-width: 1.5;
+  }
+
+  .atlas__hub {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 2;
+  }
+
+  .atlas__hub--ai {
+    stroke-dasharray: 4 5;
+  }
+
+  .atlas__action {
+    fill: none;
+    stroke: var(--action);
+    stroke-width: 2;
+  }
+
+  .atlas__nodes > * {
+    opacity: 0;
+    animation: atlas-appear 420ms var(--motion-ease) forwards;
+    animation-delay: 240ms;
+  }
+
+  .atlas__hub {
+    animation-delay: 560ms;
+  }
+
+  .atlas__hub--ai {
+    animation-delay: 700ms;
+  }
+
+  .atlas__action {
+    animation-delay: 840ms;
+  }
+
+  @keyframes atlas-appear {
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* ---------------------------------------------------------------- aşamalar */
+
+  .atlas__stages {
+    display: grid;
+    gap: var(--space-md);
+    margin: var(--space-lg) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 60rem) {
+    .atlas__stages {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: var(--space-lg);
+      margin-top: var(--space-sm);
+    }
+  }
+
+  .stage {
+    position: relative;
+    padding-top: var(--space-sm);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  /* Son aşama (aksiyon) vurgulanır: zincirin çıktısı budur. */
+  .stage[data-stage="act"] {
+    border-top-color: var(--action);
+  }
+
+  .stage[data-stage="decide"] {
+    border-top-color: var(--signal);
+  }
+
+  .stage__index {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    color: var(--text-muted);
+  }
+
+  .stage__title {
+    margin: var(--space-3xs) 0 var(--space-2xs);
+    font-size: var(--text-lg);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .stage__body {
+    margin: 0;
+    max-width: 34ch;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  /*
+   * MOBİL: geniş topoloji gizlidir, liste dikey bir sinyal rayına dönüşür.
+   * İkinci bir SVG yüklenmez.
+   */
+  @media (max-width: 59.99rem) {
+    .atlas__stages {
+      padding-left: var(--space-md);
+      border-left: var(--border-width) solid var(--border-subtle);
+    }
+
+    .stage {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .stage::before {
+      content: "";
+      position: absolute;
+      inset-inline-start: calc(-1 * var(--space-md) - 4px);
+      inset-block-start: 0.55rem;
+      inline-size: 7px;
+      block-size: 7px;
+      border-radius: 50%;
+      background: var(--border-strong);
+    }
+
+    .stage[data-stage="decide"]::before {
+      background: var(--signal);
+    }
+
+    .stage[data-stage="act"]::before {
+      background: var(--action);
+    }
+  }
+
+  /*
+   * VURGU — SIFIR JS.
+   * Bir aşamaya gelindiğinde veya odaklanıldığında ilgili bağ vurgulanır.
+   * Bilgi bu etkileşime BAĞLI DEĞİLDİR; açıklamalar zaten kalıcı metindir.
+   */
+  .atlas:has(.stage[data-stage="decide"]:hover) .atlas__link--ai,
+  .atlas:has(.stage[data-stage="decide"]:focus-within) .atlas__link--ai,
+  .atlas:has(.stage[data-stage="act"]:hover) .atlas__link--act,
+  .atlas:has(.stage[data-stage="act"]:focus-within) .atlas__link--act {
+    stroke-width: 3;
+  }
+
+  /* ---------------------------------------------------------------- hareket azaltma */
+
+  /*
+   * Hareket kapalıyken intro HİÇ çalışmaz: kompozisyon doğrudan son hâlinde
+   * görünür. Anlam veya CTA kaybı olmaz; scroll davranışı animasyona bağlı
+   * değildir (scrolljacking yok).
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .atlas__link {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
+
+    .atlas__nodes > * {
+      animation: none;
+      opacity: 1;
+    }
+  }
+</style>

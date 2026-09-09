@@ -17,7 +17,7 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import Section from "@components/ui/Section.astro";
 import SectionHeading from "@components/ui/SectionHeading.astro";
-import HeroSection from "@components/home/HeroSection.astro";
+import SignatureHero from "@components/home/SignatureHero.astro";
 import TrustSection from "@components/home/TrustSection.astro";
 import SolutionAtlas from "@components/home/SolutionAtlas.astro";
 import CyclopsTeaser from "@components/home/CyclopsTeaser.astro";
@@ -36,7 +36,6 @@ import {
   getSolutions,
 } from "@lib/content/selectors";
 import { homePath } from "@lib/i18n/routes";
-import { t } from "@lib/i18n/dictionary";
 
 const locale = "en" as const;
 
@@ -58,8 +57,8 @@ const alternates = { tr: homePath("tr"), en: homePath("en") };
   noindex={page.seo.noindex}
   wide={true}
 >
-  <Section tone="light" width="wide" id="hero">
-    <HeroSection hero={page.hero} />
+  <Section tone="dark" width="wide" id="hero">
+    <SignatureHero hero={page.hero} stages={page.heroStages} />
   </Section>
 
   <Section tone="light" width="wide" id="trust">
@@ -71,7 +70,7 @@ const alternates = { tr: homePath("tr"), en: homePath("en") };
   </Section>
 
   <Section tone="dark" width="wide" id="cyclops">
-    <CyclopsTeaser cyclops={page.cyclops} statusLabel={t(locale, "draft.badge")} />
+    <CyclopsTeaser cyclops={page.cyclops} />
   </Section>
 
   <Section tone="light" width="wide" id="intelligence">

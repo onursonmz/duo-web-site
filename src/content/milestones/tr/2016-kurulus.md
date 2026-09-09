@@ -6,9 +6,7 @@ year: 2016
 datePrecision: year
 title: Şirketin kuruluşu
 summary: >-
-  Kuruluş yılı ve yeri kurumsal sunumda yer alıyor ancak iş sahibi tarafından
-  henüz doğrulanmadı. Bu nedenle kayıt pending durumdadır ve public build'de
-  görünmez.
+  Duosis, kurumsal BT yönetimi alanında yola çıktı.
 solutionRefs: []
 verificationStatus: pending
 ---

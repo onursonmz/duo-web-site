@@ -40,5 +40,5 @@ seo:
   noindex: true
 ---
 
-This page is generated from the draft content model. The wording is deliberately
-neutral and contains no unverified customer, metric, regional or product claim.
+In this area we start from the organisation's operation rather than a
+product. Scope and priority differ in every engagement; we map them together.

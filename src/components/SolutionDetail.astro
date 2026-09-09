@@ -23,8 +23,6 @@ const technologies = await getTechnologiesForSolution(solution, mode);
 ---
 
 <article class="solution" data-testid="solution-detail">
-  <p class="badge" data-testid="draft-badge">{t(locale, "draft.badge")}</p>
-
   {solution.data.eyebrow && <p class="solution__eyebrow">{solution.data.eyebrow}</p>}
   <h1>{solution.data.title}</h1>
   <p class="solution__summary">{solution.data.summary}</p>
@@ -46,19 +44,28 @@ const technologies = await getTechnologiesForSolution(solution, mode);
     </ul>
   </section>
 
-  <section aria-labelledby="tech-heading">
-    <h2 id="tech-heading">{t(locale, "solutions.technologies")}</h2>
-    {
-      technologies.length > 0 ? (
+  {
+    /*
+     * Görünür teknoloji yoksa bölüm HİÇ oluşturulmaz — boş kutu veya
+     * "kayıt bulunmuyor" metni gösterilmez (S04+S05 takip kararı).
+     */
+    technologies.length > 0 && (
+      <section aria-labelledby="tech-heading">
+        <h2 id="tech-heading">{t(locale, "solutions.technologies")}</h2>
         <ul data-testid="technology-list">
           {technologies.map((tech) => {
-            // Logo YALNIZCA yazılı izin varsa render edilir.
+            // Logo YALNIZCA yazılı izin varsa render edilir; izin alınmadığı
+            // sürece logo alanı hiç oluşmaz.
             const logo = logoPathIfAllowed(tech.data);
             return (
               <li data-technology-id={tech.id}>
                 {logo !== undefined && <img src={logo} alt="" width="80" height="24" />}
                 {tech.data.officialUrl !== undefined ? (
-                  <a href={tech.data.officialUrl} rel="noopener noreferrer">
+                  <a
+                    href={tech.data.officialUrl}
+                    rel="noopener noreferrer nofollow"
+                    target="_blank"
+                  >
                     {tech.data.name}
                   </a>
                 ) : (
@@ -68,11 +75,9 @@ const technologies = await getTechnologiesForSolution(solution, mode);
             );
           })}
         </ul>
-      ) : (
-        <p data-testid="technology-empty">{t(locale, "solutions.technologiesEmpty")}</p>
-      )
-    }
-  </section>
+      </section>
+    )
+  }
 
   <p class="solution__cta">
     <a href={solution.data.cta.href}>
@@ -85,6 +90,4 @@ const technologies = await getTechnologiesForSolution(solution, mode);
       {t(locale, "cta.backToSolutions")}
     </a>
   </p>
-
-  <p class="notice">{t(locale, "draft.notice")}</p>
 </article>

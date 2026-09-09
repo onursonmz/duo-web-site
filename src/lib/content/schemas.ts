@@ -267,19 +267,32 @@ export const homepageSchema = z
         secondaryCta: homeCtaSchema,
       })
       .strict(),
+    /**
+     * İMZA HERO AŞAMALARI (S06) — TAM BEŞ.
+     * kaynak → sinyal → bağlam → karar → aksiyon. Sıra ve anahtar kümesi
+     * kapalıdır; anlatı modeli veriden kayamaz.
+     */
+    heroStages: z
+      .array(
+        z
+          .object({
+            key: z.enum(["source", "signal", "context", "decide", "act"]),
+            title: z.string().min(1),
+            body: z.string().min(1),
+          })
+          .strict()
+      )
+      .length(5),
     /** Güven bölümü: yalnızca NİTEL anlatı; sayı alanı yoktur. */
     trust: sectionCopySchema.extend({ points: z.array(namedPointSchema).min(1) }).strict(),
     solutions: sectionCopySchema,
     /**
-     * CyclOps teaser — taslak/noindex kapsamda. Sürüm, müşteri kullanımı,
-     * MTTR oranı veya entegrasyon iddiası için alan YOKTUR.
+     * CyclOps teaser. Sürüm, müşteri kullanımı, SLA, başarı oranı veya
+     * ölçülmüş sonuç iddiası için alan YOKTUR — şema bunları kabul etmez.
+     * İç süreç/olgunluk açıklaması da taşımaz: ziyaretçiye yayın süreci
+     * anlatılmaz (S04+S05 takip kararı).
      */
-    cyclops: sectionCopySchema
-      .extend({
-        points: z.array(z.string().min(1)).min(1),
-        maturityNote: z.string().min(1),
-      })
-      .strict(),
+    cyclops: sectionCopySchema.extend({ points: z.array(z.string().min(1)).min(1) }).strict(),
     /** Algıla → Anla → Harekete geç. Tam üç adım. */
     intelligence: sectionCopySchema
       .extend({

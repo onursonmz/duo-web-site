@@ -7,9 +7,42 @@
       "eyebrow": "Operasyon zekâsı",
       "title": "Operasyonu görün, veriyi bağlayın, yapay zekâ ile harekete geçin.",
       "lead": "Duosis; gözlemlenebilirlik, veri akışı, kurumsal mimari ve otomasyonu tek bir mühendislik disiplininde birleştirir. Kurumun ne olduğunu değil, ne olacağını görmesini hedefleriz.",
-      "primaryCta": { "label": "Çözüm alanlarını inceleyin", "href": "/cozumler/" },
-      "secondaryCta": { "label": "Birlikte yol haritası çıkaralım", "href": "#roadmap" }
+      "primaryCta": {
+        "label": "Çözüm alanlarını inceleyin",
+        "href": "/cozumler/"
+      },
+      "secondaryCta": {
+        "label": "Birlikte yol haritası çıkaralım",
+        "href": "#roadmap"
+      }
     },
+    "heroStages": [
+      {
+        "key": "source",
+        "title": "Kaynaklar",
+        "body": "Sunucu, ağ, uygulama ve servisler sürekli sinyal üretir. Hiçbiri tek başına tabloyu göstermez."
+      },
+      {
+        "key": "signal",
+        "title": "Sinyaller",
+        "body": "Metrik, log, event ve trace aynı olayın dört farklı görüntüsüdür; ayrı ayrı toplanmaz."
+      },
+      {
+        "key": "context",
+        "title": "Bağlam",
+        "body": "Ortak kimlikler kurulur: aynı servis, aynı ortam, aynı istek. Sinyaller birbirine bağlanır."
+      },
+      {
+        "key": "decide",
+        "title": "Karar",
+        "body": "Korelasyon, özetleme ve etki analizi gürültüyü tek bir anlamlı olaya indirger."
+      },
+      {
+        "key": "act",
+        "title": "Aksiyon",
+        "body": "Olay öneriye, öneri onaylı otomasyona bağlanır. Yapılan iş izlenebilir kalır."
+      }
+    ],
     "trust": {
       "eyebrow": "Neden Duosis",
       "title": "Ürünü almıyoruz; kurumun problemine göre eviriyoruz.",
@@ -25,7 +58,7 @@
         },
         {
           "title": "Açık kaynak ve vendor bir arada",
-          "body": "Vendor çözümleri, açık kaynak bileşenler ve kendi ürünlerimiz aynı mimaride yan yana durabilir; seçim kurumun kısıtlarına göre yapılır."
+          "body": "Teknoloji üreticisi ürünleri, açık kaynak bileşenler ve kendi ürünlerimiz aynı mimaride yan yana durabilir; seçim kurumun kısıtlarına göre yapılır."
         }
       ]
     },
@@ -37,13 +70,12 @@
     "cyclops": {
       "eyebrow": "Kendi ürünümüz",
       "title": "CyclOps — sinyalden aksiyona.",
-      "lead": "CyclOps, Duosis'in kendi geliştirdiği üründür. Alarm gürültüsünü anlamlı olaya indirgeme ve olayı aksiyona bağlama yaklaşımı üzerine kuruludur.",
+      "lead": "CyclOps, Duosis'in kendi geliştirdiği çözümdür. Alarm gürültüsünü anlamlı olaya indirger ve olayı onaylı bir aksiyona bağlar.",
       "points": [
         "Duosis tarafından geliştirilen kendi ürünümüz; üçüncü taraf bir çözümün yeniden paketlenmesi değil.",
         "AIOps ve olay yaşam döngüsü çözüm alanının merkezinde konumlanır.",
         "Yaklaşım, sinyali olaya ve olayı onaylı aksiyona bağlamak üzerine kuruludur."
-      ],
-      "maturityNote": "Bu bölüm taslak olgunluktadır. Sürüm, lansman durumu, müşteri kullanımı ve ölçülmüş sonuçlar iş sahibi doğrulamasından geçmeden yayınlanmaz."
+      ]
     },
     "intelligence": {
       "eyebrow": "Intelligence Layer",
@@ -70,7 +102,7 @@
     "method": {
       "eyebrow": "Yöntem",
       "title": "Analizden operasyona kadar aynı ekip.",
-      "lead": "Henüz yayınlanabilir bir müşteri referansımız yok: kurumsal sunumdaki müşteri logolarının yazılı kullanım izni bulunmuyor ve sayısal iddialar iş sahibi doğrulaması bekliyor. Bu yüzden burada rakam değil, çalışma biçimimizi anlatıyoruz.",
+      "lead": "Analizden operasyona kadar aynı ekip çalışır. Devreye alma bir teslim değil, işin ortasıdır.",
       "steps": [
         {
           "title": "Analiz",
@@ -93,17 +125,17 @@
     "decade": {
       "eyebrow": "2016 → 2026",
       "title": "İzlemekle başladık, öngörmeye evrildik.",
-      "lead": "Tek bir vendorun izleme ürünüyle başlayan yol; veri, mimari, otomasyon ve yapay zekâyı kapsayan bir platform yaklaşımına dönüştü. Kilometre taşlarının tarih ve ölçek ayrıntıları iş sahibi doğrulaması beklediği için burada rakam verilmiyor."
+      "lead": "Tek bir izleme ürünüyle başlayan yol; veri, mimari, otomasyon ve yapay zekâyı kapsayan bir platform yaklaşımına dönüştü. Bugün sistemleri yalnızca izlemiyor, ne olacağını öngörmeye çalışıyoruz."
     },
     "regional": {
       "eyebrow": "Çalışma alanı",
-      "title": "Bölgesel kapsam",
-      "lead": "Bölge kapsamı doğrulanmadan yayınlanmaz."
+      "title": "Türkiye, Orta Asya ve Orta Doğu",
+      "lead": "Kurumsal projelerimizi Türkiye'den yürütüyor, Orta Asya ve Orta Doğu'da da çalışıyoruz."
     },
     "technology": {
       "eyebrow": "Teknoloji ekosistemi",
       "title": "Ürün adı değil, birlikte çalışan yetenek katmanları.",
-      "lead": "Hangi ürünü kullandığımızdan önce hangi yeteneği kurduğumuz önemlidir. Ürün adları ve logolar, marka kullanım izinleri doğrulandıktan sonra yayınlanacaktır.",
+      "lead": "Hangi ürünü kullandığımızdan önce hangi yeteneği kurduğumuz önemlidir. Ürünler bu katmanların içinde yer alır; çözüm sayfalarında tek tek yazılıdır.",
       "layers": [
         {
           "title": "Gözlemlenebilirlik ve APM",
@@ -144,8 +176,14 @@
       "eyebrow": "Sonraki adım",
       "title": "Birlikte bir yol haritası çıkaralım.",
       "lead": "Mevcut operasyonunuzu birlikte inceleyelim; nereden başlanacağını ve hangi sırayla ilerleneceğini netleştirelim.",
-      "primaryCta": { "label": "Çözüm alanlarını inceleyin", "href": "/cozumler/" },
-      "secondaryCta": { "label": "Güncel notları okuyun", "href": "/icgoruler/" }
+      "primaryCta": {
+        "label": "Çözüm alanlarını inceleyin",
+        "href": "/cozumler/"
+      },
+      "secondaryCta": {
+        "label": "Güncel notları okuyun",
+        "href": "/icgoruler/"
+      }
     },
     "seo": {
       "title": "Operasyonu görün, veriyi bağlayın, AI ile harekete geçin",
@@ -161,9 +199,42 @@
       "eyebrow": "Operational intelligence",
       "title": "See the operation, connect the data, act with AI.",
       "lead": "Duosis brings observability, data streaming, enterprise architecture and automation together under a single engineering discipline — so an organisation sees what is about to happen, not only what already did.",
-      "primaryCta": { "label": "Explore the solution areas", "href": "/en/solutions/" },
-      "secondaryCta": { "label": "Build a roadmap with us", "href": "#roadmap" }
+      "primaryCta": {
+        "label": "Explore the solution areas",
+        "href": "/en/solutions/"
+      },
+      "secondaryCta": {
+        "label": "Build a roadmap with us",
+        "href": "#roadmap"
+      }
     },
+    "heroStages": [
+      {
+        "key": "source",
+        "title": "Sources",
+        "body": "Servers, networks, applications and services emit signals constantly. None of them shows the whole picture alone."
+      },
+      {
+        "key": "signal",
+        "title": "Signals",
+        "body": "Metrics, logs, events and traces are four views of the same moment; they are not collected in isolation."
+      },
+      {
+        "key": "context",
+        "title": "Context",
+        "body": "Shared identities are established: same service, same environment, same request. Signals connect to each other."
+      },
+      {
+        "key": "decide",
+        "title": "Decision",
+        "body": "Correlation, summarisation and impact analysis reduce the noise to one meaningful event."
+      },
+      {
+        "key": "act",
+        "title": "Action",
+        "body": "The event becomes a recommendation, the recommendation an approved automation. The work stays traceable."
+      }
+    ],
     "trust": {
       "eyebrow": "Why Duosis",
       "title": "We do not resell a product; we reshape it around the problem.",
@@ -191,13 +262,12 @@
     "cyclops": {
       "eyebrow": "Our own product",
       "title": "CyclOps — from signal to action.",
-      "lead": "CyclOps is a product Duosis builds itself. It is built around reducing alarm noise to a meaningful event and connecting that event to an action.",
+      "lead": "CyclOps is a solution Duosis builds itself. It reduces alarm noise to a meaningful event and connects that event to an approved action.",
       "points": [
         "Built by Duosis — not a repackaged third-party solution.",
         "Sits at the centre of the AIOps and event lifecycle solution area.",
         "The approach connects a signal to an event and an event to an approved action."
-      ],
-      "maturityNote": "This section is draft maturity. Version, launch status, customer usage and measured results are not published until owner verification."
+      ]
     },
     "intelligence": {
       "eyebrow": "Intelligence layer",
@@ -224,7 +294,7 @@
     "method": {
       "eyebrow": "Method",
       "title": "The same team from analysis to operation.",
-      "lead": "We have no publishable customer reference yet: the customer logos in the corporate deck carry no written usage permission, and the numeric claims are awaiting owner verification. So this section describes how we work rather than quoting figures.",
+      "lead": "The same team works from analysis through to operation. Go-live is not a handover; it is the middle of the work.",
       "steps": [
         {
           "title": "Analysis",
@@ -247,17 +317,17 @@
     "decade": {
       "eyebrow": "2016 → 2026",
       "title": "We started by monitoring and grew into forecasting.",
-      "lead": "A path that began with a single vendor's monitoring product became a platform approach covering data, architecture, automation and AI. Dates and scale details of the milestones are awaiting owner verification, so no figures appear here."
+      "lead": "A path that began with a single monitoring product became a platform approach covering data, architecture, automation and AI. Today we do not only watch systems — we work to anticipate what comes next."
     },
     "regional": {
       "eyebrow": "Working area",
-      "title": "Regional coverage",
-      "lead": "Regional coverage is not published before verification."
+      "title": "Türkiye, Central Asia and the Middle East",
+      "lead": "We run our enterprise engagements from Türkiye and also work across Central Asia and the Middle East."
     },
     "technology": {
       "eyebrow": "Technology ecosystem",
       "title": "Not product names — capability layers that work together.",
-      "lead": "Which capability we build matters before which product we use. Product names and logos will be published once brand usage permissions are verified.",
+      "lead": "Which capability we build matters before which product we use. Products sit inside these layers and are named one by one on the solution pages.",
       "layers": [
         {
           "title": "Observability and APM",
@@ -298,8 +368,14 @@
       "eyebrow": "Next step",
       "title": "Let us build a roadmap together.",
       "lead": "Let us review your current operation together and agree where to start and in what order to proceed.",
-      "primaryCta": { "label": "Explore the solution areas", "href": "/en/solutions/" },
-      "secondaryCta": { "label": "See how the AI chain works", "href": "#intelligence" }
+      "primaryCta": {
+        "label": "Explore the solution areas",
+        "href": "/en/solutions/"
+      },
+      "secondaryCta": {
+        "label": "See how the AI chain works",
+        "href": "#intelligence"
+      }
     },
     "seo": {
       "title": "See the operation, connect the data, act with AI",
