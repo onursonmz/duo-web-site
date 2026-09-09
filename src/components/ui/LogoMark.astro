@@ -10,9 +10,20 @@
  *
  * Header'da okunamayan küçük tagline kullanılmaz: `lockup` yalnızca yeterli
  * genişlikte tercih edilir, dar alanda `wordmark` kullanılır.
+ *
+ * KOYU YÜZEY: `wordmark-mono` dosyası `currentColor` kullanır; harici `<img>`
+ * bunu DEVRALMAZ ve siyah render olur. Koyu yüzeyde `wordmark-inverse`
+ * kullanılır — aynı geometri, dosyaya yazılmış açık dolgu.
  */
 interface Props {
-  variant?: "lockup" | "lockup-dark" | "wordmark" | "wordmark-mono" | "mark" | "mark-mono";
+  variant?:
+    | "lockup"
+    | "lockup-dark"
+    | "wordmark"
+    | "wordmark-mono"
+    | "wordmark-inverse"
+    | "mark"
+    | "mark-mono";
   /** CSS uzunluğu; SVG en-boy oranını korur. */
   width?: string;
   label?: string;
@@ -26,6 +37,7 @@ const FILE: Record<string, string> = {
   "lockup-dark": "/brand/duosis-logo-dark.svg",
   wordmark: "/brand/duosis-wordmark.svg",
   "wordmark-mono": "/brand/duosis-wordmark-mono.svg",
+  "wordmark-inverse": "/brand/duosis-wordmark-inverse.svg",
   mark: "/brand/duosis-mark.svg",
   "mark-mono": "/brand/duosis-mark-mono.svg",
 };
@@ -37,6 +49,7 @@ const RATIO: Record<string, string> = {
   "lockup-dark": "507.789 / 218.851",
   wordmark: "507.789 / 149.541",
   "wordmark-mono": "507.789 / 149.541",
+  "wordmark-inverse": "507.789 / 149.541",
   mark: "194.137 / 149.446",
   "mark-mono": "194.137 / 149.446",
 };

@@ -11,7 +11,6 @@ import type { Locale } from "@lib/content/schema";
 const dictionaries = {
   tr: {
     "site.name": "Duosis",
-    "site.tagline": "Kurumsal web sitesi — geliştirme sürümü",
 
     "nav.skipToContent": "Ana içeriğe geç",
     "nav.home": "Ana sayfa",
@@ -40,7 +39,6 @@ const dictionaries = {
     "footer.contact": "İletişim",
     "footer.nav": "Site haritası",
     "footer.rights": "Tüm hakları saklıdır.",
-    "footer.buildNote": "Bu sürüm geliştirme aşamasındadır ve arama motorlarına kapalıdır.",
 
     "cta.exploreSolutions": "Çözümleri inceleyin",
     "cta.solutionDetail": "Çözüm detayına gidin",
@@ -91,7 +89,6 @@ const dictionaries = {
   },
   en: {
     "site.name": "Duosis",
-    "site.tagline": "Corporate website — development build",
 
     "nav.skipToContent": "Skip to main content",
     "nav.home": "Home",
@@ -120,7 +117,6 @@ const dictionaries = {
     "footer.contact": "Contact",
     "footer.nav": "Site map",
     "footer.rights": "All rights reserved.",
-    "footer.buildNote": "This build is under development and is closed to search engines.",
 
     "cta.exploreSolutions": "Explore the solutions",
     "cta.solutionDetail": "Open solution details",

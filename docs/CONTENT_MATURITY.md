@@ -19,14 +19,19 @@ demo ve şablon doğrulaması için vardır, yayın için değil.
 | `logoPermission !== allowed`      | Logo hiç render edilmez         | `logoPathIfAllowed`          |
 | `lifecycle !== active`            | Teknoloji public listede yok    | `isVisibleTechnology`        |
 
-## Şu anki durum (S02-R1)
+## Şu anki durum (S08)
 
-- **10/10 solution fixture'ı `noindex: true`.** Rotalar üretiliyor ve TR/EN demo
-  akışı çalışıyor; yalnızca arama motoru indekslemesi kapalı.
-- **35/35 teknoloji `lifecycle: pending`.** S00 envanterinde hepsinin `active`
-  değeri `unknown`'dı; sessizce `true` yapılmadı. Sonuç: **public teknoloji
-  listesi boştur.** Bu bilinçli ve fail-closed bir sonuçtur.
-- Sayfalarda görünür `TASLAK / DRAFT` rozeti ve "doğrulanmış iddia içermez" notu var.
+- **Tüm üretim sayfaları `noindex: true`.** Rotalar üretiliyor ve TR/EN akışı
+  çalışıyor; yalnızca arama motoru indekslemesi kapalı.
+- **21/35 teknoloji `lifecycle: active`, 14/35 `pending`** (ADR-011). S00'da
+  hepsi `pending` idi; yayın kararı iş sahibi onayıyla verildi ve yalnızca ADR'de
+  adı geçen kayıtlar açıldı.
+- **35/35 kayıt `logoPermission: unknown`** — CyclOps hariç hiçbir logo açılmadı;
+  teknolojiler public çıktıda YALNIZCA metin olarak geçer.
+- Ziyaretçiye gösterilen arayüzde `TASLAK / DRAFT` rozeti, olgunluk dili veya
+  yayın süreci anlatısı **YOKTUR** (ADR-011 + S08 takibi). Bu bilgiler yalnızca
+  içerik verisinde, ADR'lerde ve bu dosyada durur; `tests/e2e/public-voice.spec.ts`
+  build çıktısından keşfedilen TÜM public rotaları tarar.
 
 ## Bir kaydı yayına almak
 

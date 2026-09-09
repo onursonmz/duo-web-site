@@ -11,6 +11,11 @@ interface Props {
   tone?: "light" | "dark";
   /** Dar okuma sütunu mu, geniş editorial ızgara mı. */
   width?: "text" | "wide";
+  /**
+   * Dikey ritim. `tight`, ilk ekran bütçesi olan bölümler (hero) içindir:
+   * içerik yukarı çekilir, bölüm ritmi bozulmaz.
+   */
+  padding?: "default" | "tight";
   as?: "section" | "div" | "article" | "footer" | "header";
   class?: string;
   id?: string;
@@ -21,13 +26,14 @@ interface Props {
 const {
   tone = "light",
   width = "wide",
+  padding = "default",
   as: Tag = "section",
   class: className,
   id,
 }: Props = Astro.props;
 ---
 
-<Tag class:list={[`theme-${tone}`, "section", className]} id={id}>
+<Tag class:list={[`theme-${tone}`, "section", `section--${padding}`, className]} id={id}>
   <div class:list={["section__inner", `section__inner--${width}`]}>
     <slot />
   </div>
@@ -36,6 +42,10 @@ const {
 <style>
   .section {
     padding-block: var(--space-2xl);
+  }
+
+  .section--tight {
+    padding-block: var(--space-xl);
   }
 
   .section__inner {
@@ -55,6 +65,10 @@ const {
   @media (max-width: 40rem) {
     .section {
       padding-block: var(--space-xl);
+    }
+
+    .section--tight {
+      padding-block: var(--space-lg);
     }
   }
 </style>

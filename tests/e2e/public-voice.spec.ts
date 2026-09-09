@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { publicRoutes } from "../support/route-inventory";
 
 /**
  * PUBLIC SES REGRESYONU (S04+S05 takip kararı).
@@ -14,34 +15,14 @@ import { expect, test } from "@playwright/test";
  * kuralın kapsamı dışındadır.
  */
 
-/** Ziyaretçiye gösterilen tüm üretim rotaları. */
-const PUBLIC_ROUTES = [
-  "/",
-  "/en/",
-  "/cozumler/",
-  "/en/solutions/",
-  "/cozumler/operasyonel-gorunurluk/",
-  "/cozumler/konfigurasyon-ve-varlik-yonetimi/",
-  "/cozumler/bt-hizmet-yonetimi/",
-  "/cozumler/veri-akisi-ve-entegrasyon/",
-  "/cozumler/kurumsal-mimari-ve-yonetisim/",
-  "/cozumler/aiops-ve-olay-yasam-dongusu/",
-  "/cozumler/otomasyon/",
-  "/cozumler/muhendislik-ve-urun-gelistirme/",
-  "/en/solutions/observability-and-apm/",
-  "/en/solutions/configuration-and-asset-management/",
-  "/en/solutions/it-service-management/",
-  "/en/solutions/data-streaming-and-integration/",
-  "/en/solutions/enterprise-architecture/",
-  "/en/solutions/aiops-and-event-lifecycle/",
-  "/en/solutions/automation/",
-  "/en/solutions/engineering-and-product-development/",
-  "/iletisim/",
-  "/en/contact/",
-  "/icgoruler/",
-  "/en/insights/",
-  "/404-kontrol/",
-];
+/**
+ * Ziyaretçiye gösterilen tüm üretim rotaları.
+ *
+ * Liste ELLE TUTULMAZ: build çıktısından keşfedilir. Yeni bir public rota
+ * eklendiğinde taramaya otomatik girer; dahili istisnalar
+ * `tests/support/route-inventory.ts` içinde açıkça listelenir.
+ */
+const PUBLIC_ROUTES = publicRoutes();
 
 /**
  * Yasak ifadeler. Küçük harfe indirgenmiş metinde aranır.
@@ -63,6 +44,13 @@ const FORBIDDEN_PHRASES = [
   "verificationstatus",
   "içerik modeli",
   "fail-closed",
+  // S08 takibi: ziyaretçiye yayın/geliştirme durumu anlatılmaz.
+  "geliştirme aşaması",
+  "geliştirme sürümü",
+  "development build",
+  "arama motorlarına kapalı",
+  "closed to search engines",
+  "under development",
 ];
 
 /**

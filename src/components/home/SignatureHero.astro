@@ -23,6 +23,13 @@
  *
  * 5. Mobilde geniş topoloji gizlenir; liste CSS ile dikey bir sinyal rayına
  *    dönüşür. İkinci bir SVG yüklenmez.
+ *
+ * 6. İLK EKRAN KOMPOZİSYONU (S08 takibi). Beş aşamanın İSİMLERİ 1440x900 ve
+ *    1366x768'de ilk viewport içinde kalır. Bunun için masaüstünde H1 ölçeği
+ *    sınırlanır, atlas boşlukları daraltılır ve SVG daha alçak bir viewBox
+ *    kullanır. Düğüm x konumları beş sütunlu ızgaranın merkezlerine
+ *    (120/360/600/840/1080) OTURTULDU: her aşama başlığı tam olarak kendi
+ *    düğümünün altında durur. SVG'ye metin GÖMÜLMEZ; etiketler HTML'dir.
  */
 import type { CollectionEntry } from "astro:content";
 import Button from "@components/ui/Button.astro";
@@ -53,39 +60,39 @@ const { hero, stages }: Props = Astro.props;
     -->
     <svg
       class="atlas__svg"
-      viewBox="0 0 1200 230"
+      viewBox="0 0 1200 140"
       role="presentation"
       aria-hidden="true"
       focusable="false"
     >
       <g class="atlas__links">
         {
-          [40, 90, 140, 190].map((y, i) => (
-            <path class={`atlas__link atlas__link--s${i}`} d={`M132 ${y} H308`} />
+          [24, 56, 88, 120].map((y, i) => (
+            <path class={`atlas__link atlas__link--s${i}`} d={`M129 ${y} H342`} />
           ))
         }
         {
-          [40, 90, 140, 190].map((y, i) => (
+          [24, 56, 88, 120].map((y, i) => (
             <path
               class={`atlas__link atlas__link--c${i}`}
-              d={`M372 ${y} C470 ${y} 480 115 550 115`}
+              d={`M378 ${y} C470 ${y} 486 72 578 72`}
             />
           ))
         }
-        <path class="atlas__link atlas__link--ai" d="M606 115 H794"></path>
-        <path class="atlas__link atlas__link--act" d="M846 115 H1030"></path>
+        <path class="atlas__link atlas__link--ai" d="M622 72 H818"></path>
+        <path class="atlas__link atlas__link--act" d="M862 72 H1058"></path>
       </g>
 
       <g class="atlas__nodes">
-        {[40, 90, 140, 190].map((y) => <circle class="atlas__source" cx="116" cy={y} r="7" />)}
+        {[24, 56, 88, 120].map((y) => <circle class="atlas__source" cx="120" cy={y} r="7" />)}
         {
-          [40, 90, 140, 190].map((y) => (
-            <rect class="atlas__signal" x="324" y={y - 8} width="32" height="16" rx="2" />
+          [24, 56, 88, 120].map((y) => (
+            <rect class="atlas__signal" x="344" y={y - 8} width="32" height="16" rx="2" />
           ))
         }
-        <circle class="atlas__hub" cx="580" cy="115" r="24"></circle>
-        <circle class="atlas__hub atlas__hub--ai" cx="820" cy="115" r="24"></circle>
-        <rect class="atlas__action" x="1032" y="93" width="44" height="44" rx="3"></rect>
+        <circle class="atlas__hub" cx="600" cy="72" r="22"></circle>
+        <circle class="atlas__hub atlas__hub--ai" cx="840" cy="72" r="22"></circle>
+        <rect class="atlas__action" x="1058" y="52" width="40" height="40" rx="3"></rect>
       </g>
     </svg>
 
@@ -132,6 +139,30 @@ const { hero, stages }: Props = Astro.props;
     color: var(--text-secondary);
   }
 
+  /*
+   * İLK EKRAN BÜTÇESİ.
+   *
+   * Masaüstünde H1 üst sınırı 3.75rem yerine 3rem'dir: iki satırda ~115px
+   * yer kaplar ve beş aşama başlığı 1366x768'de bile ilk viewport içinde
+   * kalır. Mobilde ölçek değişmez.
+   */
+  @media (min-width: 60rem) {
+    .hero__title {
+      font-size: clamp(2.5rem, 1.2rem + 2.2vw, 3rem);
+      max-width: 22ch;
+    }
+
+    /* Daha geniş ölçü = daha az satır = ilk ekranda daha fazla yer. */
+    .hero__lead {
+      margin-top: var(--space-sm);
+      max-width: 68ch;
+    }
+
+    .hero__actions {
+      margin-top: var(--space-sm);
+    }
+  }
+
   .hero__actions {
     display: flex;
     flex-wrap: wrap;
@@ -145,13 +176,20 @@ const { hero, stages }: Props = Astro.props;
     border-top: var(--border-width) solid var(--border-subtle);
   }
 
+  @media (min-width: 60rem) {
+    .atlas {
+      margin-top: var(--space-sm);
+      padding-top: var(--space-2xs);
+    }
+  }
+
   /* ---------------------------------------------------------------- SVG */
 
   .atlas__svg {
     display: none;
     width: 100%;
     height: auto;
-    aspect-ratio: 1200 / 230; /* CLS = 0 */
+    aspect-ratio: 1200 / 140; /* CLS = 0 */
     overflow: visible;
   }
 
@@ -272,11 +310,25 @@ const { hero, stages }: Props = Astro.props;
     list-style: none;
   }
 
+  /*
+   * Beş sütun, SVG'nin beş bölgesiyle AYNI hizada: sütun merkezleri
+   * 120/360/600/840/1080 birimine denk gelir, başlık kendi düğümünün altında
+   * durur. `gap` daraltıldı; ilk ekran bütçesi bunu gerektiriyor.
+   */
   @media (min-width: 60rem) {
     .atlas__stages {
       grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: var(--space-lg);
-      margin-top: var(--space-sm);
+      gap: var(--space-md);
+      margin-top: var(--space-2xs);
+    }
+
+    .stage {
+      padding-top: var(--space-2xs);
+    }
+
+    .stage__title {
+      margin: 0 0 var(--space-3xs);
+      font-size: var(--text-md);
     }
   }
 
