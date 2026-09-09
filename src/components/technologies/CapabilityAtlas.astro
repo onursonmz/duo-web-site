@@ -1,0 +1,199 @@
+---
+/**
+ * TEKNOLOJİ YETENEK ATLASI (S10 §5).
+ *
+ * NEDEN LOGO DUVARI DEĞİL.
+ * Logo duvarı iki şeyi birden ima eder: bir ortaklık ilişkisi ve ürün adının
+ * mesajın kendisi olduğu. İkisi de doğru değil. Bu yüzden sayfa katman katman
+ * okunur — YETENEK → ÇÖZÜLEN PROBLEM → ÇÖZÜM ALANI → o katmanda çalıştığımız
+ * teknolojiler. Ürün adı satırın SONUNDA, en sakin tipografiyle gelir.
+ *
+ * LOGO GÖSTERİLMEZ. Envanterdeki her kaydın `logoPermission` değeri "unknown"
+ * olduğu için `logoPathIfAllowed` hiçbir kayıt için yol döndürmez; bu bileşen
+ * zaten `<img>` render etmez. Kural gevşetilmez: izin verilmemiş bir logo
+ * hiçbir modda gösterilmez.
+ *
+ * VURGU. Bazı kayıtlar tipografik olarak biraz daha güçlü görünür
+ * (`EMPHASIZED_TECHNOLOGY_IDS`). Bu YALNIZCA görsel ağırlıktır: sıralamayı
+ * değiştirmez, ayrı bölüm açmaz ve ortaklık/üstünlük anlamı taşımaz.
+ */
+import type { Locale } from "@lib/content/schema";
+import type { CapabilityAtlasRow } from "@lib/content/selectors";
+import { capabilityLayerLabel, isEmphasized } from "@lib/content/capabilities";
+import { t } from "@lib/i18n/dictionary";
+import { solutionPath } from "@lib/i18n/routes";
+
+interface Props {
+  locale: Locale;
+  rows: CapabilityAtlasRow[];
+}
+
+const { locale, rows }: Props = Astro.props;
+---
+
+{
+  rows.length > 0 && (
+    <ol class="atlas" data-testid="capability-atlas">
+      {rows.map((row, index) => (
+        <li class="atlas__layer" data-layer={row.layer}>
+          <div class="atlas__head">
+            <span class="atlas__index" aria-hidden="true">
+              L{String(index + 1).padStart(2, "0")}
+            </span>
+            <h2 class="atlas__name">{capabilityLayerLabel(row.layer, locale)}</h2>
+          </div>
+
+          <div class="atlas__body">
+            <div class="atlas__problem">
+              <p class="atlas__label">{t(locale, "technologies.problem")}</p>
+              <p class="atlas__problem-text">{row.problem}</p>
+              <p class="atlas__solution">
+                <span class="atlas__label atlas__label--inline">
+                  {t(locale, "technologies.relatedSolution")}
+                </span>
+                <a href={solutionPath(locale, row.solutionSlug)}>{row.solutionTitle}</a>
+              </p>
+            </div>
+
+            <div class="atlas__stack">
+              <p class="atlas__label">{t(locale, "technologies.stack")}</p>
+              <ul class="atlas__tech" data-testid="atlas-technologies">
+                {row.technologies.map((technology) => (
+                  <li
+                    class:list={[
+                      "atlas__tech-item",
+                      isEmphasized(technology.id) && "is-emphasized",
+                    ]}
+                    data-technology={technology.id}
+                  >
+                    {technology.data.name}
+                    {technology.data.licenseModel === "duosis-own-product" && (
+                      <span class="atlas__own">{t(locale, "technologies.ownProduct")}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+<style>
+  .atlas {
+    margin: var(--space-lg) 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .atlas__layer {
+    padding-block: var(--space-lg);
+    border-bottom: var(--border-width) solid var(--border-subtle);
+  }
+
+  /* --------------------------------------------------------------- başlık */
+
+  .atlas__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+  }
+
+  .atlas__index {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    color: var(--signal);
+  }
+
+  .atlas__name {
+    margin: 0;
+    font-size: var(--text-xl);
+    line-height: var(--leading-snug);
+  }
+
+  /* --------------------------------------------------------------- gövde */
+
+  .atlas__body {
+    display: grid;
+    gap: var(--space-md) var(--space-xl);
+  }
+
+  /*
+   * Asimetrik iki sütun: anlatı (problem) teknoloji listesinden daha geniş
+   * durur. Eşit iki sütun, ürün listesini anlatıyla aynı ağırlığa çıkarırdı.
+   */
+  @media (min-width: 56rem) {
+    .atlas__body {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    }
+  }
+
+  .atlas__label {
+    margin: 0 0 var(--space-2xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .atlas__label--inline {
+    display: inline;
+    margin-right: var(--space-2xs);
+  }
+
+  .atlas__problem-text {
+    margin: 0 0 var(--space-sm);
+    max-width: 60ch;
+    color: var(--text-secondary);
+  }
+
+  .atlas__solution {
+    margin: 0;
+    font-size: var(--text-sm);
+  }
+
+  /* --------------------------------------------------------------- yığın */
+
+  .atlas__tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-md);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /*
+   * Teknoloji adı rozet DEĞİL: kutu, dolgu ve renk verilmez. Rozet bulutu
+   * ürün kataloğu gibi okunur; burada ad, sakin bir mono etikettir.
+   */
+  .atlas__tech-item {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+  }
+
+  /*
+   * Editoryal vurgu: yalnızca ağırlık ve renk. Rozet, yıldız veya "partner"
+   * etiketi EKLENMEZ — vurgu bir iddia değil, bir okuma yardımıdır.
+   */
+  .atlas__tech-item.is-emphasized {
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+  }
+
+  .atlas__own {
+    margin-left: var(--space-2xs);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+</style>

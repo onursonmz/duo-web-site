@@ -1,0 +1,136 @@
+---
+/**
+ * BÖLGESEL ÇALIŞMA ATLASI (S10 §6).
+ *
+ * NEDEN HARİTA YOK.
+ * Dekoratif bir dünya haritası burada bilgi taşımaz, taşıdığını sandırır:
+ * bir ülkeyi boyamak "orada ofisimiz var" diye okunur. Elimizde yalnızca
+ * doğrulanmış BÖLGE ADLARI var — ofis, yerel ekip, ülke listesi veya müşteri
+ * sayısı YOK. Bu yüzden bölüm tipografik bir atlas olarak kurulur: anlamın
+ * tamamı metinde durur, CSS yüklenmese bile sıralı bir liste olarak okunur.
+ *
+ * Bölüm ayrıca:
+ * - hover'a özel bilgi taşımaz (her şey kalıcı olarak görünür),
+ * - mobilde yatay kaydırma gerektirmez,
+ * - süregiden animasyon veya parlayan nokta içermez.
+ *
+ * Kayıt yoksa bölüm HİÇ render edilmez — boş kutu veya "yakında" yazısı yok.
+ */
+import type { CollectionEntry } from "astro:content";
+import type { Locale } from "@lib/content/schema";
+import { t } from "@lib/i18n/dictionary";
+
+interface Props {
+  locale: Locale;
+  regions: CollectionEntry<"regions">[];
+  /** Başlık seviyesi: bölüm nereye gömülürse hiyerarşi bozulmasın. */
+  headingLevel?: "h2" | "h3";
+  headingId?: string;
+}
+
+const { locale, regions, headingLevel: Heading = "h2", headingId }: Props = Astro.props;
+---
+
+{
+  regions.length > 0 && (
+    <div class="regions" data-testid="regional-presence">
+      <header class="regions__header">
+        <p class="regions__eyebrow">{t(locale, "regions.eyebrow")}</p>
+        <Heading class="regions__title" id={headingId}>
+          {t(locale, "regions.title")}
+        </Heading>
+        <p class="regions__lead">{t(locale, "regions.intro")}</p>
+      </header>
+
+      <ol class="regions__list" aria-label={t(locale, "regions.listLabel")}>
+        {regions.map((region, index) => (
+          <li class="regions__item" data-region={region.data.id}>
+            <span class="regions__index" aria-hidden="true">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <h3 class="regions__name">{region.data.name}</h3>
+            <p class="regions__summary">{region.data.summary}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  )
+}
+
+<style>
+  .regions__eyebrow {
+    margin: 0 0 var(--space-2xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .regions__title {
+    margin: 0 0 var(--space-2xs);
+  }
+
+  .regions__lead {
+    margin: 0;
+    max-width: var(--container-text);
+    color: var(--text-secondary);
+  }
+
+  .regions__list {
+    display: grid;
+    gap: 0;
+    margin: var(--space-lg) 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  /*
+   * Masaüstünde üç bölge yan yana karşılaştırılır; ayırıcı dikey çizgi
+   * kolonları böler. Mobilde tek sütuna iner ve ayırıcı yataya döner —
+   * yatay kaydırma HİÇBİR genişlikte gerekmez.
+   */
+  @media (min-width: 48rem) {
+    .regions__list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .regions__item + .regions__item {
+      border-left: var(--border-width) solid var(--border-subtle);
+      padding-left: var(--space-lg);
+    }
+  }
+
+  .regions__item {
+    padding-block: var(--space-md);
+  }
+
+  @media (max-width: 47.99rem) {
+    .regions__item + .regions__item {
+      border-top: var(--border-width) solid var(--border-subtle);
+    }
+  }
+
+  .regions__index {
+    display: block;
+    margin-bottom: var(--space-2xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    color: var(--text-muted);
+  }
+
+  .regions__name {
+    margin: 0 0 var(--space-3xs);
+    font-size: var(--text-lg);
+  }
+
+  .regions__summary {
+    margin: 0;
+    max-width: 40ch;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+</style>

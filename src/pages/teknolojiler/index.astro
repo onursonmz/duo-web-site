@@ -1,0 +1,88 @@
+---
+/**
+ * TEKNOLOJİLER — YETENEK ATLASI (S10 §4-§5).
+ *
+ * Sayfa envanteri DOĞRUDAN listelemez: `getCapabilityAtlasView` yalnızca
+ * public seçiciden geçen kayıtları (lifecycle "active" VE decisionNeeded
+ * false) yetenek katmanlarına bölerek döner. Karar bekleyen kayıtların adı
+ * bu sayfanın hiçbir yerinde — HTML, metadata veya client payload — bulunmaz.
+ */
+import BaseLayout from "@layouts/BaseLayout.astro";
+import Section from "@components/ui/Section.astro";
+import SectionHeading from "@components/ui/SectionHeading.astro";
+import CapabilityAtlas from "@components/technologies/CapabilityAtlas.astro";
+import Button from "@components/ui/Button.astro";
+import { PUBLIC, getCapabilityAtlasView } from "@lib/content/selectors";
+import { servicesIndexPath, solutionsIndexPath, technologiesIndexPath } from "@lib/i18n/routes";
+import { t } from "@lib/i18n/dictionary";
+
+const locale = "tr" as const;
+const rows = await getCapabilityAtlasView(locale, PUBLIC);
+const alternates = { tr: technologiesIndexPath("tr"), en: technologiesIndexPath("en") };
+---
+
+<BaseLayout
+  locale={locale}
+  title={t(locale, "technologies.title")}
+  description={t(locale, "technologies.intro")}
+  alternates={alternates}
+  noindex={true}
+  wide={true}
+  breadcrumbs={[
+    { label: t(locale, "nav.home"), href: "/" },
+    { label: t(locale, "technologies.title") },
+  ]}
+>
+  <Section tone="light" width="wide" id="technologies">
+    <SectionHeading
+      eyebrow={t(locale, "technologies.eyebrow")}
+      as="h1"
+      lead={t(locale, "technologies.intro")}
+    >
+      {t(locale, "technologies.title")}
+    </SectionHeading>
+
+    <CapabilityAtlas locale={locale} rows={rows} />
+
+    <p class="technologies__scope" data-testid="technology-scope-note">
+      {t(locale, "technologies.scopeNote")}
+    </p>
+  </Section>
+
+  <Section tone="dark" width="wide" id="technologies-next">
+    <SectionHeading lead={t(locale, "services.intro")}>
+      {t(locale, "services.title")}
+    </SectionHeading>
+    <p class="technologies__actions">
+      <Button variant="secondary" href={servicesIndexPath(locale)}>
+        {t(locale, "services.title")}
+      </Button>
+      <Button variant="quiet" href={solutionsIndexPath(locale)}>
+        {t(locale, "cta.exploreSolutions")}
+      </Button>
+    </p>
+  </Section>
+</BaseLayout>
+
+<style>
+  /*
+   * KAPSAM NOTU. Teknoloji adlarını gösteren her sayfanın taşıması gereken
+   * cümle: bu bir iş ortaklığı beyanı değildir. Not atlasın ALTINDA durur;
+   * başlık gibi görünüp ana mesajı bastırmaz.
+   */
+  .technologies__scope {
+    margin-top: var(--space-lg);
+    padding-top: var(--space-sm);
+    border-top: var(--border-width) solid var(--border-subtle);
+    max-width: 60ch;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+  }
+
+  .technologies__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md) var(--space-lg);
+    align-items: center;
+  }
+</style>

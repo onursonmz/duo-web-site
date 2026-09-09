@@ -1,0 +1,264 @@
+---
+/**
+ * HİZMET GİRDİSİ — EDİTORYAL SATIR (S10 §3).
+ *
+ * Beş eşit kart DEĞİL. Her hizmet bir yayın sayfası gibi kurulur: büyük
+ * sıra numarası, ince çizgiler ve karşılaştırılabilir üç sütun
+ * (ihtiyaç / çalışma / çıktı). Masaüstünde üç sütun yan yana okunabilir,
+ * mobilde doğal olarak tek sütuna iner — yatay kaydırma gerekmez.
+ *
+ * Sıra numarası `aria-hidden`: ekran okuyucu için "01" bir bilgi değil,
+ * görsel bir ritim öğesidir. Sıra bilgisi zaten liste yapısında vardır.
+ */
+import type { CollectionEntry } from "astro:content";
+import type { Locale } from "@lib/content/schema";
+import { t } from "@lib/i18n/dictionary";
+import { solutionPath, contactPathForTopic } from "@lib/i18n/routes";
+import { SERVICE_TOPICS } from "@lib/content/schema";
+import Button from "@components/ui/Button.astro";
+
+interface Props {
+  locale: Locale;
+  service: CollectionEntry<"services">;
+  /** Görsel sıra numarası (01, 02 ...). */
+  index: number;
+  /** İlişkili çözümlerin başlık + yol bilgisi; kırık link üretilmez. */
+  relatedSolutions: { title: string; slug: string }[];
+}
+
+const { locale, service, index, relatedSolutions }: Props = Astro.props;
+const data = service.data;
+
+/*
+ * CTA BAĞLAMI — KAPALI ALLOWLIST.
+ *
+ * `?topic=` değeri serbest metin değil, kapalı hizmet kümesinden gelir.
+ * `translationKey` şema düzeyinde zaten bu kümeye kilitli; burada ikinci kez
+ * allowlist'ten geçirilir, böylece şema atlansa bile serbest bir değer
+ * URL'e giremez.
+ */
+const ctaHref = contactPathForTopic(locale, data.translationKey, SERVICE_TOPICS);
+
+const columns = [
+  { key: "when", label: t(locale, "services.whenNeeded"), items: data.whenNeeded },
+  { key: "work", label: t(locale, "services.howWeWork"), items: data.howWeWork, ordered: true },
+  { key: "outcome", label: t(locale, "services.outcomes"), items: data.outcomes },
+] as const;
+
+const headingId = `service-${data.translationKey}`;
+---
+
+<article class="service" aria-labelledby={headingId} data-service={data.translationKey}>
+  <header class="service__header">
+    <span class="service__index" aria-hidden="true">{String(index).padStart(2, "0")}</span>
+    <div class="service__intro">
+      <h2 class="service__title" id={headingId}>{data.title}</h2>
+      <p class="service__summary">{data.summary}</p>
+    </div>
+  </header>
+
+  <div class="service__offer">
+    <p class="service__label">{t(locale, "services.offer")}</p>
+    <ul class="service__offer-list">
+      {data.offer.map((item) => <li>{item}</li>)}
+    </ul>
+  </div>
+
+  <div class="service__columns">
+    {
+      columns.map((column) => (
+        <section class="service__column" aria-label={column.label}>
+          <p class="service__label">{column.label}</p>
+          {"ordered" in column && column.ordered ? (
+            <ol class="service__list service__list--ordered">
+              {column.items.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ol>
+          ) : (
+            <ul class="service__list">
+              {column.items.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ))
+    }
+  </div>
+
+  <footer class="service__footer">
+    {
+      relatedSolutions.length > 0 && (
+        <div class="service__related" data-testid="service-related-solutions">
+          <p class="service__label">{t(locale, "services.relatedSolutions")}</p>
+          <ul class="service__related-list">
+            {relatedSolutions.map((solution) => (
+              <li>
+                <a href={solutionPath(locale, solution.slug)}>{solution.title}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+    <p class="service__cta">
+      <Button variant="secondary" href={ctaHref} data-testid="service-cta">
+        {t(locale, "cta.talkAboutService")}
+      </Button>
+    </p>
+  </footer>
+</article>
+
+<style>
+  .service {
+    padding-block: var(--space-xl);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  /* ------------------------------------------------------------- başlık */
+
+  .service__header {
+    display: grid;
+    gap: var(--space-2xs) var(--space-lg);
+    margin-bottom: var(--space-lg);
+  }
+
+  @media (min-width: 56rem) {
+    .service__header {
+      grid-template-columns: 6rem minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  /*
+   * Büyük editorial numara. Rakam gövde metniyle aynı ölçekte olsaydı
+   * bir madde işaretinden farksız kalırdı; burada bölüm ritmini o kuruyor.
+   */
+  .service__index {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-regular);
+    line-height: 1;
+    letter-spacing: var(--tracking-tight);
+    color: var(--text-muted);
+  }
+
+  .service__title {
+    margin: 0 0 var(--space-2xs);
+    font-size: var(--text-xl);
+    line-height: var(--leading-snug);
+  }
+
+  .service__summary {
+    margin: 0;
+    max-width: 56ch;
+    font-size: var(--text-lg);
+    color: var(--text-secondary);
+  }
+
+  /* ------------------------------------------------------------- etiketler */
+
+  .service__label {
+    margin: 0 0 var(--space-2xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* ------------------------------------------------------------- kapsam */
+
+  .service__offer {
+    margin-bottom: var(--space-lg);
+    padding-top: var(--space-md);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .service__offer-list {
+    display: grid;
+    gap: var(--space-2xs) var(--space-lg);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 56rem) {
+    .service__offer-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .service__offer-list li {
+    padding-left: var(--space-sm);
+    border-left: var(--border-width-strong) solid var(--signal);
+    max-width: 60ch;
+  }
+
+  /* ------------------------------------------------------------- üç sütun */
+
+  .service__columns {
+    display: grid;
+    gap: var(--space-lg);
+    padding-top: var(--space-md);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  /* Üç sütun ancak karşılaştırma için yeterli genişlik varsa açılır. */
+  @media (min-width: 56rem) {
+    .service__columns {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-xl);
+    }
+  }
+
+  .service__list {
+    margin: 0;
+    padding-left: var(--space-md);
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .service__list li + li {
+    margin-top: var(--space-2xs);
+  }
+
+  .service__list--ordered {
+    list-style: decimal;
+  }
+
+  /* ------------------------------------------------------------- alt */
+
+  .service__footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md) var(--space-xl);
+    align-items: end;
+    justify-content: space-between;
+    margin-top: var(--space-lg);
+    padding-top: var(--space-md);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .service__related-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3xs) var(--space-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-sm);
+  }
+
+  .service__related-list li + li::before {
+    content: "·";
+    margin-right: var(--space-sm);
+    color: var(--border-strong);
+  }
+
+  .service__cta {
+    margin: 0;
+  }
+</style>
