@@ -2,8 +2,10 @@
 import type { GetStaticPaths } from "astro";
 import BaseLayout from "@layouts/BaseLayout.astro";
 import SolutionDetail from "@components/SolutionDetail.astro";
-import { PUBLIC, getSolutionAlternates, getSolutions } from "@lib/content/selectors";
-import { solutionPath } from "@lib/i18n/routes";
+import Section from "@components/ui/Section.astro";
+import { PUBLIC, getInsights, getSolutionAlternates, getSolutions } from "@lib/content/selectors";
+import { solutionPath, solutionsIndexPath } from "@lib/i18n/routes";
+import { t } from "@lib/i18n/dictionary";
 
 export const getStaticPaths = (async () => {
   // Üretim sayfası: PUBLIC modu AÇIKÇA kullanılır.
@@ -16,6 +18,12 @@ export const getStaticPaths = (async () => {
 
 const { solution } = Astro.props;
 const alternates = await getSolutionAlternates(solution.data.translationKey, PUBLIC, solutionPath);
+
+// Bu çözümü referans veren yayınlanmış içgörüler.
+const allInsights = await getInsights("tr", PUBLIC);
+const relatedInsights = allInsights.filter((insight) =>
+  insight.data.relatedSolutionRefs.some((ref) => ref.id === solution.id)
+);
 ---
 
 <BaseLayout
@@ -24,6 +32,14 @@ const alternates = await getSolutionAlternates(solution.data.translationKey, PUB
   description={solution.data.seo.description}
   alternates={alternates}
   noindex={solution.data.seo.noindex}
+  wide={true}
+  breadcrumbs={[
+    { label: t("tr", "nav.home"), href: "/" },
+    { label: t("tr", "solutions.title"), href: solutionsIndexPath("tr") },
+    { label: solution.data.title },
+  ]}
 >
-  <SolutionDetail locale="tr" solution={solution} mode={PUBLIC} />
+  <Section tone="light" width="wide">
+    <SolutionDetail locale="tr" solution={solution} mode={PUBLIC} insights={relatedInsights} />
+  </Section>
 </BaseLayout>

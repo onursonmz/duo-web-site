@@ -1,5 +1,7 @@
 ---
 import BaseLayout from "@layouts/BaseLayout.astro";
+import Section from "@components/ui/Section.astro";
+import SectionHeading from "@components/ui/SectionHeading.astro";
 import SolutionList from "@components/SolutionList.astro";
 import { PUBLIC, getSolutions } from "@lib/content/selectors";
 import { solutionsIndexPath } from "@lib/i18n/routes";
@@ -19,9 +21,16 @@ const alternates = { tr: solutionsIndexPath("tr"), en: solutionsIndexPath("en") 
   description={t(locale, "solutions.intro")}
   alternates={alternates}
   noindex={true}
+  wide={true}
+  breadcrumbs={[
+    { label: t(locale, "nav.home"), href: "/en/" },
+    { label: t(locale, "solutions.title") },
+  ]}
 >
-  <h1>{t(locale, "solutions.title")}</h1>
-  <p>{t(locale, "solutions.intro")}</p>
-
-  <SolutionList locale={locale} solutions={solutions} />
+  <Section tone="light" width="wide" id="solutions">
+    <SectionHeading eyebrow="Command Atlas" as="h1" lead={t(locale, "solutions.intro")}>
+      {t(locale, "solutions.title")}
+    </SectionHeading>
+    <SolutionList locale={locale} solutions={solutions} />
+  </Section>
 </BaseLayout>

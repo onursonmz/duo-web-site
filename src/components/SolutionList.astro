@@ -1,4 +1,12 @@
 ---
+/**
+ * ÇÖZÜM LİSTESİ (landing).
+ *
+ * Kart gridi DEĞİL: numaralı editorial satırlar. Her satır iş sonucu başlığı,
+ * kısa problem cümlesi ve kabiliyet etiketleri taşır. Teknoloji adı anlatının
+ * başlığı veya başlangıç noktası DEĞİLDİR — detay sayfasında, kendi
+ * bölümünde geçer.
+ */
 import type { CollectionEntry } from "astro:content";
 import { t } from "@lib/i18n/dictionary";
 import { solutionPath } from "@lib/i18n/routes";
@@ -9,20 +17,122 @@ interface Props {
   solutions: CollectionEntry<"solutions">[];
 }
 
-const { locale, solutions } = Astro.props;
+const { locale, solutions }: Props = Astro.props;
 ---
 
 {
-  solutions.length > 0 ? (
-    <ul class="solution-list" data-testid="solution-list">
-      {solutions.map((solution) => (
-        <li data-solution-key={solution.data.translationKey}>
-          <a href={solutionPath(locale, solution.data.slug)}>{solution.data.title}</a>
-          <p>{solution.data.summary}</p>
+  solutions.length > 0 && (
+    <ol class="solutions" data-testid="solution-list">
+      {solutions.map((solution, index) => (
+        <li class="solutions__row" data-solution-key={solution.data.translationKey}>
+          <span class="solutions__index" aria-hidden="true">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+
+          <div class="solutions__main">
+            <h2 class="solutions__title">
+              <a href={solutionPath(locale, solution.data.slug)}>{solution.data.title}</a>
+            </h2>
+            <p class="solutions__problem">{solution.data.problem}</p>
+          </div>
+
+          <div class="solutions__aside">
+            {solution.data.capabilities.length > 0 && (
+              <ul class="solutions__tags">
+                {solution.data.capabilities.slice(0, 3).map((capability) => (
+                  <li>{capability}</li>
+                ))}
+              </ul>
+            )}
+            <a class="solutions__cta" href={solutionPath(locale, solution.data.slug)}>
+              {t(locale, "cta.solutionDetail")}
+            </a>
+          </div>
         </li>
       ))}
-    </ul>
-  ) : (
-    <p data-testid="solutions-empty">{t(locale, "solutions.empty")}</p>
+    </ol>
   )
 }
+
+<style>
+  .solutions {
+    margin: var(--space-lg) 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .solutions__row {
+    display: grid;
+    gap: var(--space-2xs) var(--space-lg);
+    padding: var(--space-lg) 0;
+    border-bottom: var(--border-width) solid var(--border-subtle);
+  }
+
+  /* Masaüstünde asimetrik üç sütun; mobilde tek sütun akış. */
+  @media (min-width: 56rem) {
+    .solutions__row {
+      grid-template-columns: 3rem minmax(0, 7fr) minmax(0, 5fr);
+      align-items: start;
+    }
+  }
+
+  .solutions__index {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    color: var(--text-muted);
+    padding-top: 0.35rem;
+  }
+
+  .solutions__title {
+    margin: 0 0 var(--space-2xs);
+    font-size: var(--text-xl);
+    line-height: var(--leading-snug);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .solutions__title a {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .solutions__title a:hover {
+    color: var(--signal);
+    text-decoration: underline;
+  }
+
+  .solutions__problem {
+    margin: 0;
+    max-width: 52ch;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .solutions__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3xs) var(--space-2xs);
+    margin: 0 0 var(--space-sm);
+    padding: 0;
+    list-style: none;
+  }
+
+  .solutions__tags li {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+  }
+
+  .solutions__tags li + li::before {
+    content: "·";
+    margin-right: var(--space-2xs);
+    color: var(--border-strong);
+  }
+
+  .solutions__cta {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+  }
+</style>

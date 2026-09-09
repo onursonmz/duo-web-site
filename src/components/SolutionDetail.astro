@@ -1,61 +1,163 @@
 ---
-import type { CollectionEntry } from "astro:content";
+/**
+ * ÇÖZÜM DETAY ŞABLONU — TEK ŞABLON, VERİYLE ÇALIŞIR.
+ *
+ * Sekiz çözümün tamamı bu şablonu kullanır; hiçbir çözüm için özel sayfa
+ * kodu yoktur.
+ *
+ * BOŞ ALAN = BÖLÜM YOK. `aiRole`, `scenario`, teknoloji ve ilgili not
+ * bölümleri yalnızca gerçek içerik varsa render edilir; boş kart veya
+ * gereksiz boşluk üretilmez.
+ *
+ * Anlatı sırası: problem → yaklaşım → sonuç → kabiliyetler → AI rolü →
+ * örnek akış → teknolojiler → ilgili notlar → CTA. Teknoloji adı anlatının
+ * BAŞLANGICI değildir.
+ */
+import { render, type CollectionEntry } from "astro:content";
 import { t, type TranslationKey } from "@lib/i18n/dictionary";
-import { solutionsIndexPath } from "@lib/i18n/routes";
 import {
+  contactPath,
+  contactPathForTopic,
+  insightPath,
+  solutionsIndexPath,
+} from "@lib/i18n/routes";
+import {
+  getSolutions,
   getTechnologiesForSolution,
   logoPathIfAllowed,
   type ViewMode,
 } from "@lib/content/selectors";
 import type { Locale } from "@lib/content/schema";
+import Button from "@components/ui/Button.astro";
 
 interface Props {
   locale: Locale;
   solution: CollectionEntry<"solutions">;
   mode: ViewMode;
+  /** Bu çözümle ilişkilendirilmiş, yayınlanmış içgörüler. */
+  insights?: CollectionEntry<"insights">[];
 }
 
-const { locale, solution, mode } = Astro.props;
+const { locale, solution, mode, insights = [] }: Props = Astro.props;
+const data = solution.data;
 
 // Teknolojiler TEK veri kaynağından ve merkezi seçiciden gelir:
-// `active: false` kayıtlar public modda burada düşer, kod değişmeden.
+// onaylanmamış kayıtlar public modda burada düşer, kod değişmeden.
 const technologies = await getTechnologiesForSolution(solution, mode);
+
+/*
+ * CTA BAĞLAMI.
+ *
+ * ALLOWLIST serbest bir liste değil, aynı modda GERÇEKTEN yayımlanan çözüm
+ * slug'larıdır; yayından kalkan bir çözümün slug'ı kod değişmeden parametre
+ * olmaktan çıkar. Parametre yalnızca CTA iletişime gidiyorsa eklenir.
+ */
+const publishedSlugs = (await getSolutions(locale, mode)).map((entry) => entry.data.slug);
+const ctaHref =
+  data.cta.href === contactPath(locale)
+    ? contactPathForTopic(locale, data.slug, publishedSlugs)
+    : data.cta.href;
+
+// Girdinin markdown gövdesi: yaklaşımı sürdüren editorial not. Yazılmış ama
+// render edilmemiş içerik bırakılmaz.
+const { Content } = await render(solution);
+
+const aiStages = data.aiRole
+  ? ([
+      ["solutions.aiDetect", data.aiRole.detect],
+      ["solutions.aiUnderstand", data.aiRole.understand],
+      ["solutions.aiAct", data.aiRole.act],
+    ] as const)
+  : [];
 ---
 
 <article class="solution" data-testid="solution-detail">
-  {solution.data.eyebrow && <p class="solution__eyebrow">{solution.data.eyebrow}</p>}
-  <h1>{solution.data.title}</h1>
-  <p class="solution__summary">{solution.data.summary}</p>
+  <header class="solution__header">
+    {data.eyebrow && <p class="solution__eyebrow">{data.eyebrow}</p>}
+    <h1>{data.title}</h1>
+    <p class="solution__summary">{data.summary}</p>
+  </header>
 
   <section aria-labelledby="problem-heading">
     <h2 id="problem-heading">{t(locale, "solutions.problem")}</h2>
-    <p>{solution.data.problem}</p>
+    <p>{data.problem}</p>
   </section>
 
   <section aria-labelledby="approach-heading">
     <h2 id="approach-heading">{t(locale, "solutions.approach")}</h2>
-    <p>{solution.data.approach}</p>
+    <p>{data.approach}</p>
+    <div class="solution__prose">
+      <Content />
+    </div>
   </section>
 
   <section aria-labelledby="benefits-heading">
     <h2 id="benefits-heading">{t(locale, "solutions.benefits")}</h2>
-    <ul>
-      {solution.data.benefits.map((benefit) => <li>{benefit}</li>)}
+    <ul class="solution__list">
+      {data.benefits.map((benefit) => <li>{benefit}</li>)}
     </ul>
   </section>
 
   {
+    data.capabilities.length > 0 && (
+      <section aria-labelledby="capabilities-heading" data-testid="solution-capabilities">
+        <h2 id="capabilities-heading">{t(locale, "solutions.capabilities")}</h2>
+        <ul class="solution__grid">
+          {data.capabilities.map((capability) => (
+            <li>{capability}</li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  {
+    aiStages.length > 0 && (
+      <section aria-labelledby="ai-heading" data-testid="solution-ai-role">
+        <h2 id="ai-heading">{t(locale, "solutions.aiRole")}</h2>
+        <ol class="solution__chain">
+          {aiStages.map(([labelKey, body], index) => (
+            <li>
+              <span class="solution__chain-index" aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <h3>{t(locale, labelKey)}</h3>
+              <p>{body}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+    )
+  }
+
+  {
+    data.scenario && (
+      <section aria-labelledby="scenario-heading" data-testid="solution-scenario">
+        <h2 id="scenario-heading">{t(locale, "solutions.scenario")}</h2>
+        <h3 class="solution__scenario-title">{data.scenario.title}</h3>
+        <p>{data.scenario.context}</p>
+        <ol class="solution__flow">
+          {data.scenario.flow.map((step) => (
+            <li>{step}</li>
+          ))}
+        </ol>
+        <p class="solution__scenario-result">
+          <strong>{t(locale, "solutions.scenarioResult")}:</strong> {data.scenario.result}
+        </p>
+      </section>
+    )
+  }
+
+  {
     /*
-     * Görünür teknoloji yoksa bölüm HİÇ oluşturulmaz — boş kutu veya
-     * "kayıt bulunmuyor" metni gösterilmez (S04+S05 takip kararı).
+     * Teknoloji adları YALNIZCA metindir. Logo alanı izin verilmediği sürece
+     * hiç oluşmaz; başlık ilişki iddiası taşımaz.
      */
     technologies.length > 0 && (
-      <section aria-labelledby="tech-heading">
+      <section aria-labelledby="tech-heading" data-testid="solution-technologies">
         <h2 id="tech-heading">{t(locale, "solutions.technologies")}</h2>
-        <ul data-testid="technology-list">
+        <ul class="solution__tech" data-testid="technology-list">
           {technologies.map((tech) => {
-            // Logo YALNIZCA yazılı izin varsa render edilir; izin alınmadığı
-            // sürece logo alanı hiç oluşmaz.
             const logo = logoPathIfAllowed(tech.data);
             return (
               <li data-technology-id={tech.id}>
@@ -79,15 +181,216 @@ const technologies = await getTechnologiesForSolution(solution, mode);
     )
   }
 
-  <p class="solution__cta">
-    <a href={solution.data.cta.href}>
-      {t(locale, solution.data.cta.labelKey as TranslationKey)}
-    </a>
-  </p>
+  {
+    insights.length > 0 && (
+      <section aria-labelledby="insights-heading" data-testid="solution-insights">
+        <h2 id="insights-heading">{t(locale, "solutions.relatedInsights")}</h2>
+        <ul class="solution__list">
+          {insights.map((insight) => (
+            <li>
+              <a href={insightPath(locale, insight.data.slug)}>{insight.data.title}</a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
 
-  <p>
-    <a href={solutionsIndexPath(locale)} data-testid="back-to-solutions">
+  <div class="solution__actions">
+    <Button variant="primary" href={ctaHref} data-analytics-event="solution-cta">
+      {t(locale, data.cta.labelKey as TranslationKey)}
+    </Button>
+    <Button variant="quiet" href={solutionsIndexPath(locale)} data-testid="back-to-solutions">
       {t(locale, "cta.backToSolutions")}
-    </a>
-  </p>
+    </Button>
+  </div>
 </article>
+
+<style>
+  /*
+   * DÜZEN.
+   *
+   * Dar okuma sütunu sayfayı 1440px'te sola yapıştırıp sağ yarıyı boş
+   * bırakıyordu. Geniş ekranda bölüm başlığı sol etiket rayına geçer,
+   * gövde kendi okunur ölçüsünü korur; blok bir bütün olarak ortalanır.
+   * Mobilde ızgara kurulmaz, tek sütun akış devam eder.
+   */
+  .solution {
+    max-width: 60rem;
+    margin-inline: auto;
+  }
+
+  .solution__header {
+    max-width: 44rem;
+  }
+
+  @media (min-width: 64rem) {
+    .solution section {
+      display: grid;
+      grid-template-columns: minmax(0, 13rem) minmax(0, 42rem);
+      /* Satır boşluğu 0: dikey ritmi öğelerin kendi margin'leri kurar,
+         ızgara araya ikinci bir boşluk eklemez. */
+      gap: 0 var(--space-lg);
+      align-items: start;
+    }
+
+    .solution section > h2 {
+      grid-column: 1;
+      margin: 0;
+    }
+
+    /* Gövdenin tamamı ikinci sütunda kalır; ray yalnızca başlığı taşır. */
+    .solution section > :not(h2) {
+      grid-column: 2;
+    }
+  }
+
+  .solution__eyebrow {
+    margin: 0 0 var(--space-2xs);
+    max-width: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .solution__summary {
+    font-size: var(--text-lg);
+    color: var(--text-secondary);
+  }
+
+  .solution section {
+    margin-top: var(--space-xl);
+    padding-top: var(--space-md);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .solution h2 {
+    font-size: var(--text-xl);
+  }
+
+  @media (min-width: 64rem) {
+    .solution h2 {
+      font-size: var(--text-lg);
+      line-height: var(--leading-snug);
+      text-wrap: pretty;
+    }
+  }
+
+  /* Markdown gövdesi: yaklaşımın devamı, ayrı bir başlık açmaz. */
+  .solution__prose :global(p) {
+    margin: var(--space-sm) 0 0;
+    color: var(--text-secondary);
+  }
+
+  .solution__prose :global(strong) {
+    color: var(--text-primary);
+    font-weight: var(--weight-semibold);
+  }
+
+  .solution__list {
+    margin: 0;
+    padding-left: var(--space-md);
+  }
+
+  .solution__grid {
+    display: grid;
+    gap: var(--space-2xs) var(--space-md);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 34rem) {
+    .solution__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .solution__grid li {
+    padding-left: var(--space-sm);
+    border-left: var(--border-width-strong) solid var(--border-subtle);
+    font-size: var(--text-sm);
+  }
+
+  .solution__chain {
+    display: grid;
+    gap: var(--space-md);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .solution__chain li {
+    padding-top: var(--space-2xs);
+    border-top: var(--border-width) solid var(--border-strong);
+  }
+
+  .solution__chain li:last-child {
+    border-top-color: var(--signal);
+  }
+
+  .solution__chain-index {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--text-muted);
+  }
+
+  .solution__chain h3 {
+    margin: var(--space-3xs) 0 var(--space-3xs);
+    font-size: var(--text-lg);
+  }
+
+  .solution__chain p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .solution__scenario-title {
+    margin: 0 0 var(--space-2xs);
+    font-size: var(--text-lg);
+  }
+
+  .solution__flow {
+    margin: var(--space-md) 0;
+    padding-left: var(--space-md);
+    color: var(--text-secondary);
+  }
+
+  .solution__flow li {
+    padding-block: var(--space-3xs);
+  }
+
+  .solution__scenario-result {
+    padding-left: var(--space-sm);
+    border-left: var(--border-width-strong) solid var(--signal);
+  }
+
+  .solution__tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-sm);
+  }
+
+  .solution__tech li {
+    padding: var(--space-3xs) var(--space-2xs);
+    border: var(--border-width) solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+  }
+
+  .solution__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-md);
+    margin-top: var(--space-xl);
+    padding-top: var(--space-md);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+</style>
