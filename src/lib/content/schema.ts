@@ -42,6 +42,63 @@ export type TechnologyLifecycle = (typeof TECHNOLOGY_LIFECYCLES)[number];
 export const LICENSE_MODELS = ["open-source", "duosis-own-product", "not-assessed"] as const;
 export type LicenseModel = (typeof LICENSE_MODELS)[number];
 
+/**
+ * HİZMET ALANLARI — KAPALI KÜME (S10 §2).
+ *
+ * Aynı liste üç yerde iş görür ve TEK kaynaktır:
+ * 1. `serviceSchema.translationKey` — beşten fazla/başka bir hizmet kaydı açılamaz,
+ * 2. iletişim CTA'sının `?topic=` ALLOWLIST'i — serbest metin taşınamaz,
+ * 3. TR/EN eşlemesi — her iki dildeki kayıt aynı anahtarla bağlanır.
+ *
+ * Sıra ANLATI SIRASIDIR: danışmanlık ile başlar, dış kaynak ile biter.
+ * `serviceSchema.order` bu diziyle tutarlı olmak zorundadır (bkz. superRefine).
+ */
+export const SERVICE_TOPICS = [
+  "consulting",
+  "support",
+  "training",
+  "managed-services",
+  "outsourcing",
+] as const;
+export type ServiceTopic = (typeof SERVICE_TOPICS)[number];
+export const serviceTopicEnum = z.enum(SERVICE_TOPICS);
+
+/**
+ * TEKNOLOJİ YETENEK KATMANLARI (S10 §4).
+ *
+ * Teknoloji envanterindeki ham `group` değerleri ziyaretçiye gösterilmez;
+ * yetenek katmanına eşlenir. Katman ÖNCE gelir, teknoloji adı sonra:
+ * sayfa bir ürün kataloğu değil, bir yetenek atlasıdır.
+ */
+export const CAPABILITY_LAYERS = [
+  "observability-apm",
+  "configuration-asset-management",
+  "itsm",
+  "data-streaming-integration",
+  "governance-enterprise-architecture",
+  "aiops-event-lifecycle",
+  "automation",
+] as const;
+export type CapabilityLayer = (typeof CAPABILITY_LAYERS)[number];
+
+/**
+ * İÇGÖRÜ SERİLERİ — KAPALI KÜME (S11 §11).
+ *
+ * Seri serbest metin DEĞİLDİR: her serinin iki dilde bir yolu ve bir etiketi
+ * vardır (`@lib/content/series`). Kapalı küme olmasaydı bir yazım hatası
+ * sessizce yeni bir seri rotası üretirdi.
+ */
+export const INSIGHT_SERIES = [
+  "observability-radar",
+  "data-and-ai",
+  "architecture-notes",
+  "automation-guides",
+  "cyclops-log",
+  "regional-technology",
+] as const;
+export type InsightSeries = (typeof INSIGHT_SERIES)[number];
+export const insightSeriesEnum = z.enum(INSIGHT_SERIES);
+
 export const localeEnum = z.enum(LOCALES);
 export const statusEnum = z.enum(STATUSES);
 export const verificationStatusEnum = z.enum(VERIFICATION_STATUSES);

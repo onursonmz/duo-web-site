@@ -11,11 +11,45 @@ import { DEFAULT_LOCALE, LOCALES, type Locale } from "@lib/content/schema";
 export { DEFAULT_LOCALE, LOCALES };
 export type { Locale };
 
-/** Locale başına segment adları. Rota haritası `03_CONTENT_AND_ROUTE_MAP.md` §2. */
+/**
+ * Locale başına segment adları. Rota haritası `03_CONTENT_AND_ROUTE_MAP.md` §2.
+ *
+ * `series` ve `tag` içgörü filtrelerinin ALT segmentleridir: filtreleme serbest
+ * query parametresiyle değil, paylaşılabilir ve statik olarak üretilmiş bir
+ * yolla yapılır (S11 §11). Böylece filtre JS olmadan da çalışır ve bilinmeyen
+ * bir değer 404 üretir.
+ */
 const SEGMENTS = {
-  tr: { solutions: "cozumler", insights: "icgoruler", contact: "iletisim" },
-  en: { solutions: "solutions", insights: "insights", contact: "contact" },
-} as const satisfies Record<Locale, { solutions: string; insights: string; contact: string }>;
+  tr: {
+    solutions: "cozumler",
+    insights: "icgoruler",
+    contact: "iletisim",
+    services: "hizmetler",
+    technologies: "teknolojiler",
+    series: "seri",
+    tag: "etiket",
+  },
+  en: {
+    solutions: "solutions",
+    insights: "insights",
+    contact: "contact",
+    services: "services",
+    technologies: "technologies",
+    series: "series",
+    tag: "tag",
+  },
+} as const satisfies Record<
+  Locale,
+  {
+    solutions: string;
+    insights: string;
+    contact: string;
+    services: string;
+    technologies: string;
+    series: string;
+    tag: string;
+  }
+>;
 
 export function isLocale(value: string): value is Locale {
   return (LOCALES as readonly string[]).includes(value);
@@ -67,6 +101,36 @@ export function insightsIndexPath(locale: Locale): string {
 /** İçgörü detay yolu: /icgoruler/<slug>/ veya /en/insights/<slug>/ */
 export function insightPath(locale: Locale, slug: string): string {
   return localizedPath(locale, SEGMENTS[locale].insights, slug);
+}
+
+/** Hizmetler landing yolu: /hizmetler/ veya /en/services/ */
+export function servicesIndexPath(locale: Locale): string {
+  return localizedPath(locale, SEGMENTS[locale].services);
+}
+
+/** Teknolojiler landing yolu: /teknolojiler/ veya /en/technologies/ */
+export function technologiesIndexPath(locale: Locale): string {
+  return localizedPath(locale, SEGMENTS[locale].technologies);
+}
+
+/** İçgörü seri yolu: /icgoruler/seri/<slug>/ veya /en/insights/series/<slug>/ */
+export function insightSeriesPath(locale: Locale, slug: string): string {
+  return localizedPath(locale, SEGMENTS[locale].insights, SEGMENTS[locale].series, slug);
+}
+
+/** İçgörü etiket yolu: /icgoruler/etiket/<slug>/ veya /en/insights/tag/<slug>/ */
+export function insightTagPath(locale: Locale, slug: string): string {
+  return localizedPath(locale, SEGMENTS[locale].insights, SEGMENTS[locale].tag, slug);
+}
+
+/**
+ * RSS besleme yolu: /rss.xml veya /en/rss.xml
+ *
+ * Dosya uzantısı taşıdığı için `localizedPath` sondaki eğik çizgi kuralına
+ * SOKULMAZ; besleme bir dizin değil, tek bir kaynaktır.
+ */
+export function rssPath(locale: Locale): string {
+  return `${localePrefix(locale)}/rss.xml`;
 }
 
 /** İletişim yolu: /iletisim/ veya /en/contact/ */
