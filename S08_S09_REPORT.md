@@ -6,7 +6,7 @@
 - Sonuç: **COMPLETE** (her iki sprint)
 - Branch: `duosis-web/s08-s09-cyclops-about`
 - Branch base: `9fc0161` (merge edilmiş `main`)
-- **Remote CI: YEŞİL** — [run 34412149804](https://github.com/onursonmz/duo-web-site/actions/runs/34412149804), 4m26s
+- **Remote CI: YEŞİL** — final HEAD `9ed43e6` için [run 34412832098](https://github.com/onursonmz/duo-web-site/actions/runs/34412832098), 4m48s
 - Push: **YAPILDI** · Merge: **YAPILMADI** (`main` hâlâ `9fc0161`)
 
 ---
