@@ -8,6 +8,7 @@ import {
   localeEnum,
   localizedBase,
   logoPermissionEnum,
+  proofKindEnum,
   seoSchema,
   serviceTopicEnum,
   slugSchema,
@@ -213,6 +214,11 @@ export const proofSchema = z
     translationKey: translationKeySchema,
     locale: localeEnum,
     status: statusEnum,
+    /**
+     * Müşteri kanıtı mı, kendi ölçümümüz mü. Zorunlu: tür belirtilmeden bir
+     * kaydın "referanslarımız" bölümüne girip giremeyeceği belirlenemez.
+     */
+    kind: proofKindEnum,
     /** Kurum adı yalnızca izin verildiyse doldurulur. */
     organization: z.string().optional(),
     anonymousSector: z.string().optional(),
@@ -468,6 +474,13 @@ export const regionSchema = z
   .object({
     id: z.string().min(1),
     locale: localeEnum,
+    /**
+     * Görüntüleme sırası. AÇIKÇA yazılır çünkü koleksiyon yükleyicisi kayıtları
+     * kimliğe göre alfabetik veriyordu ve sıra "Orta Asya, Orta Doğu, Türkiye"
+     * olarak çıkıyordu. Bölge sırası editoryal bir karardır; dosya adına veya
+     * yükleyici davranışına bırakılamaz.
+     */
+    order: z.number().int().min(1),
     name: z.string().min(1),
     summary: z.string().min(1),
     verificationStatus: verificationStatusEnum,

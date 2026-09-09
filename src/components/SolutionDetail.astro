@@ -22,6 +22,7 @@ import {
   solutionsIndexPath,
 } from "@lib/i18n/routes";
 import {
+  getCustomerProofsForSolution,
   getSolutions,
   getTechnologiesForSolution,
   logoPathIfAllowed,
@@ -29,6 +30,7 @@ import {
 } from "@lib/content/selectors";
 import type { Locale } from "@lib/content/schema";
 import Button from "@components/ui/Button.astro";
+import ProofList from "@components/ProofList.astro";
 
 interface Props {
   locale: Locale;
@@ -44,6 +46,16 @@ const data = solution.data;
 // Teknolojiler TEK veri kaynağından ve merkezi seçiciden gelir:
 // onaylanmamış kayıtlar public modda burada düşer, kod değişmeden.
 const technologies = await getTechnologiesForSolution(solution, mode);
+
+/*
+ * MÜŞTERİ KANITLARI — FAIL-CLOSED.
+ *
+ * Seçici üç koşulu birden arar (published + verified + customer-reference).
+ * Onaylanmış müşteri referansı olmadığı sürece bu dizi BOŞ döner ve
+ * `ProofList` hiçbir şey render etmez: başlık, boş kutu veya placeholder
+ * logo duvarı oluşmaz.
+ */
+const proofs = await getCustomerProofsForSolution(solution, locale, mode);
 
 /*
  * CTA BAĞLAMI.
@@ -180,6 +192,19 @@ const aiStages = data.aiRole
       </section>
     )
   }
+
+  {
+    /*
+    Kanıt bölümü listeyi kendisi filtrelemez; `getCustomerProofsForSolution`
+    boş dönerse bileşen hiçbir şey render etmez — başlık bile oluşmaz.
+  */
+  }
+  <ProofList
+    locale={locale}
+    proofs={proofs}
+    heading={t(locale, "solutions.proofs")}
+    headingId="proofs-heading"
+  />
 
   {
     insights.length > 0 && (

@@ -229,8 +229,11 @@ export async function getHomepage(locale: Locale): Promise<Homepage> {
  */
 export async function getRegions(locale: Locale, mode: ViewMode): Promise<Region[]> {
   const all = await getCollection("regions");
-  return all.filter(
-    (e) => e.data.locale === locale && isVerifiedClaim(e.data.verificationStatus, mode)
+  return (
+    all
+      .filter((e) => e.data.locale === locale && isVerifiedClaim(e.data.verificationStatus, mode))
+      // Sıra editoryal bir karardır; yükleyicinin alfabetik sırasına bırakılmaz.
+      .sort((a, b) => a.data.order - b.data.order)
   );
 }
 
@@ -517,4 +520,38 @@ export async function getCapabilityAtlasView(
     });
   }
   return rows;
+}
+
+/**
+ * MÜŞTERİ KANITLARI — ÜÇ KATLI FAIL-CLOSED (S10 §7).
+ *
+ * Bir kayıt public çıktıya girmek için ÜÇ koşulu birden geçmek zorunda:
+ * 1. `status === "published"`
+ * 2. `verificationStatus === "verified"`
+ * 3. `kind === "customer-reference"`
+ *
+ * Üçüncü koşul bilinçli olarak eklendi: kendi ölçümümüz olan bir kayıt
+ * (`internal-measurement`) teknik olarak doğrulanmıştır ama MÜŞTERİ BAŞARISI
+ * DEĞİLDİR. S00'da ölçülen mevcut site ağırlığını "referanslarımız" bölümünde
+ * göstermek, doğrulanmış bir sayıyı yanlış anlama sokardı.
+ *
+ * Şu anda onaylanmış müşteri referansı YOKTUR; bu fonksiyon boş dizi döner ve
+ * çağıran taraf bölümü HİÇ render etmez — placeholder logo duvarı,
+ * "referanslarımız yakında" yazısı veya boş kutu gösterilmez.
+ */
+export async function getCustomerProofs(locale: Locale, mode: ViewMode): Promise<Proof[]> {
+  const proofs = await getProofs(locale, mode);
+  return proofs.filter((e) => e.data.kind === "customer-reference");
+}
+
+/** Bir çözüme bağlı müşteri kanıtları. Aynı üç koşul burada da uygulanır. */
+export async function getCustomerProofsForSolution(
+  solution: Solution,
+  locale: Locale,
+  mode: ViewMode
+): Promise<Proof[]> {
+  const allowed = new Set(solution.data.proofRefs.map((r) => r.id));
+  if (allowed.size === 0) return [];
+  const proofs = await getCustomerProofs(locale, mode);
+  return proofs.filter((e) => allowed.has(e.id));
 }

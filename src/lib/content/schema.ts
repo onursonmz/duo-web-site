@@ -99,6 +99,26 @@ export const INSIGHT_SERIES = [
 export type InsightSeries = (typeof INSIGHT_SERIES)[number];
 export const insightSeriesEnum = z.enum(INSIGHT_SERIES);
 
+/**
+ * PROOF TÜRÜ (S10 §7).
+ *
+ * `proofs` koleksiyonu iki farklı şeyi taşıyor ve ikisi AYNI bölümde
+ * gösterilemez:
+ *
+ * - `customer-reference` : müşteri referansı/vakası. Public görünürlüğü için
+ *   doğrulama VE (logo gösterilecekse) yazılı izin gerekir.
+ * - `internal-measurement`: kendi ölçümümüz (ör. S00'da ölçülen mevcut site
+ *   ağırlığı). Teknik olarak doğrulanmıştır ama MÜŞTERİ BAŞARISI DEĞİLDİR;
+ *   "referanslarımız" bölümünde gösterilmesi ziyaretçiyi yanıltır.
+ *
+ * Ayrım şema düzeyinde tutuluyor çünkü `verificationStatus` bu farkı
+ * göremiyordu: iki kayıt da "verified" olabilir, ama yalnızca biri müşteri
+ * kanıtıdır.
+ */
+export const PROOF_KINDS = ["customer-reference", "internal-measurement"] as const;
+export type ProofKind = (typeof PROOF_KINDS)[number];
+export const proofKindEnum = z.enum(PROOF_KINDS);
+
 export const localeEnum = z.enum(LOCALES);
 export const statusEnum = z.enum(STATUSES);
 export const verificationStatusEnum = z.enum(VERIFICATION_STATUSES);

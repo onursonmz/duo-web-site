@@ -2,6 +2,7 @@
 translationKey: measured-baseline-proof
 locale: tr
 status: published
+kind: internal-measurement
 anonymousSector: Ölçüm kaydı
 quote: >-
   Mevcut sitenin ana sayfası 7,17 MB ve yaklaşık 102 istek olarak ölçüldü.

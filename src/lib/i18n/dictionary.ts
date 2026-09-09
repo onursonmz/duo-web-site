@@ -67,6 +67,7 @@ const dictionaries = {
     "solutions.relatedInsights": "İlgili notlar",
     "solutions.technologies": "Çözüm kapsamında kullandığımız teknolojiler",
     "solutions.empty": "Yayınlanabilir çözüm kaydı bulunmuyor.",
+    "solutions.proofs": "Bu alandaki çalışmalarımızdan",
 
     "services.title": "Hizmetler",
     "services.intro":
@@ -92,8 +93,7 @@ const dictionaries = {
     "technologies.ownProduct": "Duosis ürünü",
 
     "regions.title": "Çalıştığımız bölgeler",
-    "regions.intro":
-      "Kurumsal projelerimizi yürüttüğümüz üç bölge. Bölge adı dışında ofis, yerel ekip veya müşteri bilgisi paylaşmıyoruz.",
+    "regions.intro": "Kurumsal projelerimizi üç bölgede yürütüyoruz.",
     "regions.eyebrow": "Bölgesel çalışma alanı",
     "regions.listLabel": "Bölge listesi",
 
@@ -196,6 +196,7 @@ const dictionaries = {
     "solutions.relatedInsights": "Related notes",
     "solutions.technologies": "Technologies we work with in this area",
     "solutions.empty": "No publishable solution record.",
+    "solutions.proofs": "From our work in this area",
 
     "services.title": "Services",
     "services.intro":
@@ -221,8 +222,7 @@ const dictionaries = {
     "technologies.ownProduct": "Duosis product",
 
     "regions.title": "Regions we work in",
-    "regions.intro":
-      "The three regions where we run enterprise engagements. Beyond the region name we do not publish office, local team or customer information.",
+    "regions.intro": "We run our enterprise engagements across three regions.",
     "regions.eyebrow": "Regional operating area",
     "regions.listLabel": "Region list",
 
