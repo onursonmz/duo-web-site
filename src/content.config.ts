@@ -2,9 +2,11 @@ import { defineCollection } from "astro:content";
 import { file, glob } from "astro/loaders";
 import {
   authorSchema,
+  homepageSchema,
   insightSchema,
   milestoneSchema,
   proofSchema,
+  regionSchema,
   serviceSchema,
   solutionSchema,
   technologySchema,
@@ -53,5 +55,15 @@ export const collections = {
   insights: defineCollection({
     loader: md("./src/content/insights"),
     schema: insightSchema,
+  }),
+  homepage: defineCollection({
+    // Ana sayfa metni TEK veri kaynağıdır; bileşenlere gömülmez.
+    loader: file("./src/content/homepage/homepage.json"),
+    schema: homepageSchema,
+  }),
+  regions: defineCollection({
+    // Veri modeli hazır; public görünürlük doğrulama statüsünden geçer.
+    loader: file("./src/content/regions/regions.json"),
+    schema: regionSchema,
   }),
 };

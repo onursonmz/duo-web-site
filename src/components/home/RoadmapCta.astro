@@ -1,0 +1,61 @@
+---
+/**
+ * YOL HARİTASI CTA.
+ *
+ * `id="roadmap"` hero'daki `#roadmap` bağlantısının GERÇEK hedefidir.
+ */
+import type { CollectionEntry } from "astro:content";
+import Button from "@components/ui/Button.astro";
+
+interface Props {
+  roadmap: CollectionEntry<"homepage">["data"]["roadmap"];
+}
+
+const { roadmap }: Props = Astro.props;
+---
+
+<div class="roadmap">
+  <p class="roadmap__eyebrow">{roadmap.eyebrow}</p>
+  <h2 class="roadmap__title">{roadmap.title}</h2>
+  <p class="roadmap__lead">{roadmap.lead}</p>
+  <div class="roadmap__actions">
+    <Button variant="primary" href={roadmap.primaryCta.href}>{roadmap.primaryCta.label}</Button>
+    <Button variant="secondary" href={roadmap.secondaryCta.href}>
+      {roadmap.secondaryCta.label}
+    </Button>
+  </div>
+</div>
+
+<style>
+  .roadmap {
+    max-width: 44rem;
+  }
+
+  .roadmap__eyebrow {
+    margin: 0 0 var(--space-sm);
+    max-width: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .roadmap__title {
+    margin: 0;
+    font-size: var(--text-2xl);
+  }
+
+  .roadmap__lead {
+    margin: var(--space-md) 0 0;
+    color: var(--text-secondary);
+    font-size: var(--text-lg);
+  }
+
+  .roadmap__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+  }
+</style>

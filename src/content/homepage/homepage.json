@@ -1,0 +1,310 @@
+[
+  {
+    "id": "tr",
+    "locale": "tr",
+    "status": "draft",
+    "hero": {
+      "eyebrow": "Operasyon zekâsı",
+      "title": "Operasyonu görün, veriyi bağlayın, yapay zekâ ile harekete geçin.",
+      "lead": "Duosis; gözlemlenebilirlik, veri akışı, kurumsal mimari ve otomasyonu tek bir mühendislik disiplininde birleştirir. Kurumun ne olduğunu değil, ne olacağını görmesini hedefleriz.",
+      "primaryCta": { "label": "Çözüm alanlarını inceleyin", "href": "/cozumler/" },
+      "secondaryCta": { "label": "Birlikte yol haritası çıkaralım", "href": "#roadmap" }
+    },
+    "trust": {
+      "eyebrow": "Neden Duosis",
+      "title": "Ürünü almıyoruz; kurumun problemine göre eviriyoruz.",
+      "lead": "Farkımız hazır bir ürünü kurmak değil, kurumun gerçek işleyişine uyacak biçimde dönüştürmek. Aşağıdaki üç yaklaşım her projede geçerlidir.",
+      "points": [
+        {
+          "title": "Tek disiplin",
+          "body": "İzleme, veri, mimari ve otomasyon ayrı ekiplerin işi değil; aynı mühendislik ekibinin birbirine bağladığı katmanlardır."
+        },
+        {
+          "title": "Kendi ürünümüzü geliştiriyoruz",
+          "body": "Entegratör olmanın ötesinde kendi ürünümüzü yazıyoruz; bu, ihtiyaç duyulduğunda çözümü vendor yol haritasına bağımlı kalmadan derinleştirebilmek demektir."
+        },
+        {
+          "title": "Açık kaynak ve vendor bir arada",
+          "body": "Vendor çözümleri, açık kaynak bileşenler ve kendi ürünlerimiz aynı mimaride yan yana durabilir; seçim kurumun kısıtlarına göre yapılır."
+        }
+      ]
+    },
+    "solutions": {
+      "eyebrow": "Çözüm atlası",
+      "title": "Sekiz çözüm alanı, teknoloji adından önce iş sonucu.",
+      "lead": "Her alan bir iş sonucuyla başlar; hangi ürünle çözüldüğü ikinci sorudur."
+    },
+    "cyclops": {
+      "eyebrow": "Kendi ürünümüz",
+      "title": "CyclOps — sinyalden aksiyona.",
+      "lead": "CyclOps, Duosis'in kendi geliştirdiği üründür. Alarm gürültüsünü anlamlı olaya indirgeme ve olayı aksiyona bağlama yaklaşımı üzerine kuruludur.",
+      "points": [
+        "Duosis tarafından geliştirilen kendi ürünümüz; üçüncü taraf bir çözümün yeniden paketlenmesi değil.",
+        "AIOps ve olay yaşam döngüsü çözüm alanının merkezinde konumlanır.",
+        "Yaklaşım, sinyali olaya ve olayı onaylı aksiyona bağlamak üzerine kuruludur."
+      ],
+      "maturityNote": "Bu bölüm taslak olgunluktadır. Sürüm, lansman durumu, müşteri kullanımı ve ölçülmüş sonuçlar iş sahibi doğrulamasından geçmeden yayınlanmaz."
+    },
+    "intelligence": {
+      "eyebrow": "Intelligence Layer",
+      "title": "Yapay zekâ ayrı bir rozet değil; zincirin kendisi.",
+      "lead": "AI'yı sayfaya serpiştirilmiş bir etiket olarak değil, operasyonun üç aşamasına bağlı bir yetenek zinciri olarak kuruyoruz.",
+      "steps": [
+        {
+          "stage": "detect",
+          "title": "Algıla",
+          "body": "Metrik, log, event, trace ve mimari bağlamı tek bir operasyon görünümünde toplar."
+        },
+        {
+          "stage": "understand",
+          "title": "Anla",
+          "body": "Korelasyon, özetleme, anomali ve etki analiziyle gürültüyü anlamlı olaya indirger."
+        },
+        {
+          "stage": "act",
+          "title": "Harekete geç",
+          "body": "Öneri, onaylı otomasyon ve orkestrasyonla olayı izlenebilir bir aksiyona bağlar."
+        }
+      ]
+    },
+    "method": {
+      "eyebrow": "Yöntem",
+      "title": "Analizden operasyona kadar aynı ekip.",
+      "lead": "Henüz yayınlanabilir bir müşteri referansımız yok: kurumsal sunumdaki müşteri logolarının yazılı kullanım izni bulunmuyor ve sayısal iddialar iş sahibi doğrulaması bekliyor. Bu yüzden burada rakam değil, çalışma biçimimizi anlatıyoruz.",
+      "steps": [
+        {
+          "title": "Analiz",
+          "body": "Mevcut operasyonun, veri kaynaklarının ve mimari bağlamın çıkarılması."
+        },
+        {
+          "title": "Tasarım",
+          "body": "Hedef görünürlük modelinin ve entegrasyon mimarisinin kurulması."
+        },
+        {
+          "title": "Uygulama",
+          "body": "Çözümün kurulması, kuruma özgü ihtiyaçlara göre evrilmesi ve devreye alınması."
+        },
+        {
+          "title": "Operasyon ve destek",
+          "body": "Devreye alma sonrası izleme, iyileştirme ve yönetilen hizmet."
+        }
+      ]
+    },
+    "decade": {
+      "eyebrow": "2016 → 2026",
+      "title": "İzlemekle başladık, öngörmeye evrildik.",
+      "lead": "Tek bir vendorun izleme ürünüyle başlayan yol; veri, mimari, otomasyon ve yapay zekâyı kapsayan bir platform yaklaşımına dönüştü. Kilometre taşlarının tarih ve ölçek ayrıntıları iş sahibi doğrulaması beklediği için burada rakam verilmiyor."
+    },
+    "regional": {
+      "eyebrow": "Çalışma alanı",
+      "title": "Bölgesel kapsam",
+      "lead": "Bölge kapsamı doğrulanmadan yayınlanmaz."
+    },
+    "technology": {
+      "eyebrow": "Teknoloji ekosistemi",
+      "title": "Ürün adı değil, birlikte çalışan yetenek katmanları.",
+      "lead": "Hangi ürünü kullandığımızdan önce hangi yeteneği kurduğumuz önemlidir. Ürün adları ve logolar, marka kullanım izinleri doğrulandıktan sonra yayınlanacaktır.",
+      "layers": [
+        {
+          "title": "Gözlemlenebilirlik ve APM",
+          "body": "Altyapı, ağ, uygulama ve log verisini tek operasyon görünümünde birleştiren katman."
+        },
+        {
+          "title": "Konfigürasyon ve varlık yönetimi",
+          "body": "BT bileşenlerini ve aralarındaki bağımlılıkları güvenilir tek kaynağa taşıyan katman."
+        },
+        {
+          "title": "Veri akışı ve entegrasyon",
+          "body": "Veriyi üretildiği anda işleyip doğru sistemlere taşıyan akış katmanı."
+        },
+        {
+          "title": "Hizmet ve olay yönetimi",
+          "body": "Talepten çözüme hizmet akışını ve olay yaşam döngüsünü yöneten katman."
+        },
+        {
+          "title": "Kurumsal mimari ve yönetişim",
+          "body": "İş hedefleri, uygulamalar ve teknolojileri karar verilebilir tek haritada tutan katman."
+        },
+        {
+          "title": "Otomasyon ve orkestrasyon",
+          "body": "Tekrarlayan operasyonel işleri standart, hızlı ve izlenebilir hale getiren katman."
+        },
+        {
+          "title": "Veri platformu ve yapay zekâ",
+          "body": "Veri gölü üzerinde makine öğrenmesi ve yapay zekâ uygulamalarını çalıştıran katman."
+        }
+      ]
+    },
+    "insights": {
+      "eyebrow": "İçgörüler",
+      "title": "Güncel notlar",
+      "lead": "Mühendislik ekibinin operasyon, veri ve mimari üzerine yazdığı kısa teknik notlar."
+    },
+    "roadmap": {
+      "eyebrow": "Sonraki adım",
+      "title": "Birlikte bir yol haritası çıkaralım.",
+      "lead": "Mevcut operasyonunuzu birlikte inceleyelim; nereden başlanacağını ve hangi sırayla ilerleneceğini netleştirelim.",
+      "primaryCta": { "label": "Çözüm alanlarını inceleyin", "href": "/cozumler/" },
+      "secondaryCta": { "label": "Güncel notları okuyun", "href": "/icgoruler/" }
+    },
+    "seo": {
+      "title": "Operasyonu görün, veriyi bağlayın, AI ile harekete geçin",
+      "description": "Duosis; gözlemlenebilirlik, veri akışı, kurumsal mimari ve otomasyonu tek mühendislik disiplininde birleştiren bir teknoloji şirketidir.",
+      "noindex": true
+    }
+  },
+  {
+    "id": "en",
+    "locale": "en",
+    "status": "draft",
+    "hero": {
+      "eyebrow": "Operational intelligence",
+      "title": "See the operation, connect the data, act with AI.",
+      "lead": "Duosis brings observability, data streaming, enterprise architecture and automation together under a single engineering discipline — so an organisation sees what is about to happen, not only what already did.",
+      "primaryCta": { "label": "Explore the solution areas", "href": "/en/solutions/" },
+      "secondaryCta": { "label": "Build a roadmap with us", "href": "#roadmap" }
+    },
+    "trust": {
+      "eyebrow": "Why Duosis",
+      "title": "We do not resell a product; we reshape it around the problem.",
+      "lead": "Our difference is not installing a packaged product but reworking it to fit how the organisation actually runs. Three principles hold across every engagement.",
+      "points": [
+        {
+          "title": "One discipline",
+          "body": "Monitoring, data, architecture and automation are not separate teams — they are layers the same engineering team connects."
+        },
+        {
+          "title": "We build our own product",
+          "body": "Beyond integration we write our own product, which means we can go deeper without waiting on a vendor roadmap."
+        },
+        {
+          "title": "Open source and vendor together",
+          "body": "Vendor products, open-source components and our own software can sit in one architecture; the choice follows the organisation's constraints."
+        }
+      ]
+    },
+    "solutions": {
+      "eyebrow": "Solution atlas",
+      "title": "Eight solution areas, business outcome before product name.",
+      "lead": "Each area starts from an outcome; which product delivers it is the second question."
+    },
+    "cyclops": {
+      "eyebrow": "Our own product",
+      "title": "CyclOps — from signal to action.",
+      "lead": "CyclOps is a product Duosis builds itself. It is built around reducing alarm noise to a meaningful event and connecting that event to an action.",
+      "points": [
+        "Built by Duosis — not a repackaged third-party solution.",
+        "Sits at the centre of the AIOps and event lifecycle solution area.",
+        "The approach connects a signal to an event and an event to an approved action."
+      ],
+      "maturityNote": "This section is draft maturity. Version, launch status, customer usage and measured results are not published until owner verification."
+    },
+    "intelligence": {
+      "eyebrow": "Intelligence layer",
+      "title": "AI is not a badge; it is the chain itself.",
+      "lead": "We do not scatter AI labels across the page. It is a capability chain bound to three stages of the operation.",
+      "steps": [
+        {
+          "stage": "detect",
+          "title": "Detect",
+          "body": "Brings metrics, logs, events, traces and architectural context into one operational view."
+        },
+        {
+          "stage": "understand",
+          "title": "Understand",
+          "body": "Reduces noise to a meaningful event through correlation, summarisation, anomaly and impact analysis."
+        },
+        {
+          "stage": "act",
+          "title": "Act",
+          "body": "Connects the event to a traceable action through recommendation, approved automation and orchestration."
+        }
+      ]
+    },
+    "method": {
+      "eyebrow": "Method",
+      "title": "The same team from analysis to operation.",
+      "lead": "We have no publishable customer reference yet: the customer logos in the corporate deck carry no written usage permission, and the numeric claims are awaiting owner verification. So this section describes how we work rather than quoting figures.",
+      "steps": [
+        {
+          "title": "Analysis",
+          "body": "Mapping the current operation, its data sources and architectural context."
+        },
+        {
+          "title": "Design",
+          "body": "Defining the target visibility model and the integration architecture."
+        },
+        {
+          "title": "Delivery",
+          "body": "Building the solution, reshaping it around the organisation and putting it into service."
+        },
+        {
+          "title": "Operation and support",
+          "body": "Monitoring, improvement and managed service after go-live."
+        }
+      ]
+    },
+    "decade": {
+      "eyebrow": "2016 → 2026",
+      "title": "We started by monitoring and grew into forecasting.",
+      "lead": "A path that began with a single vendor's monitoring product became a platform approach covering data, architecture, automation and AI. Dates and scale details of the milestones are awaiting owner verification, so no figures appear here."
+    },
+    "regional": {
+      "eyebrow": "Working area",
+      "title": "Regional coverage",
+      "lead": "Regional coverage is not published before verification."
+    },
+    "technology": {
+      "eyebrow": "Technology ecosystem",
+      "title": "Not product names — capability layers that work together.",
+      "lead": "Which capability we build matters before which product we use. Product names and logos will be published once brand usage permissions are verified.",
+      "layers": [
+        {
+          "title": "Observability and APM",
+          "body": "The layer that unifies infrastructure, network, application and log data in one operational view."
+        },
+        {
+          "title": "Configuration and asset management",
+          "body": "The layer that turns IT components and their dependencies into a single trustworthy source."
+        },
+        {
+          "title": "Data streaming and integration",
+          "body": "The streaming layer that processes data as it is produced and moves it to the right systems."
+        },
+        {
+          "title": "Service and event management",
+          "body": "The layer that runs the service flow from request to resolution and the event lifecycle."
+        },
+        {
+          "title": "Enterprise architecture and governance",
+          "body": "The layer that keeps business goals, applications and technologies on one decidable map."
+        },
+        {
+          "title": "Automation and orchestration",
+          "body": "The layer that makes repeated operational work standard, fast and traceable."
+        },
+        {
+          "title": "Data platform and AI",
+          "body": "The layer that runs machine learning and AI applications on a data lake."
+        }
+      ]
+    },
+    "insights": {
+      "eyebrow": "Insights",
+      "title": "Recent notes",
+      "lead": "Short technical notes from the engineering team on operations, data and architecture."
+    },
+    "roadmap": {
+      "eyebrow": "Next step",
+      "title": "Let us build a roadmap together.",
+      "lead": "Let us review your current operation together and agree where to start and in what order to proceed.",
+      "primaryCta": { "label": "Explore the solution areas", "href": "/en/solutions/" },
+      "secondaryCta": { "label": "See how the AI chain works", "href": "#intelligence" }
+    },
+    "seo": {
+      "title": "See the operation, connect the data, act with AI",
+      "description": "Duosis brings observability, data streaming, enterprise architecture and automation together under a single engineering discipline.",
+      "noindex": true
+    }
+  }
+]

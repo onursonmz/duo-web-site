@@ -1,0 +1,103 @@
+---
+/**
+ * INTELLIGENCE LAYER — Algıla → Anla → Harekete geç.
+ *
+ * AI tekrar eden bir rozet olarak DEĞİL, üç aşamalı bir yetenek zinciri olarak
+ * anlatılır. Şema tam üç adım zorunlu kılar.
+ */
+import type { CollectionEntry } from "astro:content";
+import SectionHeading from "@components/ui/SectionHeading.astro";
+
+interface Props {
+  intelligence: CollectionEntry<"homepage">["data"]["intelligence"];
+}
+
+const { intelligence }: Props = Astro.props;
+---
+
+<SectionHeading eyebrow={intelligence.eyebrow} as="h2" lead={intelligence.lead}>
+  {intelligence.title}
+</SectionHeading>
+
+<ol class="chain" data-testid="intelligence-chain">
+  {
+    intelligence.steps.map((step, index) => (
+      <li class="chain__step" data-stage={step.stage}>
+        <span class="chain__marker" aria-hidden="true">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <h3 class="chain__title">{step.title}</h3>
+        <p class="chain__body">{step.body}</p>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .chain {
+    display: grid;
+    gap: var(--space-lg);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: chain;
+  }
+
+  @media (min-width: 52rem) {
+    .chain {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0;
+    }
+  }
+
+  .chain__step {
+    position: relative;
+    padding-top: var(--space-md);
+    border-top: var(--border-width-strong) solid var(--border-strong);
+  }
+
+  @media (min-width: 52rem) {
+    .chain__step {
+      padding-inline: var(--space-md);
+    }
+
+    .chain__step:first-child {
+      padding-inline-start: 0;
+    }
+
+    /* Zincir bağı: adımlar arasında ince dikey ayırıcı. */
+    .chain__step + .chain__step::before {
+      content: "";
+      position: absolute;
+      inset-block: var(--space-md) 0;
+      inset-inline-start: 0;
+      inline-size: 1px;
+      background: var(--border-subtle);
+    }
+  }
+
+  /* Son adım vurgulanır: zincirin çıktısı aksiyondur. */
+  .chain__step[data-stage="act"] {
+    border-top-color: var(--signal);
+  }
+
+  .chain__marker {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    color: var(--text-muted);
+  }
+
+  .chain__title {
+    margin: var(--space-2xs) 0;
+    font-size: var(--text-xl);
+  }
+
+  .chain__body {
+    margin: 0;
+    max-width: 38ch;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+</style>

@@ -1,0 +1,731 @@
+---
+/**
+ * GLOBAL HEADER.
+ *
+ * İlerlemeli geliştirme (progressive enhancement):
+ * - JS YOKKEN: marka bağlantısı, ana menü linkleri ve dil değiştirici düz
+ *   `<a>` olarak çalışır. Mega menü ve mobil menü açma butonları
+ *   `<html class="no-js">` altında CSS ile gizlenir — ölü kontrol bırakılmaz.
+ * - JS VARKEN: `BaseLayout` içindeki satır içi script `no-js` sınıfını daha
+ *   ilk boyamadan önce kaldırır, böylece CLS oluşmaz.
+ *
+ * Mega menü HOVER GEREKTİRMEZ: click ve klavye ile tam kullanılabilir.
+ */
+import type { Locale } from "@lib/content/schema";
+import { t } from "@lib/i18n/dictionary";
+import { activeNavItems, brandHref, isCurrentPage } from "@config/navigation";
+import { getSolutions } from "@lib/content/selectors";
+import { PUBLIC } from "@lib/content/selectors";
+import { solutionPath } from "@lib/i18n/routes";
+import LanguageSwitcher from "@components/LanguageSwitcher.astro";
+import LogoMark from "@components/ui/LogoMark.astro";
+
+interface Props {
+  locale: Locale;
+  pathname: string;
+  alternates?: Partial<Record<Locale, string>>;
+}
+
+const { locale, pathname, alternates = {} }: Props = Astro.props;
+
+const items = activeNavItems(locale);
+const solutions = await getSolutions(locale, PUBLIC);
+const solutionLinks = solutions.map((entry) => ({
+  href: solutionPath(locale, entry.data.slug),
+  title: entry.data.title,
+  summary: entry.data.summary,
+}));
+---
+
+<header class="site-header theme-light" data-testid="site-header">
+  <div class="site-header__inner">
+    <a
+      class="site-header__brand"
+      href={brandHref(locale)}
+      aria-label={t(locale, "nav.goToBrandHome")}
+    >
+      <LogoMark variant="wordmark" width="8.5rem" label="Duosis" />
+    </a>
+
+    <nav class="site-nav" aria-label={t(locale, "nav.primary")} data-testid="primary-nav">
+      <ul class="site-nav__list">
+        {
+          items.map(({ item, href }) => (
+            <li class="site-nav__item">
+              {item.panel === "solutions" && solutionLinks.length > 0 ? (
+                <span class="site-nav__group">
+                  <a
+                    class="site-nav__link"
+                    href={href}
+                    aria-current={isCurrentPage(pathname, href) ? "page" : undefined}
+                  >
+                    {t(locale, item.labelKey)}
+                  </a>
+                  <button
+                    class="site-nav__disclosure js-only"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="mega-solutions"
+                    aria-label={t(locale, "nav.openSolutions")}
+                    data-testid="solutions-disclosure"
+                  >
+                    <span class="site-nav__chevron" aria-hidden="true" />
+                  </button>
+
+                  {/*
+                    Panel DOM'da tetikleyicinin HEMEN ARDINDA durur; böylece
+                    Tab sırası doğal olarak panele girer. (İlk denemede panel
+                    header'ın sonundaydı ve Tab önce dil değiştiriciye gidiyordu.)
+                  */}
+                  <div class="mega" id="mega-solutions" hidden data-testid="mega-solutions">
+                    <div class="mega__inner">
+                      <p class="mega__eyebrow">{t(locale, "nav.allSolutions")}</p>
+                      <ul class="mega__grid">
+                        {solutionLinks.map((s) => (
+                          <li>
+                            <a class="mega__link" href={s.href}>
+                              <span class="mega__title">{s.title}</span>
+                              <span class="mega__summary">{s.summary}</span>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </span>
+              ) : (
+                <a
+                  class="site-nav__link"
+                  href={href}
+                  aria-current={isCurrentPage(pathname, href) ? "page" : undefined}
+                >
+                  {t(locale, item.labelKey)}
+                </a>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="site-header__aside">
+      <LanguageSwitcher locale={locale} alternates={alternates} />
+      <button
+        class="site-header__burger js-only"
+        type="button"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        aria-label={t(locale, "nav.openMenu")}
+        data-testid="mobile-menu-toggle"
+      >
+        <span class="site-header__burger-bars" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- MOBİL MENÜ. Panel dışarıda tutulur ki scroll lock ve focus trap sade kalsın. -->
+<div class="mobile-menu" id="mobile-menu" hidden data-testid="mobile-menu">
+  <nav class="mobile-menu__panel theme-light" aria-label={t(locale, "nav.primary")}>
+    <div class="mobile-menu__head">
+      <span class="mobile-menu__title">{t(locale, "nav.primary")}</span>
+      <button
+        class="mobile-menu__close"
+        type="button"
+        aria-label={t(locale, "nav.closeMenu")}
+        data-testid="mobile-menu-close"
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+
+    <ul class="mobile-menu__list">
+      {
+        items.map(({ item, href }) => (
+          <li>
+            <a
+              class="mobile-menu__link"
+              href={href}
+              aria-current={isCurrentPage(pathname, href) ? "page" : undefined}
+            >
+              {t(locale, item.labelKey)}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    {
+      solutionLinks.length > 0 && (
+        <>
+          <p class="mobile-menu__eyebrow">{t(locale, "nav.allSolutions")}</p>
+          <ul class="mobile-menu__sublist">
+            {solutionLinks.map((s) => (
+              <li>
+                <a class="mobile-menu__sublink" href={s.href}>
+                  {s.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </>
+      )
+    }
+  </nav>
+</div>
+
+<style>
+  .site-header {
+    position: relative;
+    z-index: 20;
+    border-bottom: var(--border-width) solid var(--border-subtle);
+    background: var(--surface-raised);
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding: var(--space-xs) var(--container-gutter);
+  }
+
+  .site-header__brand {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+  }
+
+  .site-header__aside {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-left: auto;
+  }
+
+  /* ---------------------------------------------------------- masaüstü menü */
+
+  .site-nav__list {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-nav__group {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+  }
+
+  .site-nav__link {
+    display: inline-block;
+    padding-block: var(--space-2xs);
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    text-decoration: none;
+    border-bottom: var(--border-width-strong) solid transparent;
+  }
+
+  .site-nav__link:hover {
+    color: var(--signal);
+  }
+
+  /* Aktif rota: renk TEK BAŞINA anlam taşımaz, alt çizgi de eklenir. */
+  .site-nav__link[aria-current="page"] {
+    color: var(--signal);
+    border-bottom-color: var(--signal);
+  }
+
+  .site-nav__disclosure {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    padding: 0;
+    background: transparent;
+    border: var(--border-width) solid transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .site-nav__disclosure:hover {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+  }
+
+  .site-nav__chevron {
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg) translate(-2px, -2px);
+    transition: transform var(--motion-fast) var(--motion-ease);
+  }
+
+  .site-nav__disclosure[aria-expanded="true"] .site-nav__chevron {
+    transform: rotate(-135deg) translate(-2px, -2px);
+  }
+
+  /* ---------------------------------------------------------- mega menü */
+
+  .mega {
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    background: var(--surface-raised);
+    border-bottom: var(--border-width) solid var(--border-subtle);
+    box-shadow: 0 1px 0 0 var(--border-subtle);
+  }
+
+  .mega__inner {
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding: var(--space-lg) var(--container-gutter);
+  }
+
+  .mega__eyebrow {
+    margin: 0 0 var(--space-md);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .mega__grid {
+    display: grid;
+    gap: var(--space-md);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 48rem) {
+    .mega__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 68rem) {
+    .mega__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .mega__link {
+    display: block;
+    padding-top: var(--space-2xs);
+    border-top: var(--border-width) solid var(--border-subtle);
+    text-decoration: none;
+  }
+
+  .mega__link:hover {
+    border-top-color: var(--signal);
+  }
+
+  .mega__title {
+    display: block;
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-snug);
+  }
+
+  .mega__link:hover .mega__title {
+    color: var(--signal);
+  }
+
+  .mega__summary {
+    display: block;
+    margin-top: var(--space-3xs);
+    color: var(--text-secondary);
+    font-size: var(--text-xs);
+    line-height: 1.5;
+  }
+
+  /* ---------------------------------------------------------- mobil menü */
+
+  .site-header__burger {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    padding: 0;
+    background: transparent;
+    border: var(--border-width) solid var(--border-strong);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .site-header__burger-bars,
+  .site-header__burger-bars::before,
+  .site-header__burger-bars::after {
+    display: block;
+    inline-size: 1.125rem;
+    block-size: 2px;
+    background: currentColor;
+  }
+
+  .site-header__burger-bars::before,
+  .site-header__burger-bars::after {
+    content: "";
+    position: relative;
+  }
+
+  .site-header__burger-bars::before {
+    top: -6px;
+  }
+
+  .site-header__burger-bars::after {
+    top: 4px;
+  }
+
+  .mobile-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: var(--overlay-scrim);
+  }
+
+  .mobile-menu__panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    inline-size: min(22rem, 92vw);
+    block-size: 100%;
+    margin-left: auto;
+    padding: var(--space-md);
+    overflow-y: auto;
+    border-left: var(--border-width) solid var(--border-subtle);
+  }
+
+  .mobile-menu__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .mobile-menu__title {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .mobile-menu__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    padding: 0;
+    background: transparent;
+    border: var(--border-width) solid var(--border-strong);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: var(--text-lg);
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .mobile-menu__list,
+  .mobile-menu__sublist {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mobile-menu__link {
+    display: block;
+    padding: var(--space-2xs) 0;
+    border-bottom: var(--border-width) solid var(--border-subtle);
+    color: var(--text-primary);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+  }
+
+  .mobile-menu__link[aria-current="page"] {
+    color: var(--signal);
+  }
+
+  .mobile-menu__eyebrow {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .mobile-menu__sublink {
+    display: block;
+    padding: var(--space-3xs) 0;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+
+  .mobile-menu__sublink:hover {
+    color: var(--signal);
+  }
+
+  /* ---------------------------------------------------------- kırılma noktası */
+
+  @media (max-width: 56rem) {
+    .site-nav {
+      display: none;
+    }
+
+    .site-header__burger {
+      display: inline-flex;
+    }
+
+    /*
+     * JS YOKKEN mobil hamburger gizlenir ve ana menü listesi görünür kalır —
+     * temel navigasyon her koşulda erişilebilir olur.
+     */
+    :global(html.no-js) .site-nav {
+      display: block;
+    }
+
+    :global(html.no-js) .site-header__inner {
+      flex-wrap: wrap;
+    }
+
+    :global(html.no-js) .site-nav__list {
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+  }
+
+  /*
+   * DAR EKRAN (<=26rem): logo + dil değiştirici + hamburger 320px'e sığmıyordu
+   * (ölçüm: scrollWidth 335 > 320). Logo küçültülür ve boşluklar daraltılır.
+   */
+  @media (max-width: 26rem) {
+    .site-header__inner {
+      gap: var(--space-sm);
+      padding-inline: var(--space-sm);
+    }
+
+    .site-header__brand :global(.logo) {
+      width: 6.5rem;
+    }
+
+    .site-header__aside {
+      gap: var(--space-2xs);
+      min-width: 0;
+    }
+  }
+
+  /* JS'e bağlı kontroller: script yoksa hiç görünmez (ölü kontrol yok). */
+  :global(html.no-js) .js-only {
+    display: none !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-nav__chevron {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * HEADER DAVRANIŞI.
+   *
+   * Sözleşme:
+   * - Mega menü HOVER GEREKTİRMEZ; click ve klavye ile tam kullanılabilir.
+   * - Escape, dışarı tıklama ve focus kaybı paneli kapatır.
+   * - Panel kapandığında odak TETİKLEYİCİYE döner.
+   * - Mobil menüde focus trap ve scroll lock vardır; kapanışta ikisi de
+   *   eksiksiz temizlenir (kalıntı bırakmaz).
+   * - `aria-expanded` her durumda gerçek duruma eşittir.
+   */
+  type Cleanup = () => void;
+
+  const FOCUSABLE =
+    'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
+
+  /** Panelin ilk odaklanabilir öğesine odaklanır. */
+  function focusFirst(panel: HTMLElement): void {
+    const target = panel.querySelector<HTMLElement>(FOCUSABLE);
+    target?.focus();
+  }
+
+  // ---------------------------------------------------------------- mega menü
+
+  function setupDisclosure(): void {
+    const button = document.querySelector<HTMLButtonElement>(".site-nav__disclosure");
+    const panel = document.getElementById("mega-solutions");
+    if (button === null || panel === null) return;
+
+    let cleanup: Cleanup | null = null;
+
+    const close = (returnFocus: boolean): void => {
+      if (cleanup === null) return;
+      cleanup();
+      cleanup = null;
+      panel.hidden = true;
+      button.setAttribute("aria-expanded", "false");
+      if (returnFocus) button.focus();
+    };
+
+    const open = (): void => {
+      panel.hidden = false;
+      button.setAttribute("aria-expanded", "true");
+
+      const onKeydown = (event: KeyboardEvent): void => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          close(true);
+        }
+      };
+      const onPointerDown = (event: Event): void => {
+        const target = event.target as Node;
+        if (!panel.contains(target) && !button.contains(target)) close(false);
+      };
+      // Odak panelin ve tetikleyicinin dışına çıkarsa kapat (klavye ile gezinme).
+      const onFocusIn = (event: FocusEvent): void => {
+        const target = event.target as Node;
+        if (!panel.contains(target) && !button.contains(target)) close(false);
+      };
+
+      document.addEventListener("keydown", onKeydown);
+      document.addEventListener("pointerdown", onPointerDown);
+      document.addEventListener("focusin", onFocusIn);
+
+      cleanup = () => {
+        document.removeEventListener("keydown", onKeydown);
+        document.removeEventListener("pointerdown", onPointerDown);
+        document.removeEventListener("focusin", onFocusIn);
+      };
+    };
+
+    button.addEventListener("click", () => {
+      if (panel.hidden) {
+        open();
+      } else {
+        close(true);
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------- mobil menü
+
+  function setupMobileMenu(): void {
+    const toggle = document.querySelector<HTMLButtonElement>(".site-header__burger");
+    const overlay = document.getElementById("mobile-menu");
+    if (toggle === null || overlay === null) return;
+
+    const panel = overlay.querySelector<HTMLElement>(".mobile-menu__panel");
+    const closeButton = overlay.querySelector<HTMLButtonElement>(".mobile-menu__close");
+    if (panel === null) return;
+
+    let cleanup: Cleanup | null = null;
+    /** Scroll lock öncesi gövde stilleri — kapanışta AYNEN geri yazılır. */
+    let previousOverflow = "";
+    let previousPaddingRight = "";
+
+    const close = (returnFocus: boolean): void => {
+      if (cleanup === null) return;
+      cleanup();
+      cleanup = null;
+      overlay.hidden = true;
+      toggle.setAttribute("aria-expanded", "false");
+
+      // Scroll lock temizliği: eklenen her şey geri alınır.
+      document.body.style.overflow = previousOverflow;
+      document.body.style.paddingRight = previousPaddingRight;
+
+      if (returnFocus) toggle.focus();
+    };
+
+    const open = (): void => {
+      overlay.hidden = false;
+      toggle.setAttribute("aria-expanded", "true");
+
+      // Scroll lock — kaydırma çubuğu genişliği telafi edilir, düzen kaymaz.
+      previousOverflow = document.body.style.overflow;
+      previousPaddingRight = document.body.style.paddingRight;
+      const scrollbar = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = "hidden";
+      if (scrollbar > 0) document.body.style.paddingRight = `${scrollbar}px`;
+
+      const onKeydown = (event: KeyboardEvent): void => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          close(true);
+          return;
+        }
+        if (event.key !== "Tab") return;
+
+        // FOCUS TRAP: odak panelin içinde döner.
+        const focusables = [...panel.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+          (el) => el.offsetParent !== null
+        );
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (first === undefined || last === undefined) return;
+
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      };
+
+      const onPointerDown = (event: Event): void => {
+        // Panel dışına (karartma alanına) tıklama kapatır.
+        if (!panel.contains(event.target as Node)) close(true);
+      };
+
+      document.addEventListener("keydown", onKeydown);
+      overlay.addEventListener("pointerdown", onPointerDown);
+
+      cleanup = () => {
+        document.removeEventListener("keydown", onKeydown);
+        overlay.removeEventListener("pointerdown", onPointerDown);
+      };
+
+      focusFirst(panel);
+    };
+
+    toggle.addEventListener("click", () => {
+      if (overlay.hidden) {
+        open();
+      } else {
+        close(true);
+      }
+    });
+    closeButton?.addEventListener("click", () => close(true));
+
+    // Bir bağlantıya gidilirken kalıntı bırakmadan kapan.
+    panel.addEventListener("click", (event) => {
+      if ((event.target as HTMLElement).closest("a") !== null) close(false);
+    });
+
+    // Masaüstü genişliğine geçilirse menü kapatılır ve scroll lock temizlenir.
+    window.matchMedia("(min-width: 56.0625rem)").addEventListener("change", (event) => {
+      if (event.matches) close(false);
+    });
+  }
+
+  setupDisclosure();
+  setupMobileMenu();
+</script>

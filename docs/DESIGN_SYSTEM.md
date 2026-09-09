@@ -41,17 +41,17 @@ Değerler `duosis-logo.pdf` içerik akışından çıkarılmıştır (bkz.
 
 ### Türetilmiş palet — açık yüzey
 
-| Token               | Değer     | `--surface-canvas` üzerinde | Sonuç            |
-| ------------------- | --------- | --------------------------: | ---------------- |
-| `--text-primary`    | `#14181c` |                     16.63:1 | AA / AAA         |
-| `--text-secondary`  | `#4a545e` |                      7.20:1 | AA / AAA         |
-| `--text-muted`      | `#5d6874` |                      5.29:1 | AA               |
-| `--signal`          | `#107aa4` |                      4.51:1 | AA               |
-| `--action`          | `#b5560f` |                      4.55:1 | AA               |
-| `--status-success`  | `#1a8246` |                      4.53:1 | AA               |
-| `--status-warning`  | `#986800` |                      4.54:1 | AA               |
-| `--status-critical` | `#d03939` |                      4.53:1 | AA               |
-| `--border-strong`   | `#767f8a` |                      3.78:1 | AA (UI bileşeni) |
+| Token               | Değer     | `--surface-canvas` üzerinde | Sonuç              |
+| ------------------- | --------- | --------------------------: | ------------------ |
+| `--text-primary`    | `#14181c` |                     16.63:1 | AA / AAA           |
+| `--text-secondary`  | `#4a545e` |                      7.20:1 | AA / AAA           |
+| `--text-muted`      | `#5d6874` |                      5.29:1 | AA                 |
+| `--signal`          | `#0f7197` |                      5.11:1 | AA + güvenlik payı |
+| `--action`          | `#a44f0e` |                      5.29:1 | AA + güvenlik payı |
+| `--status-success`  | `#1a8246` |                      4.53:1 | AA                 |
+| `--status-warning`  | `#986800` |                      4.54:1 | AA                 |
+| `--status-critical` | `#d03939` |                      4.53:1 | AA                 |
+| `--border-strong`   | `#767f8a` |                      3.78:1 | AA (UI bileşeni)   |
 
 ### Türetilmiş palet — koyu yüzey
 
@@ -92,6 +92,10 @@ rengine değil **yüzeye** karşı ölçülür.
 - Renk **tek başına anlam taşımaz**: her durum etiketinin metni ve şekil işareti
   vardır; hata alanında renk + metin + simge birlikte kullanılır.
 - Action Orange **düşük sıklıkta**, yalnızca aksiyon vurgusunda.
+- **Güvenlik payı:** açık yüzeyde `--signal` ve `--action` için taban AA (4.5:1)
+  değil **4.75:1**; `--signal` ayrıca **5.0:1** hedefini tutar. 4.51 gibi sınır
+  değerler küçük bir yüzey değişikliğinde eşiğin altına düşer. Ton (HSL H/S)
+  marka cyanıyla aynı bırakıldı; yalnızca açıklık düşürüldü.
 - Tüm oranlar testte **yeniden hesaplanır**; token değeri değişirse test düşer.
 
 ---

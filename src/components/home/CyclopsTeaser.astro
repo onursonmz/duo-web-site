@@ -1,0 +1,93 @@
+---
+/**
+ * CYCLOPS TEASER — TASLAK OLGUNLUK.
+ *
+ * İÇERİK GÜVENLİĞİ: sürüm, lansman durumu, müşteri kullanımı, MTTR oranı veya
+ * desteklenen entegrasyon iddiası YOKTUR. Şema bunlar için alan tanımlamaz.
+ * Olgunluk notu görünür biçimde gösterilir.
+ */
+import type { CollectionEntry } from "astro:content";
+import SectionHeading from "@components/ui/SectionHeading.astro";
+import StatusLabel from "@components/ui/StatusLabel.astro";
+
+interface Props {
+  cyclops: CollectionEntry<"homepage">["data"]["cyclops"];
+  statusLabel: string;
+}
+
+const { cyclops, statusLabel }: Props = Astro.props;
+---
+
+<div class="cyclops" data-testid="cyclops-teaser">
+  <div class="cyclops__head">
+    <SectionHeading eyebrow={cyclops.eyebrow} as="h2" lead={cyclops.lead}>
+      {cyclops.title}
+    </SectionHeading>
+  </div>
+
+  <div class="cyclops__side">
+    <ul class="cyclops__points">
+      {
+        cyclops.points.map((point) => (
+          <li>
+            <span class="cyclops__bullet" aria-hidden="true">
+              ▸
+            </span>
+            {point}
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="cyclops__maturity">
+      <StatusLabel tone="warning" srPrefix="Durum:">{statusLabel}</StatusLabel>
+      <span class="cyclops__note">{cyclops.maturityNote}</span>
+    </p>
+  </div>
+</div>
+
+<style>
+  /* Bölünmüş kompozisyon: başlık solda, kanıt listesi sağda. */
+  @media (min-width: 56rem) {
+    .cyclops {
+      display: grid;
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+      gap: var(--space-2xl);
+      align-items: start;
+    }
+  }
+
+  .cyclops__points {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cyclops__points li {
+    display: grid;
+    grid-template-columns: 1.25rem minmax(0, 1fr);
+    gap: var(--space-2xs);
+    padding: var(--space-xs) 0;
+    border-top: var(--border-width) solid var(--border-subtle);
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .cyclops__bullet {
+    color: var(--signal);
+  }
+
+  .cyclops__maturity {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
+    align-items: flex-start;
+    margin: var(--space-lg) 0 0;
+    max-width: none;
+  }
+
+  .cyclops__note {
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+  }
+</style>

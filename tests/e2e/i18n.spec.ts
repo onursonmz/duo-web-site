@@ -26,7 +26,10 @@ test.describe("locale kökleri", () => {
     await page.goto("/");
 
     await expect(page.locator("html")).toHaveAttribute("lang", "tr");
-    await expect(page.getByRole("link", { name: "Çözümler", exact: true })).toBeVisible();
+    // S04 ile bağlantı hem ana menüde hem footer'da var; kapsam daraltılır.
+    await expect(
+      page.getByTestId("primary-nav").getByRole("link", { name: "Çözümler", exact: true })
+    ).toBeVisible();
     await expect(page.locator("body")).toContainText("Çözüm alanları");
   });
 
@@ -34,8 +37,12 @@ test.describe("locale kökleri", () => {
     await page.goto("/en/");
 
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
-    await expect(page.getByRole("link", { name: "Solutions", exact: true })).toBeVisible();
-    await expect(page.locator("body")).toContainText("Solution areas");
+    await expect(
+      page.getByTestId("primary-nav").getByRole("link", { name: "Solutions", exact: true })
+    ).toBeVisible();
+    // S05 ile ana sayfa metni içerik katmanından geliyor; büyük/küçük harfe
+    // bağlı olmayan, dile özgü bir ifade aranır.
+    await expect(page.locator("body")).toContainText(/solution areas/i);
   });
 
   test("TR ve EN ana sayfaları farklı metin gösterir", async ({ page }) => {
@@ -145,9 +152,27 @@ test.describe("public içerik filtreleri — FAIL-CLOSED", () => {
     }
   });
 
+  /**
+   * S05 İLE DARALTILAN KAPSAM — bilinçli ve gerekçeli.
+   *
+   * Bu testin koruduğu şey: KARAR BEKLEYEN TEKNOLOJİ ENVANTERİ KAYDININ public
+   * çıktıya sızması. Üçüncü taraf ürün adları (Zabbix, Datadog, Jira…) hâlâ
+   * hiçbir sayfada geçemez.
+   *
+   * `cyclops` bu listeden ÇIKARILDI çünkü iki ayrı şey aynı kelimeyle
+   * temsil ediliyordu:
+   *   1) teknoloji envanterindeki `cyclops` KAYDI — hâlâ pending, public
+   *      teknoloji listesinde GÖRÜNEMEZ (aşağıdaki ayrı test ve
+   *      `tests/unit/technology-inventory.test.ts` bunu doğrular),
+   *   2) Duosis'in KENDİ ÜRÜNÜNÜN adı — taslak/noindex kapsamda anlatılmasına
+   *      açıkça izin verildi (truth matrix C12:
+   *      internal-source-available-public-pending).
+   *
+   * Sızıntı koruması zayıflatılmadı, DOĞRU HEDEFE yöneltildi: teaser'ın
+   * doğrulanmamış iddia taşımadığı ayrıca test edilir.
+   */
   test("karar bekleyen teknolojiler HTML'de hiç geçmiyor", async ({ page }) => {
     const forbidden = [
-      "cyclops",
       "glpi",
       "jira",
       "tableau",
@@ -180,6 +205,44 @@ test.describe("public içerik filtreleri — FAIL-CLOSED", () => {
         expect(html.includes(id), `${route} sayfasında "${id}" bulundu`).toBe(false);
       }
     }
+  });
+
+  test("CYCLOPS ENVANTER KAYDI public teknoloji listesinde GÖRÜNMÜYOR", async ({ page }) => {
+    for (const route of ["/", "/cozumler/", "/cozumler/aiops-ve-olay-yasam-dongusu/"]) {
+      await page.goto(route);
+      // Hiçbir sayfada render edilmiş bir teknoloji listesi olmamalı;
+      // 35/35 kayıt pending olduğu için liste hiç oluşmaz.
+      await expect(page.getByTestId("technology-list"), route).toHaveCount(0);
+    }
+  });
+
+  test("CYCLOPS TEASER doğrulanmamış iddia TAŞIMIYOR", async ({ page }) => {
+    await page.goto("/");
+    const teaser = page.getByTestId("cyclops-teaser");
+    await expect(teaser).toHaveCount(1);
+
+    const text = await teaser.innerText();
+
+    // Sürüm numarası yok (v1.2, 2.0 gibi).
+    expect(text, "teaser sürüm numarası içeriyor").not.toMatch(/\bv?\d+\.\d+/);
+    /*
+     * Yüzde veya MTTR/SLA gibi ölçüm iddiası yok.
+     * KELİME SINIRI ŞART: sınırsız `/sla/i` Türkçe "taslak" kelimesinde
+     * yanlış eşleşme üretiyordu (ilk koşuda tam olarak bu oldu).
+     */
+    expect(text, "teaser yüzde iddiası içeriyor").not.toMatch(/%|\bMTTR\b|\bSLA\b/i);
+    // Müşteri sayısı iddiası yok.
+    expect(text, "teaser müşteri sayısı iddiası içeriyor").not.toMatch(
+      /\d+\s*\+?\s*(müşteri|customer|kurum)/i
+    );
+    // Olgunluk notu GÖRÜNÜR olmalı.
+    await expect(teaser).toContainText(/taslak olgunluk/i);
+  });
+
+  test("CYCLOPS teaser yalnızca NOINDEX sayfada görünüyor", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator('meta[name="robots"][content="noindex"]')).toHaveCount(1);
+    await expect(page.getByTestId("cyclops-teaser")).toHaveCount(1);
   });
 
   test("izinsiz logo hiçbir sayfada render edilmiyor", async ({ page }) => {

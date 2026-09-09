@@ -1,9 +1,10 @@
 ---
 import { buildPageTitle } from "@lib/seo/pageTitle";
 import { t } from "@lib/i18n/dictionary";
-import { homePath, solutionsIndexPath } from "@lib/i18n/routes";
 import type { Locale } from "@lib/content/schema";
-import LanguageSwitcher from "@components/LanguageSwitcher.astro";
+import SiteHeader from "@components/shell/SiteHeader.astro";
+import SiteFooter from "@components/shell/SiteFooter.astro";
+import Breadcrumb, { type Crumb } from "@components/shell/Breadcrumb.astro";
 import "../styles/base.css";
 
 interface Props {
@@ -15,22 +16,48 @@ interface Props {
   /** Aynı kaydın diğer dillerdeki yolları. Yoksa "çeviri mevcut değil" davranışı. */
   alternates?: Partial<Record<Locale, string>>;
   noindex?: boolean;
-  /** Dar okuma sutunu yerine tam genislik (tasarim sistemi onizlemesi gibi). */
+  /** Dar okuma sütunu yerine tam genişlik (ana sayfa, tasarım sistemi vb.). */
   wide?: boolean;
+  /** Breadcrumb izi; iki veya daha fazla öğe varsa render edilir. */
+  breadcrumbs?: Crumb[];
+  /** Sosyal önizleme görseli (mutlak veya kök-göreli yol). */
+  ogImage?: string;
+  /** Sayfa türü — Open Graph. */
+  ogType?: "website" | "article";
 }
 
-const { locale, title, description, alternates = {}, noindex = false, wide = false } = Astro.props;
+const {
+  locale,
+  title,
+  description,
+  alternates = {},
+  noindex = false,
+  wide = false,
+  breadcrumbs = [],
+  ogImage,
+  ogType = "website",
+}: Props = Astro.props;
 
 const SITE_NAME = t(locale, "site.name");
 const pageTitle = buildPageTitle({ pageTitle: title, siteName: SITE_NAME });
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
+const ogImageUrl = ogImage === undefined ? undefined : new URL(ogImage, canonical).href;
 ---
 
 <!doctype html>
-<html lang={locale}>
+<!--
+  `no-js`: JS'e bağlı kontrollerin (mega menü açıcı, mobil hamburger) hiç
+  görünmemesini sağlar. Aşağıdaki satır içi script sınıfı ilk boyamadan ÖNCE
+  kaldırır; böylece JS varken düzen kayması (CLS) oluşmaz, JS yokken de ölü
+  kontrol gösterilmez.
+-->
+<html lang={locale} class="no-js">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>
+      document.documentElement.classList.remove("no-js");
+    </script>
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -42,37 +69,52 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
         <link rel="alternate" hreflang={altLocale} href={new URL(href, canonical).href} />
       ))
     }
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:locale" content={locale === "tr" ? "tr_TR" : "en_US"} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical.href} />
+    {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
+    <meta
+      name="twitter:card"
+      content={ogImageUrl === undefined ? "summary" : "summary_large_image"}
+    />
+
     <meta name="generator" content={Astro.generator} />
   </head>
   <body>
     <a class="skip-link" href="#main-content">{t(locale, "nav.skipToContent")}</a>
 
-    <header class="site-header">
-      <p class="site-header__brand">{SITE_NAME}</p>
-
-      <nav class="site-nav" aria-label={t(locale, "nav.home")}>
-        <a href={homePath(locale)}>{t(locale, "nav.home")}</a>
-        <a href={solutionsIndexPath(locale)}>{t(locale, "nav.solutions")}</a>
-      </nav>
-
-      <LanguageSwitcher locale={locale} alternates={alternates} />
-    </header>
+    <SiteHeader locale={locale} pathname={Astro.url.pathname} alternates={alternates} />
 
     <main id="main-content" class:list={[wide && "main--wide"]} tabindex="-1">
+      {
+        breadcrumbs.length > 1 && (
+          <div class="main__breadcrumb">
+            <Breadcrumb locale={locale} items={breadcrumbs} />
+          </div>
+        )
+      }
       <slot />
     </main>
 
-    <footer class="site-footer">
-      <p>{t(locale, "site.tagline")}</p>
-    </footer>
+    <SiteFooter locale={locale} />
   </body>
 </html>
 
 <style>
-  /* Tam genislik onizleme: okuma sutunu siniri kaldirilir, iç boşluk
-     bolumlere devredilir. */
+  /* Tam genişlik: okuma sütunu sınırı kaldırılır, iç boşluk bölümlere devredilir. */
   .main--wide {
     max-width: none;
     padding: 0;
+  }
+
+  .main--wide .main__breadcrumb {
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding: var(--space-md) var(--container-gutter) 0;
   }
 </style>
