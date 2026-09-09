@@ -28,6 +28,7 @@ type Milestone = CollectionEntry<"milestones">;
 type Insight = CollectionEntry<"insights">;
 type Region = CollectionEntry<"regions">;
 type Product = CollectionEntry<"products">;
+type About = CollectionEntry<"about">;
 type Homepage = CollectionEntry<"homepage">;
 
 // ---------------------------------------------------------------- yüklem katmanı
@@ -202,18 +203,46 @@ export async function getProofs(locale: Locale, mode: ViewMode): Promise<Proof[]
   );
 }
 
+/**
+ * GÖRÜNÜR KİLOMETRE TAŞLARINDA YIL TEKİLLİĞİ.
+ *
+ * Aynı yıl için iki kayıt görünür olursa zaman çizelgesinde hangisinin
+ * gösterileceği belirsizleşir ve çapa kimlikleri (`#yil-2024`) çakışır.
+ * Bu durumda BUILD KIRILIR; sessizce biri düşürülmez.
+ */
+export function assertUniqueMilestoneYears(
+  entries: { id: string; data: { year: number } }[],
+  locale: Locale
+): void {
+  const seen = new Map<number, string>();
+  for (const entry of entries) {
+    const previous = seen.get(entry.data.year);
+    if (previous !== undefined) {
+      throw new Error(
+        `[milestones] "${locale}" için ${entry.data.year} yılı iki kez görünür: ` +
+          `"${previous}" ve "${entry.id}". Yıl başına tek görünür kayıt olmalıdır.`
+      );
+    }
+    seen.set(entry.data.year, entry.id);
+  }
+}
+
 export async function getMilestones(locale: Locale, mode: ViewMode): Promise<Milestone[]> {
   const all = await getCollection("milestones");
   assertUniqueTranslations(all, "milestones");
 
-  return all
+  const visible = all
     .filter(
       (e) =>
         e.data.locale === locale &&
         isPublishedStatus(e.data.status, mode) &&
         isVerifiedClaim(e.data.verificationStatus, mode)
     )
-    .sort((a, b) => a.data.year - b.data.year);
+    // Sıra DETERMİNİSTİK: yıl, eşitlikte kayıt kimliği.
+    .sort((a, b) => a.data.year - b.data.year || a.id.localeCompare(b.id, "en"));
+
+  assertUniqueMilestoneYears(visible, locale);
+  return visible;
 }
 
 /** Ana sayfa metni. Locale başına tek kayıt; bulunamazsa build kırılır. */
@@ -249,6 +278,32 @@ export async function getProduct(
       entry.data.slug === slug &&
       isPublishedStatus(entry.data.status, mode)
   );
+}
+
+/**
+ * HAKKIMIZDA KAYDI. Public modda yalnızca `published`; yoksa `undefined` ve
+ * sayfa hiç üretilmez (fail-closed).
+ */
+export async function getAbout(locale: Locale, mode: ViewMode): Promise<About | undefined> {
+  const all = await getCollection("about");
+  return all.find(
+    (entry) => entry.data.locale === locale && isPublishedStatus(entry.data.status, mode)
+  );
+}
+
+/** Hakkımızda sayfasının diğer dillerdeki yolları. */
+export async function getAboutAlternates(
+  mode: ViewMode,
+  buildPath: (locale: Locale) => string
+): Promise<Partial<Record<Locale, string>>> {
+  const all = await getCollection("about");
+  const alternates: Partial<Record<Locale, string>> = {};
+  for (const entry of all) {
+    if (isPublishedStatus(entry.data.status, mode)) {
+      alternates[entry.data.locale] = buildPath(entry.data.locale);
+    }
+  }
+  return alternates;
 }
 
 /** Bir ürünün diğer dillerdeki yolları; karşılığı yoksa anahtar BULUNMAZ. */

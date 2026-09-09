@@ -13,11 +13,23 @@ export type { Locale };
 
 /** Locale başına segment adları. Rota haritası `03_CONTENT_AND_ROUTE_MAP.md` §2. */
 const SEGMENTS = {
-  tr: { solutions: "cozumler", insights: "icgoruler", contact: "iletisim", cyclops: "cyclops" },
-  en: { solutions: "solutions", insights: "insights", contact: "contact", cyclops: "cyclops" },
+  tr: {
+    solutions: "cozumler",
+    insights: "icgoruler",
+    contact: "iletisim",
+    cyclops: "cyclops",
+    about: "hakkimizda",
+  },
+  en: {
+    solutions: "solutions",
+    insights: "insights",
+    contact: "contact",
+    cyclops: "cyclops",
+    about: "about",
+  },
 } as const satisfies Record<
   Locale,
-  { solutions: string; insights: string; contact: string; cyclops: string }
+  { solutions: string; insights: string; contact: string; cyclops: string; about: string }
 >;
 
 export function isLocale(value: string): value is Locale {
@@ -97,6 +109,19 @@ export function contactPathForTopic(
 /** CyclOps ürün sayfası: /cyclops/ veya /en/cyclops/ */
 export function cyclopsPath(locale: Locale): string {
   return localizedPath(locale, SEGMENTS[locale].cyclops);
+}
+
+/** Hakkımızda yolu: /hakkimizda/ veya /en/about/ */
+export function aboutPath(locale: Locale): string {
+  return localizedPath(locale, SEGMENTS[locale].about);
+}
+
+/** Zaman çizelgesi çapası; ana sayfadan derin bağlantı buraya gider. */
+export const JOURNEY_ANCHOR = { tr: "yolculuk", en: "journey" } as const;
+
+/** /hakkimizda/#yolculuk veya /en/about/#journey */
+export function journeyPath(locale: Locale): string {
+  return `${aboutPath(locale)}#${JOURNEY_ANCHOR[locale]}`;
 }
 
 /**

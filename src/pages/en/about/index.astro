@@ -1,0 +1,42 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import AboutPage from "@components/about/AboutPage.astro";
+import {
+  PUBLIC,
+  getAbout,
+  getAboutAlternates,
+  getMilestones,
+  getRegions,
+} from "@lib/content/selectors";
+import { JOURNEY_ANCHOR, aboutPath } from "@lib/i18n/routes";
+import { t } from "@lib/i18n/dictionary";
+
+// Üretim sayfası: PUBLIC modu AÇIKÇA kullanılır.
+const about = await getAbout("en", PUBLIC);
+if (about === undefined) {
+  // Kayıt yayında değilse sayfa üretilmez; sessiz boş sayfa çıkmaz.
+  throw new Error("hakkımızda kaydı public modda bulunamadı");
+}
+
+const alternates = await getAboutAlternates(PUBLIC, aboutPath);
+const milestones = await getMilestones("en", PUBLIC);
+const regions = await getRegions("en", PUBLIC);
+---
+
+<BaseLayout
+  locale="en"
+  title={about.data.seo.title}
+  description={about.data.seo.description}
+  alternates={alternates}
+  noindex={about.data.seo.noindex}
+  wide={true}
+  breadcrumbs={[{ label: t("en", "nav.home"), href: "/en/" }, { label: t("en", "nav.about") }]}
+>
+  <AboutPage
+    locale="en"
+    about={about}
+    milestones={milestones}
+    regions={regions}
+    journeyAnchor={JOURNEY_ANCHOR.en}
+  />
+</BaseLayout>

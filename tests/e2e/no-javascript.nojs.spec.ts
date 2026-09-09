@@ -155,3 +155,28 @@ test.describe("JavaScript kapalı — CyclOps", () => {
     await expect(cta).toHaveAttribute("href", "/iletisim/?topic=cyclops");
   });
 });
+
+/**
+ * HAKKIMIZDA ZAMAN ÇİZELGESİ — JS KAPALIYKEN (S09).
+ *
+ * Derin bağlantı gerçek bir çapadır: tarayıcı JavaScript olmadan da doğru
+ * başlığa gider.
+ */
+test.describe("JavaScript kapalı — 10. yıl", () => {
+  test("derin bağlantı JS olmadan doğru yıla gidiyor", async ({ page }) => {
+    await page.goto("/hakkimizda/#yil-2021");
+
+    const target = page.locator("#yil-2021");
+    await expect(target).toHaveText("2021");
+    await expect(target).toBeInViewport();
+  });
+
+  test("yıl navigasyonu JS olmadan gerçek bağlantı", async ({ page }) => {
+    await page.goto("/hakkimizda/");
+    const links = page.locator(".journey__jump a");
+    await expect(links).toHaveCount(6);
+    await links.last().click();
+    await expect(page).toHaveURL(/#yil-2026$/);
+    await expect(page.locator("#yil-2026")).toBeInViewport();
+  });
+});

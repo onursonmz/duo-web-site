@@ -10,6 +10,7 @@ summary: >-
   siteden ölçülerek doğrulandı.
 solutionRefs: []
 verificationStatus: verified
+source: S00 baseline ölçümü (discovery/baseline/MEASUREMENTS.md)
 ---
 
 S00 ölçüm kanıtı: discovery/baseline/MEASUREMENTS.md

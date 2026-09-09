@@ -1,6 +1,7 @@
 import { defineCollection } from "astro:content";
 import { file, glob } from "astro/loaders";
 import {
+  aboutSchema,
   authorSchema,
   homepageSchema,
   insightSchema,
@@ -61,6 +62,11 @@ export const collections = {
     // Ana sayfa metni TEK veri kaynağıdır; bileşenlere gömülmez.
     loader: file("./src/content/homepage/homepage.json"),
     schema: homepageSchema,
+  }),
+  about: defineCollection({
+    // Hakkımızda metni TEK veri kaynağıdır; şablona gömülmez.
+    loader: file("./src/content/about/about.json"),
+    schema: aboutSchema,
   }),
   products: defineCollection({
     // Ürün sayfası metni TEK veri kaynağıdır; şablona gömülmez.

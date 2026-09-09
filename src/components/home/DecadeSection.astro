@@ -9,13 +9,17 @@
  */
 import type { CollectionEntry } from "astro:content";
 import SectionHeading from "@components/ui/SectionHeading.astro";
+import { t } from "@lib/i18n/dictionary";
+import { journeyPath } from "@lib/i18n/routes";
+import type { Locale } from "@lib/content/schema";
 
 interface Props {
+  locale: Locale;
   decade: CollectionEntry<"homepage">["data"]["decade"];
   milestones: CollectionEntry<"milestones">[];
 }
 
-const { decade, milestones }: Props = Astro.props;
+const { locale, decade, milestones }: Props = Astro.props;
 ---
 
 <div class="decade" data-testid="decade-section">
@@ -23,7 +27,13 @@ const { decade, milestones }: Props = Astro.props;
     <SectionHeading eyebrow={decade.eyebrow} as="h2">
       {decade.title}
     </SectionHeading>
-    <p class="decade__lead">{decade.lead}</p>
+    <div class="decade__aside">
+      <p class="decade__lead">{decade.lead}</p>
+      {/* Önizleme; tam kayıt Hakkımızda sayfasındaki zaman çizelgesindedir. */}
+      <a class="decade__link" href={journeyPath(locale)} data-testid="decade-journey-link">
+        {t(locale, "about.journeyLink")}
+      </a>
+    </div>
   </div>
 
   {
@@ -61,6 +71,13 @@ const { decade, milestones }: Props = Astro.props;
 
   .decade__intro :global(.heading) {
     margin-bottom: 0;
+  }
+
+  .decade__link {
+    display: inline-block;
+    margin-top: var(--space-sm);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
   }
 
   .decade__lead {

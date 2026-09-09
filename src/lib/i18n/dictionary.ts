@@ -61,6 +61,8 @@ const dictionaries = {
     "solutions.relatedInsights": "İlgili notlar",
     "product.realScreen": "Gerçek ürün ekranı",
     "product.relatedSolutions": "İlgili çözüm alanları",
+    "about.jumpToYear": "Yıla git",
+    "about.journeyLink": "On yılın kaydını görün",
     "solutions.technologies": "Çözüm kapsamında kullandığımız teknolojiler",
     "solutions.empty": "Yayınlanabilir çözüm kaydı bulunmuyor.",
 
@@ -141,6 +143,8 @@ const dictionaries = {
     "solutions.relatedInsights": "Related notes",
     "product.realScreen": "Real product screen",
     "product.relatedSolutions": "Related solution areas",
+    "about.jumpToYear": "Jump to year",
+    "about.journeyLink": "See the record of ten years",
     "solutions.technologies": "Technologies we work with in this area",
     "solutions.empty": "No publishable solution record.",
 

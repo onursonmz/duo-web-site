@@ -159,6 +159,11 @@ export const milestoneSchema = z
     summary: z.string().min(1),
     solutionRefs: z.array(reference("solutions")).default([]),
     verificationStatus: verificationStatusEnum,
+    /**
+     * Kaydın hangi kaynaktan geldiği. ZORUNLUDUR: doğrulama izi olmayan bir
+     * kilometre taşı yayına giremez (S09 §12).
+     */
+    source: z.string().min(1),
   })
   .strict();
 
@@ -423,6 +428,85 @@ export const productSchema = z
         labelKey: z.string().min(1),
         /** CTA konusu KAPALI ürün allowlist'inden gelir. */
         topic: z.enum(["cyclops"]),
+      })
+      .strict(),
+    seo: seoSchema,
+  })
+  .strict();
+
+/* ------------------------------------------------------------------ S09 */
+
+/**
+ * HAKKIMIZDA SAYFASI.
+ *
+ * İÇERİK GÜVENLİĞİ: müşteri sayısı, sektör adı, iş ortaklığı, ekip üyesi adı,
+ * fotoğraf veya kişisel veri için ALAN YOKTUR. Ekip anlatısı yalnızca ROL ve
+ * YETKİNLİK düzeyindedir; `.strict()` başka bir alanı kabul etmez.
+ *
+ * Zaman çizelgesi buradan DEĞİL, `milestones` koleksiyonundan gelir: yalnızca
+ * doğrulanmış kayıtlar render edilir.
+ */
+const aboutBlockSchema = z
+  .object({
+    title: z.string().min(1),
+    body: z.string().min(1),
+  })
+  .strict();
+
+export const aboutSchema = z
+  .object({
+    id: z.string().min(1),
+    locale: localeEnum,
+    slug: slugSchema,
+    status: statusEnum,
+    eyebrow: z.string().min(1),
+    title: z.string().min(1),
+    lead: z.string().min(1),
+    /** Duosis hangi problemi çözmek için var? */
+    purpose: aboutBlockSchema,
+    /** Nasıl çalışıyor + entegratörden farkı. */
+    approach: aboutBlockSchema,
+    difference: aboutBlockSchema,
+    ownProduct: aboutBlockSchema,
+    support: aboutBlockSchema,
+    /** Çalışma modeli: analiz → tasarım → uygulama → eğitim ve destek. */
+    workModelTitle: z.string().min(1),
+    workModel: z
+      .array(
+        z
+          .object({
+            key: z.enum(["analysis", "design", "delivery", "support"]),
+            title: z.string().min(1),
+            body: z.string().min(1),
+          })
+          .strict()
+      )
+      .length(4),
+    /** Roller — KİŞİ DEĞİL. Ad, unvan, fotoğraf veya profil alanı yoktur. */
+    teamTitle: z.string().min(1),
+    teamNote: z.string().min(1),
+    team: z
+      .array(
+        z
+          .object({
+            key: z.enum(["architecture", "platform", "automation", "operations"]),
+            title: z.string().min(1),
+            body: z.string().min(1),
+          })
+          .strict()
+      )
+      .length(4),
+    /** Zaman çizelgesi başlığı; kayıtlar `milestones` koleksiyonundan gelir. */
+    journeyTitle: z.string().min(1),
+    journeyLead: z.string().min(1),
+    /** Bölgeler `regions` koleksiyonundan gelir; burada yalnızca üst metin. */
+    regionsTitle: z.string().min(1),
+    regionsLead: z.string().min(1),
+    cta: z
+      .object({
+        title: z.string().min(1),
+        body: z.string().min(1),
+        labelKey: z.string().min(1),
       })
       .strict(),
     seo: seoSchema,

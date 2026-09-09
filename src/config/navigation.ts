@@ -1,6 +1,7 @@
 import type { Locale } from "@lib/content/schema";
 import type { TranslationKey } from "@lib/i18n/dictionary";
 import {
+  aboutPath,
   contactPath,
   cyclopsPath,
   homePath,
@@ -60,7 +61,11 @@ export const PRIMARY_NAV: readonly NavItem[] = [
     status: "active",
   },
   { labelKey: "nav.services", href: () => null, status: "planned", plannedIn: "S09" },
-  { labelKey: "nav.about", href: () => null, status: "planned", plannedIn: "S10" },
+  {
+    labelKey: "nav.about",
+    href: (locale) => aboutPath(locale),
+    status: "active",
+  },
   {
     labelKey: "nav.contact",
     href: (locale) => contactPath(locale),

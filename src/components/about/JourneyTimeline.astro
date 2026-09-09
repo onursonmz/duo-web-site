@@ -1,0 +1,215 @@
+---
+/**
+ * ON YILIN KAYDI — ZAMAN ÇİZELGESİ.
+ *
+ * KAYIT KAYNAĞI: `milestones` koleksiyonu. Yalnızca `published` + `verified`
+ * kayıtlar gelir; doğrulanmamış bir yıl buraya YAZILAMAZ. Yıl tekilliği
+ * seçicide denetlenir (`getMilestones`), çakışmada build kırılır.
+ *
+ * DERİN BAĞLANTI: her yılın kararlı bir çapa kimliği vardır (`#yil-2016` /
+ * `#year-2016`). Yıl navigasyonu GERÇEK bağlantılar kullanır; JavaScript
+ * kapalıyken de çalışır. Hedef başlık `tabindex="-1"` taşır, böylece atlayan
+ * klavye kullanıcısı için odak anlamlı bir yere gider.
+ *
+ * HAREKET: yumuşak kaydırma yalnızca hareket açıkken uygulanır.
+ */
+import type { CollectionEntry } from "astro:content";
+import type { Locale } from "@lib/content/schema";
+
+interface Props {
+  locale: Locale;
+  milestones: CollectionEntry<"milestones">[];
+  /** Bölümün kendi çapası: /hakkimizda/#yolculuk */
+  sectionId: string;
+  title: string;
+  lead: string;
+  jumpLabel: string;
+}
+
+const { locale, milestones, sectionId, title, lead, jumpLabel }: Props = Astro.props;
+
+/** Kararlı çapa kimliği; locale'e göre okunur bir önek taşır. */
+const anchorFor = (year: number): string => `${locale === "tr" ? "yil" : "year"}-${year}`;
+
+const latestYear = milestones.at(-1)?.data.year;
+---
+
+{
+  milestones.length > 0 && (
+    <section id={sectionId} aria-labelledby={`${sectionId}-heading`} data-testid="journey">
+      <h2 id={`${sectionId}-heading`}>{title}</h2>
+      <p class="journey__lead">{lead}</p>
+
+      <nav class="journey__jump" aria-label={jumpLabel}>
+        <ul>
+          {milestones.map((milestone) => (
+            <li>
+              <a href={`#${anchorFor(milestone.data.year)}`}>{milestone.data.year}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <ol class="journey" data-testid="journey-list">
+        {milestones.map((milestone) => (
+          <li
+            class="journey__item"
+            data-year={milestone.data.year}
+            data-latest={milestone.data.year === latestYear ? "true" : undefined}
+          >
+            <h3
+              class="journey__year"
+              id={anchorFor(milestone.data.year)}
+              tabindex="-1"
+              data-testid="journey-year"
+            >
+              {milestone.data.year}
+            </h3>
+            <p class="journey__title">{milestone.data.title}</p>
+            <p class="journey__summary">{milestone.data.summary}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
+<style>
+  .journey__lead {
+    max-width: 60ch;
+    color: var(--text-secondary);
+  }
+
+  /* --------------------------------------------------------- yıl atlama */
+
+  .journey__jump ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-sm);
+    margin: var(--space-md) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .journey__jump a {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-decoration: none;
+    color: var(--text-secondary);
+    border-bottom: var(--border-width) solid var(--border-strong);
+  }
+
+  .journey__jump a:hover {
+    color: var(--signal);
+    border-bottom-color: var(--signal);
+  }
+
+  /* --------------------------------------------------------- yıl rayı */
+
+  .journey {
+    margin: var(--space-xl) 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .journey__item {
+    display: grid;
+    gap: var(--space-2xs) var(--space-lg);
+    padding: var(--space-lg) 0;
+    border-bottom: var(--border-width) solid var(--border-subtle);
+  }
+
+  /*
+   * Command Atlas ile AYNI ızgara mantığı: sol etiket rayı + okunur ölçüde
+   * gövde sütunu. Mobilde tek sütun akış; yatay sürükleme YOK.
+   */
+  @media (min-width: 56rem) {
+    .journey__item {
+      grid-template-columns: minmax(0, 10rem) minmax(0, 46rem);
+      align-items: start;
+    }
+  }
+
+  .journey__year {
+    grid-column: 1;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-medium);
+    line-height: 1;
+    letter-spacing: var(--tracking-tight);
+    color: var(--text-muted);
+    /* Sticky bir başlık eklenirse içeriği kapatmasın diye pay bırakılır. */
+    scroll-margin-top: var(--space-2xl);
+  }
+
+  .journey__year:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .journey__title,
+  .journey__summary {
+    grid-column: 1;
+  }
+
+  @media (min-width: 56rem) {
+    .journey__title,
+    .journey__summary {
+      grid-column: 2;
+    }
+  }
+
+  .journey__title {
+    margin: 0;
+    max-width: none;
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+  }
+
+  .journey__summary {
+    margin: var(--space-3xs) 0 0;
+    color: var(--text-secondary);
+  }
+
+  /* Sinyal çizgisi: ölçülü, yalnızca ray boyunca. */
+  .journey__item {
+    position: relative;
+  }
+
+  .journey__item::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block: var(--space-lg);
+    inline-size: var(--border-width-strong);
+    background: var(--border-subtle);
+  }
+
+  @media (min-width: 56rem) {
+    .journey__item::before {
+      inset-inline-start: calc(10rem - var(--space-lg) / 2);
+    }
+  }
+
+  /* Son düğüm: 10. yıl. Bakır vurgu YALNIZCA burada. */
+  .journey__item[data-latest] .journey__year {
+    color: var(--action);
+  }
+
+  .journey__item[data-latest]::before {
+    background: var(--action);
+  }
+
+  /*
+   * Yumuşak kaydırma yalnızca hareket açıkken. `prefers-reduced-motion`
+   * altında anında atlar; derin bağlantı davranışı değişmez.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html) {
+      scroll-behavior: smooth;
+    }
+  }
+</style>

@@ -1,12 +1,12 @@
 ---
-translationKey: founding-2016
+translationKey: data-streaming-2024
 locale: tr
 status: published
-year: 2016
+year: 2024
 datePrecision: year
-title: Duosis'in kuruluşu
+title: Veri akışı ve modern gözlemlenebilirlik
 summary: >-
-  Duosis, kurumsal BT operasyon yönetimi odağıyla yola çıktı.
+  Veri akışı ve modern gözlemlenebilirlik ekosistemi çalışma alanında genişledi.
 solutionRefs: []
 verificationStatus: verified
 source: Kullanıcı tarafından sağlanan 10. yıl manifestosu (duosis-10-yil-manifesto.html, SHA-256 beb51261…d049)

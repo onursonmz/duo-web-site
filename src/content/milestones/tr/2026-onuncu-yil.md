@@ -1,12 +1,12 @@
 ---
-translationKey: founding-2016
+translationKey: tenth-year-2026
 locale: tr
 status: published
-year: 2016
+year: 2026
 datePrecision: year
-title: Duosis'in kuruluşu
+title: Duosis'in 10. yılı
 summary: >-
-  Duosis, kurumsal BT operasyon yönetimi odağıyla yola çıktı.
+  Onuncu yıl; kendi ürünlerimizle sinyalden aksiyona uzanan bir yaklaşım.
 solutionRefs: []
 verificationStatus: verified
 source: Kullanıcı tarafından sağlanan 10. yıl manifestosu (duosis-10-yil-manifesto.html, SHA-256 beb51261…d049)
