@@ -105,8 +105,13 @@ test.describe("public arayüzde iç süreç dili yok", () => {
     });
   }
 
-  test("META ve OG metinleri de iç süreç dili taşımıyor", async ({ page }) => {
-    for (const route of PUBLIC_ROUTES) {
+  /*
+   * Rota başına AYRI test: 25 rotayı tek testin içinde gezmek zaman aşımına
+   * takılıyordu ve hangi rotanın patladığı da görünmüyordu. Süre limiti
+   * yükseltilmedi; kapsam bölündü.
+   */
+  for (const route of PUBLIC_ROUTES) {
+    test(`${route} — META ve OG metinleri iç süreç dili taşımıyor`, async ({ page }) => {
       await page.goto(route);
       const meta = await page.evaluate(() =>
         [...document.querySelectorAll('meta[name="description"], meta[property^="og:"]')]
@@ -117,18 +122,19 @@ test.describe("public arayüzde iç süreç dili yok", () => {
       for (const phrase of FORBIDDEN_PHRASES) {
         expect(lower.includes(phrase), `${route} metadata "${phrase}" içeriyor`).toBe(false);
       }
-    }
-  });
+      for (const word of FORBIDDEN_WORDS) {
+        expect(word.test(lower), `${route} metadata ${word} içeriyor`).toBe(false);
+      }
+    });
 
-  test("BOŞ DURUM kutusu gösterilmiyor", async ({ page }) => {
-    for (const route of PUBLIC_ROUTES) {
+    test(`${route} — BOŞ DURUM kutusu gösterilmiyor`, async ({ page }) => {
       await page.goto(route);
       const visible = (await page.locator("body").innerText()).toLocaleLowerCase("tr");
       for (const phrase of ["veri bekleniyor", "yakında", "coming soon", "kayıt bulunmuyor"]) {
         expect(visible.includes(phrase), `${route} "${phrase}" gösteriyor`).toBe(false);
       }
-    }
-  });
+    });
+  }
 
   test("/design-system dahili önizleme NAVİGASYONDA yok", async ({ page }) => {
     for (const route of ["/", "/en/", "/cozumler/"]) {
