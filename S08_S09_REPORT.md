@@ -359,13 +359,42 @@ hiçbir viewport'ta yatay taşma yok.
 
 ## 16. Paketler
 
-(Rapor commit edildikten sonra üretilir; boyut ve SHA-256 aşağıda güncellenir.)
+Her ikisi de **final rapor commit'inden sonra** üretildi.
+
+| Paket                              | Boyut  | Doğrulama                                          |
+| ---------------------------------- | ------ | -------------------------------------------------- |
+| `duosis-web-S08-S09-evidence.zip`  | 3.9 MB | 28 dosya · `testzip` temiz · yol taraması temiz    |
+| `duosis-web-S08-S09-review.bundle` | 1.4 MB | `git bundle verify` → "records a complete history" |
+
+**Evidence ZIP SHA-256:**
+`4ab3ce7496b8728386e49f528c314412d119cd8657f0d5951cd9e817024e44dd`
+
+**Bundle SELF-CONTAINED:** `git bundle create … HEAD <branch>` ile üretildi;
+prerequisite commit gerektirmez. Boş bir dizinde tek başına doğrulandı:
+
+```
+git clone duosis-web-S08-S09-review.bundle <bos-dizin>
+→ 85ab1c2 docs(web): S08+S09 teslim raporunu kayda al   (temiz çalışma ağacı)
+```
+
+Bundle içinde ham master yok (`.pptx`, `.pdf`, `.ai`, manifesto HTML'i: 0 kayıt).
+
+> **Bundle SHA-256 neden burada değil:** bundle, bu raporu içeren commit'i de
+> taşır; hash'i rapora yazmak commit'i değiştirir ve hash'i geçersiz kılar.
+> Değer, paketlerin yanındaki `PACKAGES.sha256` dosyasında verilir ve ZIP
+> hash'iyle birlikte teslim mesajında tekrarlanır.
 
 ---
 
 ## 17. `git status --short`
 
-(Aşağıda, paketlerle birlikte güncellenir.)
+Final HEAD'de çalışma ağacı temizdir; yalnızca teslim paketleri ve `evidence/`
+(gitignore kapsamında) repo dışında durur:
+
+```
+$ git status --short
+(boş)
+```
 
 ---
 
