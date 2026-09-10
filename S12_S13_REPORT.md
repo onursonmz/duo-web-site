@@ -430,6 +430,14 @@ SaaS yuvarlaklığı ve gölge kullanılmadı.
 | `pnpm seo:report`                        | —                  | 64 sayfa, 0 ihlal  |
 | `pnpm audit --prod`                      | bilinen açık yok   | bilinen açık yok   |
 
+### Uzak CI
+
+| Koşu                                                                 | Sonuç                 |
+| -------------------------------------------------------------------- | --------------------- |
+| `https://github.com/onursonmz/duo-web-site/actions/runs/34528452647` | **yeşil**, 7 dk 31 sn |
+
+CI, yerelle **tam aynı** komutu koşar: `pnpm quality`.
+
 ### Temiz klon + frozen install
 
 Depo ayrı bir dizine **klonlandı** ve `pnpm install --frozen-lockfile` ile
@@ -450,11 +458,17 @@ bütçesini aşmaya başladı.
 başına kendi bütçesi. Ek fayda: hatalı sayfa artık doğrudan test adından
 okunuyor. Bu, depoda daha önce de uygulanmış bir çözümün tekrarıdır.
 
-CI da ölçüme göre ayarlandı: `workers` 1'den **2**'ye, iş adımı bütçesi
-20'den **40 dakikaya**. Yerelde iki worker'la koşu 19 dakika sürüyor; tek
-worker bunun yaklaşık iki katıdır ve eski 20 dakikalık bütçe artık yetmezdi.
-GitHub `ubuntu-latest` çalıştırıcısı 4 vCPU taşıdığı için iki worker aşırı
-abonelik değildir; `retries: 1` yerinde durmaktadır.
+CI da ayarlandı: `workers` 1'den **2**'ye, iş adımı bütçesi 20'den
+**40 dakikaya**. GitHub `ubuntu-latest` çalıştırıcısı 4 vCPU taşıdığı için iki
+worker aşırı abonelik değildir; `retries: 1` yerinde durmaktadır.
+
+**Burada bir tahmin düzeltilmelidir.** Değişikliği yaparken gerekçe şuydu:
+"yerelde iki worker 19 dakika sürüyor, CI'da tek worker bunun iki katı olur ve
+20 dakikalık bütçeyi aşar." Bu bir TAHMİNDİ; CI'da tek worker hiç ölçülmedi.
+Gerçek koşu, iki worker ile **7 dakika 31 saniyede** tamamlandı (kurulum ve
+tarayıcı indirme dâhil) — GitHub çalıştırıcısı bu makineden belirgin biçimde
+hızlı. Yani `workers: 2` değişikliği ölçümle doğrulandı, fakat 40 dakikalık
+bütçe gerekli olduğu için değil, **pay bırakmak için** duruyor.
 
 ### Ortam kaynaklı bir kesinti ve neden rapor edilmediği
 
