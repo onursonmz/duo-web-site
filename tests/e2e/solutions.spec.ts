@@ -267,17 +267,32 @@ test.describe("teknoloji sunumu", () => {
    * Kapsam daraltması bir BOŞLUK bırakmadı: teknoloji listesi hâlâ tam
    * olarak denetleniyor. Çözümün teknoloji bölümü yalnızca o çözüme bağlı
    * kayıtları taşıyabilir.
+   *
+   * ERİŞİLEBİLİR AD ÜZERİNDEN ÖLÇÜLÜR, görünür metin üzerinden değil.
+   * İzin verilen bir logo varsa ad METİN OLARAK TEKRAR ETMEZ; `<img alt>`
+   * içinde durur (S08 kararı — ekran okuyucu adı yine duyurur, göz iki kez
+   * okumaz). `innerText()` bu adı görmediği için liste boş görünüyordu.
    */
+  async function technologyNames(page: Page): Promise<string[]> {
+    return page.locator('[data-testid="technology-list"] li').evaluateAll((items) =>
+      items.map((item) => {
+        const image = item.querySelector("img");
+        const alt = image?.getAttribute("alt") ?? "";
+        return `${item.textContent ?? ""} ${alt}`.trim();
+      })
+    );
+  }
+
   test("teknoloji listesi çözüm sınırının dışına taşmıyor", async ({ page }) => {
     await page.goto(trPath("aiops-ve-olay-yasam-dongusu"));
-    const aiopsTech = await page.getByTestId("technology-list").innerText();
-    expect(aiopsTech).toContain("CyclOps");
-    expect(aiopsTech).not.toContain("Zabbix");
+    const aiops = (await technologyNames(page)).join(" | ");
+    expect(aiops, "AIOps listesi CyclOps taşımalı").toContain("CyclOps");
+    expect(aiops, "AIOps listesi bir izleme ürünü taşımamalı").not.toContain("Zabbix");
 
     await page.goto(DEEP[0].path);
-    const observabilityTech = await page.getByTestId("technology-list").innerText();
-    expect(observabilityTech).toContain("Zabbix");
-    expect(observabilityTech).not.toContain("CyclOps");
+    const observability = (await technologyNames(page)).join(" | ");
+    expect(observability, "observability listesi Zabbix taşımalı").toContain("Zabbix");
+    expect(observability, "observability listesi CyclOps taşımamalı").not.toContain("CyclOps");
   });
 });
 
