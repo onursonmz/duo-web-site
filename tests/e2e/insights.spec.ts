@@ -294,25 +294,43 @@ test.describe("uzun yazı şablonu", () => {
   });
 
   /**
-   * GENİŞ TABLO SAYFAYI DEĞİL KENDİNİ KAYDIRIR.
-   * En dar ekranda tablonun kendi kabı taşarken sayfa taşmamalı.
+   * TABLO VE KOD BLOĞU SAYFAYI TAŞIRMAZ.
+   *
+   * İkisi de KAYDIRMA yerine SARMA kullanıyor (bkz. InsightArticle): kaydırılabilir
+   * bir bölge hiç oluşmadığı için klavye erişimi sorunu da oluşmuyor.
+   * Burada ölçülen, en dar ekranda hiçbirinin kabını aşmadığıdır.
    */
-  test("geniş tablo kendi kabında kayıyor, sayfayı taşırmıyor", async ({ page }) => {
+  test("tablo ve kod bloğu en dar ekranda kabını aşmıyor", async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 800 });
     await page.goto(DEEP);
 
     const table = page.locator(".article__body table").first();
     await expect(table).toBeVisible();
 
-    // Tablo KENDİ kaydırma kabıdır.
-    const overflow = await table.evaluate((el) => getComputedStyle(el).overflowX);
-    expect(overflow, "tablo kendi kaydırma kabı olmalı").toBe("auto");
+    const contained = await table.evaluate((el) => {
+      const parent = el.parentElement;
+      return parent === null ? false : el.scrollWidth <= parent.clientWidth + 1;
+    });
+    expect(contained, "tablo kendi kabını aşmamalı").toBe(true);
 
-    const scrolls = await table.evaluate((el) => el.scrollWidth > el.clientWidth);
-    expect(scrolls, "dar ekranda tablo kendi içinde kaydırılabilir olmalı").toBe(true);
+    const overflowing = await horizontalOverflow(page);
+    expect(overflowing.scrollW, "tablo sayfayı taşırmamalı").toBeLessThanOrEqual(
+      overflowing.viewportW
+    );
+  });
 
-    const page_ = await horizontalOverflow(page);
-    expect(page_.scrollW, "tablo sayfayı taşırmamalı").toBeLessThanOrEqual(page_.viewportW);
+  /**
+   * KLAVYE TUZAĞI YOK: kaydırılabilir bölge oluşmadığı için `tabindex`
+   * gerektiren bir alan da yok. axe bunu `scrollable-region-focusable` ile
+   * denetler; en dar ekranda çalıştırılıyor çünkü taşma ancak orada oluşur.
+   */
+  test("@a11y 320px uzun yazıda kaydırılabilir bölge ihlali yok", async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 800 });
+    await page.goto(DEEP);
+    const result = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+      .analyze();
+    expect(result.violations).toEqual([]);
   });
 
   test("okuma sütunu makul genişlikte kalıyor", async ({ page }) => {

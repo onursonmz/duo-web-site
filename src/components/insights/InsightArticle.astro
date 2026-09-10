@@ -203,15 +203,25 @@ const data = insight.data;
 
   /* ------------------------------------------------------------ kod */
 
+  /*
+   * KOD BLOĞU SARILIR, KAYDIRILMAZ — ERİŞİLEBİLİRLİK KARARI.
+   *
+   * Kaydırılabilir bir bölge, klavyeyle kaydırılabilmesi için `tabindex="0"`
+   * ister (WCAG 2.1.1; axe `scrollable-region-focusable`). Markdown'dan
+   * üretilen `<pre>` elemanına şablondan tabindex eklenemiyor ve bunu bir
+   * rehype eklentisiyle yapmak, Astro 7'de artık varsayılan olmayan legacy
+   * markdown işlemcisini geri kurmayı gerektiriyordu — tüm içeriğin
+   * dönüşümünü değiştiren, orantısız bir bağımlılık.
+   *
+   * `pre-wrap` sorunu KAYNAĞINDA çözüyor: kaydırılabilir bölge hiç oluşmuyor,
+   * dolayısıyla klavye tuzağı da yok. Uzun satır sarılır; teknik yazılardaki
+   * kısa kod parçaları için okunabilirlik kaybı yok.
+   */
   .article__body :global(pre) {
-    /*
-     * Kod bloğu KENDİ kabında kayar. `tabindex` markdown çıktısına
-     * eklenemediği için kaydırılabilir alan doğrudan <pre> üzerindedir ve
-     * klavyeyle odaklanabilir olması aşağıdaki kuralla sağlanır.
-     */
     margin: var(--space-md) 0;
     padding: var(--space-sm) var(--space-md);
-    overflow-x: auto;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
     max-width: 100%;
     background: var(--surface-sunken);
     border: var(--border-width) solid var(--border-subtle);
@@ -220,49 +230,82 @@ const data = insight.data;
     line-height: 1.5;
   }
 
-  .article__body :global(pre:focus-visible) {
-    outline: var(--focus-ring-width) solid var(--focus-ring);
-    outline-offset: var(--focus-ring-offset);
-  }
-
   .article__body :global(:not(pre) > code) {
     padding: 0.1em 0.3em;
     background: var(--surface-sunken);
     border-radius: var(--radius-sm);
   }
 
+  /* ---------------------------------------------------------- callout */
+
+  /*
+   * UYARI / NOT KUTUSU.
+   *
+   * Markdown'ın native bir callout sözdizimi yok. `> [!NOTE]` gibi bir
+   * uzantı için eklenti kurmak yerine yazarlar doğrudan `<aside class="callout">`
+   * yazıyor: Astro markdown içinde ham HTML'e izin veriyor ve `<aside>`
+   * semantik olarak zaten "asıl akışın yanındaki içerik" demek.
+   *
+   * Renk TEK BAŞINA anlam taşımıyor (WCAG 1.4.1): kutunun başlığı metin
+   * olarak yazılır ("Not", "Uyarı"), sınır rengi yalnızca onu destekler.
+   */
+  .article__body :global(.callout) {
+    margin: var(--space-lg) 0;
+    padding: var(--space-sm) var(--space-md);
+    border: var(--border-width) solid var(--border-subtle);
+    border-left-width: var(--border-width-strong);
+    border-left-color: var(--signal);
+    border-radius: var(--radius-md);
+    background: var(--surface-sunken);
+    font-size: var(--text-sm);
+  }
+
+  .article__body :global(.callout--warning) {
+    border-left-color: var(--status-warning);
+  }
+
+  .article__body :global(.callout > :last-child) {
+    margin-bottom: 0;
+  }
+
+  .article__body :global(.callout__label) {
+    display: block;
+    margin-bottom: var(--space-3xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
   /* ------------------------------------------------------------ tablo */
 
   /*
-   * GENİŞ TABLO SAYFAYI TAŞIRMAZ.
-   * `display: block` + `overflow-x: auto` tabloyu kendi kabına hapseder.
-   * Semantik kaybolmasın diye satır/sütun yapısı korunur; yalnızca dış
-   * kutunun taşma davranışı değişir.
+   * TABLO SAYFAYI TAŞIRMAZ — kod bloğuyla AYNI karar.
+   *
+   * `table-layout: fixed` + `width: 100%` sütunları kaba genişliğe sığdırır ve
+   * hücre metni sarılır. Kaydırılabilir bölge oluşmadığı için klavye erişimi
+   * sorunu da oluşmaz.
+   *
+   * Bunun bir SINIRI var ve bilinçli kabul edildi: çok sütunlu bir tablo dar
+   * ekranda okunaksız hâle gelir. `docs/CONTENT_AUTHORING.md` bu yüzden geniş
+   * tablo yerine listeye bölmeyi öneriyor.
    */
   .article__body :global(table) {
-    display: block;
-    overflow-x: auto;
+    width: 100%;
     max-width: 100%;
     margin: var(--space-md) 0;
+    table-layout: fixed;
     border-collapse: collapse;
     font-size: var(--text-sm);
   }
 
-  .article__body :global(table:focus-visible) {
-    outline: var(--focus-ring-width) solid var(--focus-ring);
-    outline-offset: var(--focus-ring-offset);
-  }
-
   .article__body :global(th),
   .article__body :global(td) {
-    /*
-     * `min-width` olmadan `display: block` tablo dar ekranda sütunları
-     * kelime kelime sarmalayarak eziyordu: teknik olarak taşma yok ama
-     * karşılaştırma da okunmuyordu. Alt sınır verildiğinde tablo kendi
-     * kabında KAYIYOR ve sütunlar okunabilir kalıyor.
-     */
-    min-width: 7rem;
     padding: var(--space-2xs) var(--space-sm);
+    /* Uzun bir terim sütunu taşırmasın: kelime içinde de kırılabilir. */
+    overflow-wrap: break-word;
     border-bottom: var(--border-width) solid var(--border-subtle);
     text-align: left;
     vertical-align: top;

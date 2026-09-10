@@ -151,8 +151,14 @@ Dördüncü bölüm atlanmaz: sınırı olmayan bir öneri, pazarlama metnidir.
 Gövdede `#` (h1) **kullanılmaz** — sayfa başlığı şablondan gelir ve tek H1
 kuralı vardır. Bölümler `##`, alt bölümler `###` ile açılır.
 
-Tablo ve kod blokları desteklenir; ikisi de kendi kabında kayar ve sayfayı
-taşırmaz.
+Tablo ve kod blokları desteklenir. İkisi de **kaydırılmaz, sarılır**: kod
+satırları sarmalanır, tablo sütunları kaba sığdırılır. Bunun nedeni
+erişilebilirlik — kaydırılabilir bir bölge klavyeyle kaydırılabilmek için
+`tabindex` ister ve markdown çıktısına şablondan öznitelik eklenemiyor.
+
+Pratik sonucu: **üç sütundan geniş tablo kullanmayın.** Dar ekranda okunaksız
+hâle gelir. Daha fazla boyut karşılaştırmanız gerekiyorsa tabloyu başlıklı
+listelere bölün.
 
 ---
 

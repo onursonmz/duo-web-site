@@ -100,6 +100,27 @@ yerine saniyeler içinde başlatır.
 değişikliği. Operasyonel arızaların önemli bir kısmı bir değişikliğin hemen
 ardından gelir; bu bağı kurmak kök neden analizinin en kısa yoludur.
 
+Kabaca söylemek gerekirse, ham sinyal ile zenginleştirilmiş olay arasındaki
+fark şudur — aşağıdaki yapı örnekleme amaçlıdır, belirli bir ürünün veri
+modeli değildir:
+
+```
+ham sinyal        : host=db-07  item=disk.used  value=91  ts=02:14
+zenginleştirilmiş : servis      = odeme-api
+                    ortam       = prod
+                    sahip       = odeme-ekibi
+                    ilişkili    = 5 diğer sinyal (aynı 3 dk)
+                    son değişim = 01:58 dağıtım #4812
+                    geçmiş      = 3 kez görüldü, son çözüm: kayıt #2291
+```
+
+<aside class="callout">
+  <span class="callout__label">Not</span>
+  Zenginleştirme yeni bilgi ÜRETMEZ; kurumda zaten var olan fakat ayrı
+  sistemlerde duran bilgiyi sinyalin yanına getirir. Envanter eksikse veya
+  değişiklik kayıtları tutulmuyorsa, bu katman da boş kalır.
+</aside>
+
 Zenginleştirmenin amacı bildirimi süslemek değil, **nöbetteki kişinin ilk beş
 dakikada sorması gereken soruları önceden yanıtlamaktır**.
 
@@ -125,6 +146,13 @@ Bu dördü sağlanmadığında otomasyon operasyonu hızlandırmaz, yalnızca ha
 yapma hızını artırır. Yanlış tanımlanmış bir olaya bağlanan otomatik bir
 aksiyon, gece yarısı sessizce yanlış sunucuyu yeniden başlatır ve bunu kimse
 sabaha kadar fark etmez.
+
+<aside class="callout callout--warning">
+  <span class="callout__label">Uyarı</span>
+  Otomatik aksiyonu, olay tanımı olgunlaşmadan devreye almayın. Yanlış
+  tanımlanmış bir olaya bağlanan aksiyon, hatayı düzeltmez — yalnızca daha
+  hızlı yapar.
+</aside>
 
 Pratikte olgunlaşma sırası genellikle şudur: önce **öneri** (sistem ne
 yapılabileceğini söyler, insan onaylar), sonra **onaylı aksiyon** (insan tek
