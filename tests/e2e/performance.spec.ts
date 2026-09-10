@@ -109,17 +109,23 @@ test.describe("kümülatif düzen kayması", () => {
   }
 });
 
+/*
+ * ROTA BAŞINA AYRI TEST.
+ *
+ * Bu iki kontrol önce tüm kritik rotaları TEK test içinde geziyordu. Süit
+ * S13'te ~975 teste çıkınca paralel yük altında 30 sn'lik bütçe aşıldı.
+ * Süre limiti yükseltilmedi; kapsam bölündü — aynı kural, aynı rotalar,
+ * rota başına kendi bütçesi ve hata mesajında doğrudan rota adı.
+ */
 test.describe("çıktı biçimi", () => {
-  test("hiçbir sayfa UI framework runtime'ı yüklemiyor", async ({ page }) => {
-    for (const route of CRITICAL_ROUTES) {
+  for (const route of CRITICAL_ROUTES) {
+    test(`${route}: UI framework runtime'ı yüklenmiyor`, async ({ page }) => {
       await page.goto(route);
       const html = await page.content();
       expect(html, route).not.toMatch(/astro-island|client:load|client:visible|client:idle/);
-    }
-  });
+    });
 
-  test("script kaynakları yalnızca kendi origin'imizden", async ({ page }) => {
-    for (const route of CRITICAL_ROUTES) {
+    test(`${route}: script kaynakları yalnızca kendi origin'imizden`, async ({ page }) => {
       await page.goto(route);
       const sources = await page
         .locator("script[src]")
@@ -127,6 +133,6 @@ test.describe("çıktı biçimi", () => {
       for (const src of sources) {
         expect(src.startsWith("/"), `${route} harici script: ${src}`).toBe(true);
       }
-    }
-  });
+    });
+  }
 });

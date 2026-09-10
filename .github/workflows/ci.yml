@@ -22,7 +22,8 @@ jobs:
   quality:
     name: Quality gates
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # S13'te süit ~1005 E2E testine çıktı; 20 dakika artık yetmiyordu.
+    timeout-minutes: 40
 
     steps:
       - name: Checkout (temiz)

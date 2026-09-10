@@ -1,0 +1,64 @@
+---
+/**
+ * 410 — KALDIRILMIŞ İÇERİK (S13 URL migrasyonu).
+ *
+ * Eski sitede karşılığı olan ama YENİ sitede karşılığı OLMAYAN 11 adres
+ * (bkz. `src/config/redirects.ts`, `kind: "410"`) buraya bağlanır. Bu
+ * adresler ana sayfaya YÖNLENDİRİLMEZ: körlemesine ana sayfaya atmak,
+ * arama motoruna "bu içerik ana sayfaya taşındı" demektir ve doğru değildir.
+ * Gerçek durum içeriğin KALDIRILMIŞ olmasıdır — 410 tam olarak bunu söyler.
+ *
+ * Sayfa `noindex` taşır ve sitemap'e HİÇ girmez (`NEVER_INDEXED`). HTTP 410
+ * durum kodunu sunucu üretir; statik çıktı yalnızca gövdeyi sağlar
+ * (`dist/_redirects` ve `dist/nginx-redirects.conf` bu sayfayı gösterir).
+ */
+import BaseLayout from "@layouts/BaseLayout.astro";
+import { homePath, insightsIndexPath, solutionsIndexPath } from "@lib/i18n/routes";
+import { t } from "@lib/i18n/dictionary";
+import Button from "@components/ui/Button.astro";
+
+// 404 gibi tek dosyadır; varsayılan locale ile sunulur.
+const locale = "tr" as const;
+---
+
+<BaseLayout
+  locale={locale}
+  title="Bu sayfa kaldırıldı"
+  description="Aradığınız sayfa kaldırıldı ve yerine geçen bir sayfa yok. Çözüm alanlarına veya içgörülere göz atabilirsiniz."
+  noindex={true}
+>
+  <p class="gone__code">410</p>
+  <h1>Bu sayfa kaldırıldı</h1>
+
+  <p>
+    Aradığınız adres eski sitede vardı, ancak içerik kaldırıldı ve yerine geçen bir sayfa
+    bulunmuyor. Bu yüzden sizi rastgele bir sayfaya yönlendirmiyoruz.
+  </p>
+
+  <div class="gone__actions">
+    <Button variant="primary" href={homePath(locale)}>{t(locale, "nav.home")}</Button>
+    <Button variant="secondary" href={solutionsIndexPath(locale)}>
+      {t(locale, "nav.solutions")}
+    </Button>
+    <Button variant="secondary" href={insightsIndexPath(locale)}>
+      {t(locale, "nav.insights")}
+    </Button>
+  </div>
+</BaseLayout>
+
+<style>
+  .gone__code {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    letter-spacing: var(--tracking-wide);
+    color: var(--text-muted);
+  }
+
+  .gone__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+  }
+</style>

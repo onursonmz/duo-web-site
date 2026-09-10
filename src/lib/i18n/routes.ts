@@ -1,4 +1,5 @@
 import { DEFAULT_LOCALE, LOCALES, type Locale } from "@lib/content/schema";
+import { isTagKey, tagSlug } from "@config/tags";
 
 /**
  * URL tabanlı, deterministik locale çözümü ve yerelleştirilmiş yol üretimi.
@@ -127,8 +128,17 @@ export function insightSeriesPath(locale: Locale, slug: string): string {
   return localizedPath(locale, SEGMENTS[locale].insights, SEGMENTS[locale].series, slug);
 }
 
-/** İçgörü etiket yolu: /icgoruler/etiket/<slug>/ veya /en/insights/tag/<slug>/ */
-export function insightTagPath(locale: Locale, slug: string): string {
+/**
+ * İçgörü etiket yolu.
+ *
+ * Girdi dilden bağımsız KEY'dir; adres locale'in KENDİ slug'ıyla üretilir:
+ *   `data-flow` -> /icgoruler/etiket/veri-akisi/
+ *   `data-flow` -> /en/insights/tag/data-flow/
+ *
+ * Böylece İngilizce rotalarda Türkçe adres oluşmaz.
+ */
+export function insightTagPath(locale: Locale, key: string): string {
+  const slug = isTagKey(key) ? tagSlug(locale, key) : key;
   return localizedPath(locale, SEGMENTS[locale].insights, SEGMENTS[locale].tag, slug);
 }
 

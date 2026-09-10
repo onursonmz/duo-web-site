@@ -1,5 +1,6 @@
 import { reference } from "astro:content";
 import { z } from "astro/zod";
+import { TAG_KEYS_TUPLE } from "@config/tags";
 import { CTA_LABEL_KEYS } from "@lib/i18n/dictionary";
 import {
   SERVICE_TOPICS,
@@ -307,7 +308,12 @@ export const insightSchema = z
     /** Kapalı küme; yazım hatası yeni bir seri rotası ÜRETEMEZ. */
     series: insightSeriesEnum,
     /** Etiketler URL'de yaşar: ASCII kebab-case zorunlu. */
-    tags: z.array(slugSchema).default([]),
+    /**
+     * Etiketler dilden bağımsız KEY değerleridir (`src/config/tags.ts`).
+     * Kapalı küme: kayıtta olmayan bir etiket build'i kırar, dolayısıyla
+     * bilinmeyen bir etiket için rota da üretilemez.
+     */
+    tags: z.array(z.enum(TAG_KEYS_TUPLE)).default([]),
     authorRef: reference("authors"),
     relatedSolutionRefs: z.array(reference("solutions")).default([]),
     publishedAt: z.coerce.date().optional(),

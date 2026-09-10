@@ -10,6 +10,7 @@ import {
 } from "@lib/content/selectors";
 import { cyclopsPath } from "@lib/i18n/routes";
 import { t } from "@lib/i18n/dictionary";
+import { ldOrigin, softwareApplicationLd } from "@lib/seo/structuredData";
 
 // Üretim sayfası: PUBLIC modu AÇIKÇA kullanılır.
 const product = await getProduct("cyclops", "en", PUBLIC);
@@ -28,6 +29,19 @@ const allInsights = await getInsights("en", PUBLIC);
 const relatedInsights = allInsights.filter((insight) =>
   insight.data.relatedSolutionRefs.some((ref) => relatedIds.has(ref.id))
 );
+
+/*
+ * STRUCTURED DATA: CyclOps için `SoftwareApplication`. Sayfa gerçek ürün
+ * ekranları ve tanımlı bir işlev gösterdiği için tür uygundur. Sürüm, fiyat
+ * ve değerlendirme alanları YAZILMAZ — bunlar sayfada YOK.
+ */
+const softwareBlock = softwareApplicationLd({
+  siteUrl: ldOrigin(Astro.site, Astro.url),
+  path: cyclopsPath("en"),
+  name: product.data.name,
+  description: product.data.seo.description,
+  locale: "en",
+});
 ---
 
 <BaseLayout
@@ -36,6 +50,8 @@ const relatedInsights = allInsights.filter((insight) =>
   description={product.data.seo.description}
   alternates={alternates}
   noindex={product.data.seo.noindex}
+  ogImage="/og/og-cyclops.png"
+  jsonLd={[softwareBlock]}
   wide={true}
   breadcrumbs={[{ label: t("en", "nav.home"), href: "/en/" }, { label: product.data.name }]}
 >

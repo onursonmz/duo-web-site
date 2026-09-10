@@ -90,26 +90,42 @@ test.describe("rota envanteri", () => {
     });
   }
 
-  test("iç bağlantıların tamamı envanterdeki bir rotaya gidiyor", async ({ page }) => {
-    const targets = new Set<string>();
-    for (const route of PUBLIC_ROUTES) {
+  /*
+   * ROTA BAŞINA AYRI TEST.
+   *
+   * Bu tarama önce TEK bir test içinde 64 rotayı geziyordu ve S13'te rota
+   * sayısı büyüyünce 30 sn'lik test bütçesini aştı. Süre limitini YÜKSELTMEK
+   * sorunu ertelemek olurdu: tarama rota sayısıyla doğrusal büyüyor. Bunun
+   * yerine kapsam bölündü — aynı kural, aynı kapsam, rota başına kendi
+   * bütçesi. Ek fayda: kırık bağlantıyı taşıyan sayfa artık doğrudan test
+   * adından okunuyor.
+   */
+  for (const route of PUBLIC_ROUTES) {
+    test(`${route} — iç bağlantıları envanterdeki rotalara gidiyor`, async ({ page }) => {
       await page.goto(route);
       const hrefs = await page
         .locator("a[href^='/']")
         .evaluateAll((els) => els.map((el) => el.getAttribute("href") ?? ""));
+
+      const targets = new Set<string>();
       for (const href of hrefs) {
         if (href === "" || href.startsWith("//")) continue;
         // Sorgu ve fragment envanter eşleşmesinde dikkate alınmaz.
         const path = href.split("?")[0]?.split("#")[0] ?? "";
         if (path !== "") targets.add(path);
       }
-    }
 
-    expect(targets.size).toBeGreaterThan(5);
-    for (const target of targets) {
-      // Besleme adresleri sayfa envanterinde DEĞİLDİR ama geçerli hedeflerdir.
-      if ((FEED_ROUTES as readonly string[]).includes(target)) continue;
-      expect(ALL_ROUTES, `${target} envanterde yok (kırık ya da kayıtsız rota)`).toContain(target);
-    }
-  });
+      // Her public sayfa en azından gezinme bağlantılarını taşımalı.
+      expect(targets.size, `${route} hiç iç bağlantı taşımıyor`).toBeGreaterThan(5);
+
+      for (const target of targets) {
+        // Besleme adresleri sayfa envanterinde DEĞİLDİR ama geçerli hedeflerdir.
+        if ((FEED_ROUTES as readonly string[]).includes(target)) continue;
+        expect(
+          ALL_ROUTES,
+          `${route} sayfasındaki "${target}" envanterde yok (kırık ya da kayıtsız rota)`
+        ).toContain(target);
+      }
+    });
+  }
 });

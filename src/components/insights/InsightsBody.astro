@@ -23,6 +23,7 @@ import { toInsightViews } from "@lib/content/insightView";
 import { seriesLabel, seriesSlug } from "@lib/content/series";
 import { t } from "@lib/i18n/dictionary";
 import { insightSeriesPath, insightTagPath, rssPath } from "@lib/i18n/routes";
+import { tagLabel } from "@config/tags";
 import Section from "@components/ui/Section.astro";
 import SectionHeading from "@components/ui/SectionHeading.astro";
 import InsightRow from "@components/insights/InsightRow.astro";
@@ -112,8 +113,9 @@ const tags = await getTagsWithCounts(locale, PUBLIC);
           <ul class="insights__tags">
             {tags.map((entry) => (
               <li>
+                {/* Adres locale slug'ı, metin locale etiketi, `data-tag` KEY. */}
                 <a href={insightTagPath(locale, entry.tag)} data-tag={entry.tag}>
-                  #{entry.tag}
+                  #{tagLabel(locale, entry.tag)}
                 </a>
               </li>
             ))}

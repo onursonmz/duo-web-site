@@ -6,6 +6,7 @@ import Section from "@components/ui/Section.astro";
 import { PUBLIC, getInsights, getSolutionAlternates, getSolutions } from "@lib/content/selectors";
 import { solutionPath, solutionsIndexPath } from "@lib/i18n/routes";
 import { t } from "@lib/i18n/dictionary";
+import { ldOrigin, serviceLd } from "@lib/seo/structuredData";
 
 export const getStaticPaths = (async () => {
   // Üretim sayfası: PUBLIC modu AÇIKÇA kullanılır.
@@ -24,6 +25,18 @@ const allInsights = await getInsights("tr", PUBLIC);
 const relatedInsights = allInsights.filter((insight) =>
   insight.data.relatedSolutionRefs.some((ref) => ref.id === solution.id)
 );
+
+/*
+ * STRUCTURED DATA: yalnızca sayfada GÖRÜNEN ad ve açıklama. Fiyat, müşteri
+ * sayısı, değerlendirme veya partnerlik iddiası YOK.
+ */
+const serviceBlock = serviceLd({
+  siteUrl: ldOrigin(Astro.site, Astro.url),
+  path: solutionPath("tr", solution.data.slug),
+  name: solution.data.title,
+  description: solution.data.seo.description,
+  locale: "tr",
+});
 ---
 
 <BaseLayout
@@ -32,6 +45,7 @@ const relatedInsights = allInsights.filter((insight) =>
   description={solution.data.seo.description}
   alternates={alternates}
   noindex={solution.data.seo.noindex}
+  jsonLd={[serviceBlock]}
   wide={true}
   breadcrumbs={[
     { label: t("tr", "nav.home"), href: "/" },

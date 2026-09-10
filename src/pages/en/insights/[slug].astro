@@ -33,6 +33,12 @@ const alternates = await getEntryAlternates(
 );
 
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href;
+
+/*
+ * STRUCTURED DATA: BlogPosting bloğu `InsightDetail` içindeki
+ * `InsightJsonLd` tarafından TEK üreticiden basılır; burada tekrar
+ * üretilmez.
+ */
 ---
 
 <BaseLayout
@@ -41,6 +47,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).hr
   description={insight.data.seo.description}
   alternates={alternates}
   noindex={insight.data.seo.noindex}
+  ogImage="/og/og-insights.png"
   ogType="article"
   wide={true}
   breadcrumbs={[

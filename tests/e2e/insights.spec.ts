@@ -167,21 +167,38 @@ test.describe("seri ve etiket rotaları", () => {
     });
   }
 
-  test("etiket rotası yalnızca o etiketli yazıları listeliyor", async ({ page }) => {
-    await page.goto("/icgoruler/etiket/observability/");
-    const rows = page.locator('[data-testid="insight-list"] [data-slug]');
-    const count = await rows.count();
-    expect(count).toBeGreaterThan(0);
+  /*
+   * S13 ETİKET MODELİ.
+   *
+   * ADRES locale'in kendi slug'ıdır (`gozlemlenebilirlik` / `observability`),
+   * KAYIT ise dilden bağımsız KEY'i taşır (`data-tag="observability"`).
+   * Bu test ikisinin birbirine doğru bağlandığını iki dilde de doğrular.
+   *
+   * S11'de slug ile key aynı şeydi ve bu test TR tarafında `observability`
+   * adresine gidiyordu; o adres artık ÜRETİLMİYOR (bkz. 404 testi).
+   */
+  const TAG_ROUTES = [
+    { listing: "/icgoruler/etiket/gozlemlenebilirlik/", key: "observability", tr: true },
+    { listing: "/en/insights/tag/data-flow/", key: "data-flow", tr: false },
+  ] as const;
 
-    // Listelenen her yazının detayında bu etiket bulunmalı.
-    const slugs = await rows.evaluateAll((els) =>
-      els.map((el) => el.getAttribute("data-slug") ?? "")
-    );
-    for (const slug of slugs) {
-      await page.goto(trArticle(slug));
-      await expect(page.locator('[data-tag="observability"]'), slug).toHaveCount(1);
-    }
-  });
+  for (const route of TAG_ROUTES) {
+    test(`${route.listing} yalnızca o etiketli yazıları listeliyor`, async ({ page }) => {
+      await page.goto(route.listing);
+      const rows = page.locator('[data-testid="insight-list"] [data-slug]');
+      const count = await rows.count();
+      expect(count, `${route.listing} boş liste döndürdü`).toBeGreaterThan(0);
+
+      // Listelenen her yazının detayında bu etiket ANAHTARI bulunmalı.
+      const slugs = await rows.evaluateAll((els) =>
+        els.map((el) => el.getAttribute("data-slug") ?? "")
+      );
+      for (const slug of slugs) {
+        await page.goto(route.tr ? trArticle(slug) : enArticle(slug));
+        await expect(page.locator(`[data-tag="${route.key}"]`), slug).toHaveCount(1);
+      }
+    });
+  }
 
   /**
    * BİLİNMEYEN FİLTRE 404.
@@ -195,6 +212,21 @@ test.describe("seri ve etiket rotaları", () => {
       "/icgoruler/etiket/olmayan-etiket/",
       "/en/insights/series/mimari-notlari/", // TR slug'ı EN tarafında geçersiz
       "/en/insights/tag/olmayan/",
+      /*
+       * S13 ETİKET MODELİ — ASIL DÜZELTİLEN ADRESLER.
+       *
+       * S11'de etiket tek bir metin olarak tutulduğu için İngilizce rotalarda
+       * Türkçe adresler üretiliyordu: `/en/insights/tag/veri-akisi/` ve
+       * `/en/insights/tag/entegrasyon/` GERÇEKTEN VARDI. Artık key/slug/label
+       * ayrı alanlar olduğu için bu adresler ÜRETİLMEZ ve 404 döner.
+       * Simetrik olarak İngilizce slug da TR tarafında geçersizdir.
+       */
+      "/en/insights/tag/veri-akisi/",
+      "/en/insights/tag/entegrasyon/",
+      "/en/insights/tag/kurumsal-mimari/",
+      "/icgoruler/etiket/data-flow/",
+      "/icgoruler/etiket/integration/",
+      "/icgoruler/etiket/enterprise-architecture/",
     ]) {
       const response = await request.get(path);
       expect(response.status(), path).toBe(404);

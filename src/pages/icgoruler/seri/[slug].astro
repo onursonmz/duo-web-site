@@ -50,6 +50,7 @@ const alternates = await getSeriesAlternates(seriesKey, PUBLIC, (locale, key) =>
   description={`${label} — ${t(locale, "insights.intro")}`}
   alternates={alternates}
   noindex={true}
+  ogImage="/og/og-insights.png"
   wide={true}
   breadcrumbs={[
     { label: t(locale, "nav.home"), href: "/" },

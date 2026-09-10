@@ -10,7 +10,7 @@ excerpt: >-
 series: architecture-notes
 tags:
   - observability
-  - operasyon
+  - operations
   - apm
 authorRef: duosis-muhendislik-ekibi
 relatedSolutionRefs:

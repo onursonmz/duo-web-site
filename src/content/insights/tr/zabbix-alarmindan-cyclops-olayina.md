@@ -11,8 +11,8 @@ series: cyclops-log
 tags:
   - observability
   - aiops
-  - alarm-yonetimi
-  - olay-yonetimi
+  - alert-management
+  - event-management
 authorRef: duosis-muhendislik-ekibi
 relatedSolutionRefs:
   - tr/operasyonel-gorunurluk
