@@ -1,0 +1,136 @@
+---
+/**
+ * MÜŞTERİ KANITI LİSTESİ — BOŞSA HİÇ RENDER EDİLMEZ (S10 §7).
+ *
+ * Şu anda onaylanmış müşteri referansı veya logosu YOKTUR. Bu bileşen o
+ * durumda `null` döner: başlık, boş kutu, placeholder logo duvarı veya
+ * "referanslarımız yakında" yazısı ÜRETMEZ. Boş bir bölüm ziyaretçiye
+ * bir eksiklik duyurusu yapar; hiç bölüm olmaması sessizdir ve dürüsttür.
+ *
+ * Kayıtlar `getCustomerProofs` üzerinden gelir ve orada üç koşulu birden
+ * geçmiştir (published + verified + customer-reference). Bu bileşen KENDİ
+ * filtresini yazmaz; ikinci bir filtre, iki yerin ayrışması demekti.
+ *
+ * LOGO: yalnızca `logoPathIfAllowed` bir yol döndürürse gösterilir. İzin
+ * yoksa alan hiç oluşmaz — kırık görsel veya boş çerçeve kalmaz.
+ *
+ * İÇ SÜREÇ DİLİ YOK: doğrulama durumu, izin durumu veya olgunluk etiketi
+ * ziyaretçiye gösterilmez; bunlar yalnızca veri katmanında yaşar.
+ */
+import type { CollectionEntry } from "astro:content";
+import type { Locale } from "@lib/content/schema";
+import { logoPathIfAllowed } from "@lib/content/selectors";
+
+interface Props {
+  locale: Locale;
+  proofs: CollectionEntry<"proofs">[];
+  heading: string;
+  headingId: string;
+}
+
+const { proofs, heading, headingId }: Props = Astro.props;
+---
+
+{
+  proofs.length > 0 && (
+    <section aria-labelledby={headingId} data-testid="proof-list">
+      <h2 id={headingId}>{heading}</h2>
+      <ul class="proofs">
+        {proofs.map((proof) => {
+          const logo = logoPathIfAllowed(proof.data);
+          const attribution = proof.data.organization ?? proof.data.anonymousSector;
+          return (
+            <li class="proofs__item" data-proof={proof.id}>
+              {logo !== undefined && (
+                <img class="proofs__logo" src={logo} alt="" width="96" height="28" />
+              )}
+              {proof.data.quote !== undefined && (
+                <blockquote class="proofs__quote">
+                  <p>{proof.data.quote}</p>
+                </blockquote>
+              )}
+              {proof.data.metrics.length > 0 && (
+                <ul class="proofs__metrics">
+                  {proof.data.metrics.map((metric) => (
+                    <li>
+                      <span class="proofs__metric-label">{metric.label}</span>
+                      <span class="proofs__metric-value">
+                        {metric.value ?? `${metric.before ?? ""} → ${metric.after ?? ""}`}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {attribution !== undefined && (
+                <p class="proofs__attribution">
+                  {attribution}
+                  {proof.data.role !== undefined && <span> — {proof.data.role}</span>}
+                </p>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  )
+}
+
+<style>
+  .proofs {
+    margin: var(--space-lg) 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .proofs__item {
+    padding-block: var(--space-md);
+    border-bottom: var(--border-width) solid var(--border-subtle);
+  }
+
+  .proofs__logo {
+    display: block;
+    margin-bottom: var(--space-sm);
+    height: auto;
+  }
+
+  .proofs__quote {
+    margin: 0 0 var(--space-sm);
+    padding-left: var(--space-sm);
+    border-left: var(--border-width-strong) solid var(--signal);
+  }
+
+  .proofs__quote p {
+    margin: 0;
+    font-size: var(--text-lg);
+  }
+
+  .proofs__metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm) var(--space-lg);
+    margin: 0 0 var(--space-sm);
+    padding: 0;
+    list-style: none;
+  }
+
+  .proofs__metric-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .proofs__metric-value {
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+  }
+
+  .proofs__attribution {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+</style>

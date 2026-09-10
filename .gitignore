@@ -15,6 +15,13 @@ dist/
 .env.*
 !.env.example
 
+# --- test fixture'ları (asla commit edilmez) ---
+# `tests/unit/content-validation.test.ts` bozuk/uç durum içerik kayıtlarını
+# gerçek koleksiyon klasörlerine YAZAR ve afterEach ile siler. Test yarıda
+# kesilirse dosya diskte kalıyor ve bir sonraki `git add -A` onu repoya
+# alabiliyor — bir kez oldu (bkz. S10+S11 raporu). Desen bunu imkansız kılar.
+src/content/**/__*.md
+
 # --- test çıktıları, log ve trace ---
 test-results/
 playwright-report/

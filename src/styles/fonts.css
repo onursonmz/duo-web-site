@@ -78,11 +78,27 @@
   line-gap-override: 0%;
 }
 
+/*
+ * MONO FALLBACK — GENİŞLİK HİZALAMASI (S10+S11 düzeltmesi).
+ *
+ * `size-adjust: 100%` yalnızca DİKEY metrikleri hizalıyordu. Ölçüm, JetBrains
+ * Mono'nun Consolas'tan %9,1 DAHA GENİŞ olduğunu gösterdi (aynı örnek metin,
+ * 100px: 3840px / 3518,75px = 1,0913). Font takas edildiğinde her mono etiket
+ * %9 genişliyor ve sarmalı listeler yeniden akıyordu — teknoloji atlasında
+ * ölçülen düzen kaymasının kaynağı buydu.
+ *
+ * `size-adjust` artık ölçülen orana ayarlı. Dikey metrikler KORUNUYOR:
+ * override'lar aynı çarpana bölündü, böylece efektif değerler değişmiyor
+ * (JetBrains Mono: ascent 1,020 / descent 0,300):
+ *   ascent : 1,091 × 0,935 = 1,020
+ *   descent: 1,091 × 0,275 = 0,300
+ * Bu, Inter fallback'inde zaten kullanılan yöntemin aynısıdır.
+ */
 @font-face {
   font-family: "JetBrains Mono Fallback";
   src: local("Consolas"), local("Menlo"), local("DejaVu Sans Mono"), local("Courier New");
-  size-adjust: 100%;
-  ascent-override: 102%;
-  descent-override: 30%;
+  size-adjust: 109.1%;
+  ascent-override: 93.5%;
+  descent-override: 27.5%;
   line-gap-override: 0%;
 }

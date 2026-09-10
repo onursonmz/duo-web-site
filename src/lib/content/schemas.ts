@@ -2,11 +2,15 @@ import { reference } from "astro:content";
 import { z } from "astro/zod";
 import { CTA_LABEL_KEYS } from "@lib/i18n/dictionary";
 import {
+  SERVICE_TOPICS,
+  insightSeriesEnum,
   licenseModelEnum,
   localeEnum,
   localizedBase,
   logoPermissionEnum,
+  proofKindEnum,
   seoSchema,
+  serviceTopicEnum,
   slugSchema,
   statusEnum,
   technologyLifecycleEnum,
@@ -140,13 +144,56 @@ export const technologySchema = z
     }
   });
 
+/**
+ * HİZMET ŞEMASI (S10 §2).
+ *
+ * HİZMET ≠ ÇÖZÜM. Çözüm kaydı müşterinin teknik/operasyonel PROBLEMİNİ anlatır;
+ * hizmet kaydı Duosis'in o çözümü NASIL SUNDUĞUNU anlatır. Bu yüzden hizmet
+ * şemasında `problem`, `benefits` veya `capabilities` alanı YOKTUR — bunlar
+ * çözüm kaydının alanlarıdır. Hizmetin dört sorusu vardır ve dördü de
+ * ZORUNLUDUR; biri boş bırakılıp bölüm kaybolamaz.
+ *
+ * `translationKey` kapalı hizmet kümesinden gelir: altıncı bir hizmet kaydı
+ * açılamaz ve iletişim CTA'sının `?topic=` allowlist'i bu kümeyle aynıdır.
+ */
 export const serviceSchema = z
   .object({
     ...localizedBase,
-    order: z.number().int().min(1),
+    /** Kapalı küme; `localizedBase.translationKey` serbest string'ini DARALTIR. */
+    translationKey: serviceTopicEnum,
+    /** Anlatı sırası. `SERVICE_TOPICS` dizisindeki konumla aynı olmak zorunda. */
+    order: z.number().int().min(1).max(SERVICE_TOPICS.length),
     summary: z.string().min(1),
+    /** "Ne zaman gerekir?" — tetikleyici durumlar. */
+    whenNeeded: z.array(z.string().min(1)).min(1),
+    /** "Duosis ne sunar?" — kapsamdaki iş kalemleri. */
+    offer: z.array(z.string().min(1)).min(1),
+    /** "Çalışma biçimi nedir?" — sıralı adımlar; sıra anlamlıdır. */
+    howWeWork: z.array(z.string().min(1)).min(1),
+    /** "Somut çıktı nedir?" — teslim edilen şey; sonuç İDDİASI değil. */
+    outcomes: z.array(z.string().min(1)).min(1),
+    /** "Hangi çözüm alanlarıyla ilişkilidir?" */
+    relatedSolutionRefs: z.array(reference("solutions")).default([]),
   })
-  .strict();
+  .strict()
+  /**
+   * SIRA TUTARLILIĞI.
+   *
+   * `order` ile `SERVICE_TOPICS` dizisi ayrışırsa TR ve EN sayfaları hizmetleri
+   * FARKLI sırada gösterebilirdi. Sıra tek bir yerden gelir; sapma build'i kırar.
+   */
+  .superRefine((value, ctx) => {
+    const expected = SERVICE_TOPICS.indexOf(value.translationKey) + 1;
+    if (value.order !== expected) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["order"],
+        message:
+          `"${value.translationKey}" için order ${expected} olmalı (SERVICE_TOPICS sırası), ` +
+          `${value.order} verildi.`,
+      });
+    }
+  });
 
 export const milestoneSchema = z
   .object({
@@ -172,6 +219,11 @@ export const proofSchema = z
     translationKey: translationKeySchema,
     locale: localeEnum,
     status: statusEnum,
+    /**
+     * Müşteri kanıtı mı, kendi ölçümümüz mü. Zorunlu: tür belirtilmeden bir
+     * kaydın "referanslarımız" bölümüne girip giremeyeceği belirlenemez.
+     */
+    kind: proofKindEnum,
     /** Kurum adı yalnızca izin verildiyse doldurulur. */
     organization: z.string().optional(),
     anonymousSector: z.string().optional(),
@@ -196,14 +248,54 @@ export const proofSchema = z
   })
   .strict();
 
-export const authorSchema = z
+/**
+ * YAZAR KAYDI (S11 §10).
+ *
+ * UYDURULMUŞ ÇALIŞAN PROFİLİ YOKTUR: bu şemada fotoğraf, biyografi, sosyal
+ * hesap veya unvan geçmişi alanı BULUNMAZ. Kurumsal bir ekip imzası
+ * ("Duosis Mühendislik Ekibi") tek başına yeterlidir; şema gerçek kişilerin
+ * profilini uydurmaya alan bırakmaz.
+ *
+ * Ad ve rol her iki dilde de yazılır — yazar imzası çevrilmeden bırakılırsa
+ * İngilizce sayfada Türkçe bir rol etiketi kalırdı.
+ */
+const localizedText = z
   .object({
-    id: z.string().min(1),
-    name: z.string().min(1),
-    role: z.string().min(1),
+    tr: z.string().min(1),
+    en: z.string().min(1),
   })
   .strict();
 
+export const authorSchema = z
+  .object({
+    id: z.string().min(1),
+    name: localizedText,
+    role: localizedText,
+  })
+  .strict();
+
+/**
+ * Yazının dayandığı kaynak. Yalnızca GERÇEKTEN kontrol edilmiş resmî ürün
+ * dokümantasyonu veya sağlanan kurumsal kaynak girilir; link uydurulmaz.
+ */
+const insightSourceSchema = z
+  .object({
+    label: z.string().min(1),
+    url: z.url(),
+  })
+  .strict();
+
+/**
+ * İÇGÖRÜ ŞEMASI (S11 §10).
+ *
+ * OKUMA SÜRESİ BURADA YOKTUR — bilinçli.
+ * Elle yazılan bir okuma süresi, gövde değiştiğinde sessizce yanlışa döner.
+ * Süre `@lib/content/readingTime` tarafından gövdeden DETERMİNİSTİK olarak
+ * hesaplanır; aynı metin her build'de aynı sonucu verir.
+ *
+ * SOSYAL ÖNİZLEME GÖRSELİ opsiyoneldir ve boş bırakılabilir. Var olmayan bir
+ * hero görseli UYDURULMAZ; görsel yoksa metin tabanlı önizleme kullanılır.
+ */
 export const insightSchema = z
   .object({
     translationKey: translationKeySchema,
@@ -212,15 +304,63 @@ export const insightSchema = z
     status: statusEnum,
     title: z.string().min(1),
     excerpt: z.string().min(1),
-    series: z.string().min(1),
-    tags: z.array(z.string().min(1)).default([]),
+    /** Kapalı küme; yazım hatası yeni bir seri rotası ÜRETEMEZ. */
+    series: insightSeriesEnum,
+    /** Etiketler URL'de yaşar: ASCII kebab-case zorunlu. */
+    tags: z.array(slugSchema).default([]),
     authorRef: reference("authors"),
     relatedSolutionRefs: z.array(reference("solutions")).default([]),
     publishedAt: z.coerce.date().optional(),
     updatedAt: z.coerce.date().optional(),
+    sources: z.array(insightSourceSchema).default([]),
+    cta: z
+      .object({
+        labelKey: z.enum(CTA_LABEL_KEYS),
+        href: z.string().min(1),
+      })
+      .strict()
+      .optional(),
+    social: z
+      .object({
+        imagePath: z.string().min(1),
+        /** Görsel varsa alternatif metni ZORUNLU. */
+        imageAlt: z.string().min(1),
+      })
+      .strict()
+      .optional(),
     seo: seoSchema,
   })
-  .strict();
+  .strict()
+  .superRefine((value, ctx) => {
+    /*
+     * YAYIN TARİHİ ZORUNLULUĞU.
+     *
+     * `status: "published"` bir kayıt tarihsiz olamaz: RSS sıralaması,
+     * BlogPosting `datePublished` alanı ve "gelecek tarihli içerik gizlenir"
+     * kuralının tamamı bu alana dayanır. Tarihsiz yayınlanmış bir kayıt
+     * sessizce her yerde en sona düşerdi.
+     */
+    if (value.status === "published" && value.publishedAt === undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["publishedAt"],
+        message: `"${value.slug}": status "published" ise publishedAt zorunludur.`,
+      });
+    }
+
+    /* Güncelleme tarihi yayından ÖNCE olamaz. */
+    if (
+      value.publishedAt !== undefined &&
+      value.updatedAt !== undefined &&
+      value.updatedAt.getTime() < value.publishedAt.getTime()
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["updatedAt"],
+        message: `"${value.slug}": updatedAt, publishedAt tarihinden önce olamaz.`,
+      });
+    }
+  });
 
 /* ------------------------------------------------------------------ S05 */
 
@@ -339,6 +479,13 @@ export const regionSchema = z
   .object({
     id: z.string().min(1),
     locale: localeEnum,
+    /**
+     * Görüntüleme sırası. AÇIKÇA yazılır çünkü koleksiyon yükleyicisi kayıtları
+     * kimliğe göre alfabetik veriyordu ve sıra "Orta Asya, Orta Doğu, Türkiye"
+     * olarak çıkıyordu. Bölge sırası editoryal bir karardır; dosya adına veya
+     * yükleyici davranışına bırakılamaz.
+     */
+    order: z.number().int().min(1),
     name: z.string().min(1),
     summary: z.string().min(1),
     verificationStatus: verificationStatusEnum,

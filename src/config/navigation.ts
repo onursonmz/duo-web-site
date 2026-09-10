@@ -6,7 +6,9 @@ import {
   cyclopsPath,
   homePath,
   insightsIndexPath,
+  servicesIndexPath,
   solutionsIndexPath,
+  technologiesIndexPath,
 } from "@lib/i18n/routes";
 
 /**
@@ -39,8 +41,15 @@ export interface NavItem {
 }
 
 /**
- * Ana menü. Sıra `03_CONTENT_AND_ROUTE_MAP.md` §1 ile aynıdır; henüz rotası
- * olmayanlar `planned` olarak durur.
+ * Ana menü. Sıra `03_CONTENT_AND_ROUTE_MAP.md` §1 ile aynıdır.
+ *
+ * S08-S11 ENTEGRASYONU SONRASI: altı girdinin TAMAMI aktif ve sözleşmedeki
+ * sırada — Çözümler, CyclOps, Hizmetler, İçgörüler, Hakkımızda, İletişim.
+ * `planned` girdi kalmadı; `MAX_PRIMARY_ITEMS` sınırı tam dolu.
+ *
+ * TEKNOLOJİ ATLASI BURAYA EKLENMEZ: yedinci ana giriş üretmek sözleşmeyi
+ * bozardı. Atlas, çözüm ekosisteminin alt görünümü olarak `SECONDARY_NAV`
+ * üzerinden mega menüde, mobil alt listede ve footer'da yer alır.
  */
 export const PRIMARY_NAV: readonly NavItem[] = [
   {
@@ -50,17 +59,20 @@ export const PRIMARY_NAV: readonly NavItem[] = [
     panel: "solutions",
   },
   {
-    labelKey: "nav.insights",
-    href: (locale) => insightsIndexPath(locale),
-    status: "active",
-  },
-  // --- Aşağıdakiler HENÜZ RENDER EDİLMEZ: rotaları yok. ---
-  {
     labelKey: "nav.cyclops",
     href: (locale) => cyclopsPath(locale),
     status: "active",
   },
-  { labelKey: "nav.services", href: () => null, status: "planned", plannedIn: "S09" },
+  {
+    labelKey: "nav.services",
+    href: (locale) => servicesIndexPath(locale),
+    status: "active",
+  },
+  {
+    labelKey: "nav.insights",
+    href: (locale) => insightsIndexPath(locale),
+    status: "active",
+  },
   {
     labelKey: "nav.about",
     href: (locale) => aboutPath(locale),
@@ -72,6 +84,34 @@ export const PRIMARY_NAV: readonly NavItem[] = [
     status: "active",
   },
 ] as const;
+
+/**
+ * İKİNCİL GEZİNME — ANA MENÜDE DEĞİL.
+ *
+ * Teknoloji atlası bilinçli olarak YEDİNCİ ANA GİRDİ YAPILMADI: ana menü
+ * sözleşme gereği en fazla altı girdi taşır ve teknoloji, çözüm ekosisteminin
+ * bir alt görünümüdür — kendi başına bir üst seviye hedef değil. Atlasa çözüm
+ * mega menüsünden, hizmetler sayfasından ve footer'dan ulaşılır.
+ */
+export const SECONDARY_NAV: readonly NavItem[] = [
+  {
+    labelKey: "nav.technologies",
+    href: (locale) => technologiesIndexPath(locale),
+    status: "active",
+  },
+] as const;
+
+/** İkincil gezinme girdileri; ana menü ile AYNI fail-closed kuralına tabidir. */
+export function secondaryNavItems(locale: Locale): { item: NavItem; href: string }[] {
+  const out: { item: NavItem; href: string }[] = [];
+  for (const item of SECONDARY_NAV) {
+    if (item.status !== "active") continue;
+    const href = item.href(locale);
+    if (href === null || href === "") continue;
+    out.push({ item, href });
+  }
+  return out;
+}
 
 /** Sözleşme sınırı: en fazla altı ana giriş. */
 export const MAX_PRIMARY_ITEMS = 6;

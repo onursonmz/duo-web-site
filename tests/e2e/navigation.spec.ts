@@ -34,8 +34,12 @@ test.describe("global header — masaüstü", () => {
     await trigger.click();
     await expect(trigger).toHaveAttribute("aria-expanded", "true");
     await expect(panel).toBeVisible();
-    // Sekiz çözüm alanının tamamı listelenir.
-    await expect(panel.locator("a")).toHaveCount(8);
+    // Sekiz çözüm alanı + teknoloji atlası bağlantısı.
+    // Atlas ana menüde DEĞİL (altı girdi sınırı); ekosistemin alt görünümü
+    // olarak panelin altında, ayrı bir çizginin ardında durur.
+    await expect(panel.locator(".mega__grid a")).toHaveCount(8);
+    await expect(panel.locator(".mega__secondary-link")).toHaveCount(1);
+    await expect(panel.locator("a")).toHaveCount(9);
 
     await trigger.click();
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
@@ -336,10 +340,16 @@ test.describe("shell erişilebilirliği", () => {
   });
 
   test("HİÇBİR sayfa planlanan (rotasız) adrese link vermiyor", async ({ page }) => {
-    // `/iletisim/` S07'de, `/cyclops/` ve `/hakkimizda/` S08+S09'da gerçek
-    // rota oldu; listeden ÇIKARILDILAR, kural gevşetilmedi. Kalanlar hâlâ
-    // rotasızdır ve hiçbir sayfa onlara link vermemelidir.
-    const forbidden = ["/blog/", "/hizmetler/"];
+    /*
+     * Rotası açılan adres listeden ÇIKARILIR, kural gevşetilmez:
+     *   `/iletisim/`                S07
+     *   `/cyclops/`, `/hakkimizda/` S08+S09
+     *   `/hizmetler/`               S10
+     *
+     * Entegrasyon sonrası yalnızca `/blog/` rotasız kaldı: içgörüler
+     * `/icgoruler/` altında yayımlanıyor ve `/blog/` hiç açılmadı.
+     */
+    const forbidden = ["/blog/"];
     for (const route of ["/", "/en/", "/cozumler/", "/cozumler/otomasyon/"]) {
       await page.goto(route);
       const hrefs = await page

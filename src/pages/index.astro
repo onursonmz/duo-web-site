@@ -26,7 +26,8 @@ import MethodSection from "@components/home/MethodSection.astro";
 import DecadeSection from "@components/home/DecadeSection.astro";
 import TechnologyLayers from "@components/home/TechnologyLayers.astro";
 import RoadmapCta from "@components/home/RoadmapCta.astro";
-import InsightList from "@components/InsightList.astro";
+import InsightRow from "@components/insights/InsightRow.astro";
+import Button from "@components/ui/Button.astro";
 import {
   PUBLIC,
   getHomepage,
@@ -35,7 +36,9 @@ import {
   getRegions,
   getSolutions,
 } from "@lib/content/selectors";
-import { homePath } from "@lib/i18n/routes";
+import { toInsightViews } from "@lib/content/insightView";
+import { homePath, insightsIndexPath } from "@lib/i18n/routes";
+import { t } from "@lib/i18n/dictionary";
 
 const locale = "tr" as const;
 
@@ -45,6 +48,11 @@ const solutions = await getSolutions(locale, PUBLIC);
 const milestones = await getMilestones(locale, PUBLIC);
 const regions = await getRegions(locale, PUBLIC);
 const insights = await getInsights(locale, PUBLIC);
+/*
+ * Ana sayfada YALNIZCA en yeni üç yazı. Tam liste içgörüler sayfasındadır;
+ * ana sayfa bir arşiv değil, bir giriş noktasıdır.
+ */
+const latestInsights = toInsightViews(insights.slice(0, 3), locale);
 
 const alternates = { tr: homePath("tr"), en: homePath("en") };
 ---
@@ -120,7 +128,16 @@ const alternates = { tr: homePath("tr"), en: homePath("en") };
         <SectionHeading eyebrow={page.insights.eyebrow} as="h2" lead={page.insights.lead}>
           {page.insights.title}
         </SectionHeading>
-        <InsightList locale={locale} insights={insights} />
+        <div class="home-insights">
+          {latestInsights.map((view) => (
+            <InsightRow locale={locale} view={view} headingLevel="h3" />
+          ))}
+        </div>
+        <p class="home-insights__more">
+          <Button variant="quiet" href={insightsIndexPath(locale)}>
+            {t(locale, "insights.backToIndex")}
+          </Button>
+        </p>
       </Section>
     )
   }
@@ -131,6 +148,16 @@ const alternates = { tr: homePath("tr"), en: homePath("en") };
 </BaseLayout>
 
 <style>
+  /* Ana sayfadaki içgörü bloğu: liste sayfasıyla AYNI satır ritmi, üç kayıtla sınırlı. */
+  .home-insights {
+    margin-top: var(--space-lg);
+    border-bottom: var(--border-width) solid var(--border-subtle);
+  }
+
+  .home-insights__more {
+    margin: var(--space-md) 0 0;
+  }
+
   .regions {
     display: grid;
     gap: var(--space-md);

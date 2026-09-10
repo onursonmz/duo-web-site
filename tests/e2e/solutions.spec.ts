@@ -223,17 +223,61 @@ test.describe("teknoloji sunumu", () => {
     }
   });
 
+  /**
+   * ÇÖZÜMÜN KENDİ ANLATISI — "İlgili notlar" HARİÇ.
+   *
+   * Kural şu: bir çözümün KENDİ metni ve teknoloji listesi, o alana ait
+   * olmayan ürünü adlandırmaz. AIOps anlatısının merkezinde CyclOps vardır ve
+   * bir izleme ürününe atıf yapmaz; observability anlatısı da tersini yapmaz.
+   *
+   * "İlgili notlar" bölümü bu kuralın DIŞINDADIR ve bu bilinçli bir sınırdır:
+   * orası çözümün kendi cümlesi değil, YAYINLANMIŞ YAZI BAŞLIKLARININ listesi.
+   * "Zabbix alarmından CyclOps olayına" başlıklı bir yazı tam olarak iki ürün
+   * arasındaki geçişi anlatıyor ve her iki çözüme de bağlanıyor; başlığındaki
+   * ürün adı, çözümün kendi iddiası değil.
+   *
+   * Bu ayrım S11'de gerçek bir testle ortaya çıktı: yazı yayına girince
+   * başlığı iki çözüm sayfasında da göründü ve tarama `main` metninin tamamına
+   * baktığı için ihlal bildirdi. Kural gevşetilmedi — KAPSAMI netleştirildi.
+   */
+  async function narrativeText(page: Page): Promise<string> {
+    const full = await page.locator("main").innerText();
+    const relatedNotes = page.getByTestId("solution-insights");
+    if ((await relatedNotes.count()) === 0) return full;
+    return full.replace(await relatedNotes.innerText(), "");
+  }
+
   test("CyclOps ve Zabbix FARKLI rollerde anlatılır", async ({ page }) => {
     await page.goto(trPath("aiops-ve-olay-yasam-dongusu"));
-    const aiops = await page.locator("main").innerText();
+    const aiops = await narrativeText(page);
     expect(aiops).toContain("CyclOps");
     expect(aiops).toMatch(/kendi geliştirdiğimiz|kendi ürünümüz/);
-    expect(aiops).not.toContain("Zabbix");
+    expect(aiops, "AIOps anlatısı bir izleme ürününü adlandırmamalı").not.toContain("Zabbix");
 
     await page.goto(DEEP[0].path);
-    const observability = await page.locator("main").innerText();
+    const observability = await narrativeText(page);
     expect(observability).toContain("Zabbix");
-    expect(observability).not.toContain("CyclOps");
+    expect(
+      observability,
+      "observability anlatısı CyclOps'u kendi ürünü gibi anlatmamalı"
+    ).not.toContain("CyclOps");
+  });
+
+  /**
+   * Kapsam daraltması bir BOŞLUK bırakmadı: teknoloji listesi hâlâ tam
+   * olarak denetleniyor. Çözümün teknoloji bölümü yalnızca o çözüme bağlı
+   * kayıtları taşıyabilir.
+   */
+  test("teknoloji listesi çözüm sınırının dışına taşmıyor", async ({ page }) => {
+    await page.goto(trPath("aiops-ve-olay-yasam-dongusu"));
+    const aiopsTech = await page.getByTestId("technology-list").innerText();
+    expect(aiopsTech).toContain("CyclOps");
+    expect(aiopsTech).not.toContain("Zabbix");
+
+    await page.goto(DEEP[0].path);
+    const observabilityTech = await page.getByTestId("technology-list").innerText();
+    expect(observabilityTech).toContain("Zabbix");
+    expect(observabilityTech).not.toContain("CyclOps");
   });
 });
 

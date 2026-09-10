@@ -1,0 +1,210 @@
+---
+/**
+ * İÇGÖRÜLER LANDING GÖVDESİ (S11 §9).
+ *
+ * Tek şablon, iki dil. Bölümler:
+ *   öne çıkan son yazı → son yazılar → seriler → etiketler → RSS
+ *
+ * SERİ VE ETİKET GÖRÜNÜMLERİ BURADA FİLTRE UYGULAMAZ: her biri kendi
+ * ROTASINA bağlanır (`/icgoruler/seri/<slug>/`). Böylece filtre paylaşılabilir
+ * bir adres üretir, JS gerektirmez ve bilinmeyen bir değer 404 verir.
+ *
+ * Yalnızca GERÇEKTEN yazısı olan seri ve etiketler listelenir; boş bir filtreye
+ * bağlantı vermek, tıklandığında boş sayfa açan bir bağlantı demekti.
+ */
+import type { Locale } from "@lib/content/schema";
+import {
+  PUBLIC,
+  getInsights,
+  getSeriesWithCounts,
+  getTagsWithCounts,
+} from "@lib/content/selectors";
+import { toInsightViews } from "@lib/content/insightView";
+import { seriesLabel, seriesSlug } from "@lib/content/series";
+import { t } from "@lib/i18n/dictionary";
+import { insightSeriesPath, insightTagPath, rssPath } from "@lib/i18n/routes";
+import Section from "@components/ui/Section.astro";
+import SectionHeading from "@components/ui/SectionHeading.astro";
+import InsightRow from "@components/insights/InsightRow.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale }: Props = Astro.props;
+
+const insights = await getInsights(locale, PUBLIC);
+const views = toInsightViews(insights, locale);
+
+/*
+ * ÖNE ÇIKAN = EN YENİ.
+ * Ayrı bir `featured` bayrağı bilinçli olarak eklenmedi: elle işaretlenen bir
+ * öne çıkan yazı, unutulduğunda aylarca eski bir yazıyı en üstte tutar.
+ * Sıralama zaten tarihe göre kararlı (bkz. `getInsights`).
+ */
+const [featured, ...rest] = views;
+
+const series = await getSeriesWithCounts(locale, PUBLIC);
+const tags = await getTagsWithCounts(locale, PUBLIC);
+---
+
+<Section tone="light" width="wide" id="insights">
+  <SectionHeading eyebrow={t(locale, "insights.series")} as="h1" lead={t(locale, "insights.intro")}>
+    {t(locale, "insights.title")}
+  </SectionHeading>
+
+  {
+    featured !== undefined && (
+      <div class="insights__featured" data-testid="featured-block">
+        <p class="insights__label">{t(locale, "insights.featured")}</p>
+        <InsightRow locale={locale} view={featured} headingLevel="h2" featured={true} />
+      </div>
+    )
+  }
+</Section>
+
+{
+  rest.length > 0 && (
+    <Section tone="dark" width="wide" id="insights-latest">
+      <SectionHeading>{t(locale, "insights.latest")}</SectionHeading>
+      <div class="insights__list" data-testid="insight-list">
+        {rest.map((view) => (
+          <InsightRow locale={locale} view={view} headingLevel="h3" />
+        ))}
+      </div>
+    </Section>
+  )
+}
+
+<Section tone="light" width="wide" id="insights-index">
+  <div class="insights__index">
+    {
+      series.length > 0 && (
+        <section aria-labelledby="series-heading" data-testid="series-index">
+          <h2 id="series-heading" class="insights__label">
+            {t(locale, "insights.allSeries")}
+          </h2>
+          <ul class="insights__series">
+            {series.map((entry) => (
+              <li>
+                <a
+                  href={insightSeriesPath(locale, seriesSlug(entry.series, locale))}
+                  data-series={entry.series}
+                >
+                  {seriesLabel(entry.series, locale)}
+                </a>
+                <span class="insights__count">
+                  {entry.count} {t(locale, "insights.articleCount")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    {
+      tags.length > 0 && (
+        <section aria-labelledby="tags-heading" data-testid="tag-index">
+          <h2 id="tags-heading" class="insights__label">
+            {t(locale, "insights.allTags")}
+          </h2>
+          <ul class="insights__tags">
+            {tags.map((entry) => (
+              <li>
+                <a href={insightTagPath(locale, entry.tag)} data-tag={entry.tag}>
+                  #{entry.tag}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <section aria-labelledby="feed-heading">
+      <h2 id="feed-heading" class="insights__label">{t(locale, "insights.rss")}</h2>
+      <p class="insights__feed">
+        <a href={rssPath(locale)} data-testid="rss-link">{rssPath(locale)}</a>
+      </p>
+    </section>
+  </div>
+</Section>
+
+<style>
+  .insights__label {
+    margin: 0 0 var(--space-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .insights__featured {
+    margin-top: var(--space-lg);
+    padding-top: var(--space-md);
+    border-top: var(--border-width-strong) solid var(--border-strong);
+  }
+
+  .insights__list {
+    border-bottom: var(--border-width) solid var(--border-subtle);
+  }
+
+  /*
+   * Seri / etiket / besleme üçlüsü: masaüstünde yan yana bir künye bloğu,
+   * mobilde üst üste. Sayfanın sonunda duran bu blok bir gezinme rayıdır,
+   * içerik değil - bu yüzden tipografisi sakin tutulur.
+   */
+  .insights__index {
+    display: grid;
+    gap: var(--space-xl);
+  }
+
+  @media (min-width: 48rem) {
+    .insights__index {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+
+  .insights__series,
+  .insights__tags {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-sm);
+  }
+
+  .insights__series li {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    padding-block: var(--space-3xs);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .insights__count {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .insights__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-sm);
+  }
+
+  .insights__tags a {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .insights__feed {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+</style>

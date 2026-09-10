@@ -1,8 +1,15 @@
 import { expect, test } from "@playwright/test";
 import { INTERNAL_ROUTES, discoverRoutes, publicRoutes } from "../support/route-inventory";
+import { FEED_ROUTES } from "../support/public-routes";
 
 /**
- * ROTA ENVANTERİ KORUMASI (S08 §18).
+ * ROTA ENVANTERİ KORUMASI (S08 §18 + S10/S11 eklemeleri).
+ *
+ * ENTEGRASYON NOTU (S08-S11): iki paralel branch bu dosyayı bağımsız olarak
+ * oluşturmuştu. S08'in KEŞİF tabanlı yaklaşımı korundu — elle tutulan bir
+ * liste her yeni rotada eskiyordu ve S10+S11 tarafında tam olarak bu oldu.
+ * S10+S11'in getirdiği iki tamamlayıcı kontrol (besleme adresleri ve rota
+ * ailesi kapsamı) üzerine eklendi.
  *
  * Tarama testleri artık build çıktısından keşfedilen TEK envanteri kullanır.
  * Bu dosya envanterin kendisini denetler: keşif çalışıyor mu, dahili istisnalar
@@ -33,6 +40,48 @@ test.describe("rota envanteri", () => {
     }
   });
 
+  /**
+   * S08-S11 ROTA AİLELERİ — kapsam denetimi.
+   *
+   * Keşif "ne varsa onu" bulur; bu test "ne OLMASI gerektiğini" sabitler.
+   * Bir şablon ailesi bütünüyle üretilmemeye başlarsa (ör. seri rotaları
+   * kaybolursa) keşif bunu fark etmez, bu test eder.
+   */
+  test("S08-S11 rota ailelerinin tamamı üretilmiş", () => {
+    const families: Record<string, RegExp> = {
+      "çözüm landing": /^\/(cozumler|en\/solutions)\/$/,
+      "çözüm detay": /^\/cozumler\/[a-z-]+\/$/,
+      cyclops: /^\/(cyclops|en\/cyclops)\/$/,
+      hakkimizda: /^\/(hakkimizda|en\/about)\/$/,
+      hizmetler: /^\/(hizmetler|en\/services)\/$/,
+      teknolojiler: /^\/(teknolojiler|en\/technologies)\/$/,
+      "içgörü landing": /^\/(icgoruler|en\/insights)\/$/,
+      "içgörü detay": /^\/icgoruler\/[a-z-]+\/$/,
+      "içgörü seri": /^\/icgoruler\/seri\/[a-z-]+\/$/,
+      "içgörü etiket": /^\/icgoruler\/etiket\/[a-z-]+\/$/,
+      iletisim: /^\/(iletisim|en\/contact)\/$/,
+    };
+
+    for (const [name, pattern] of Object.entries(families)) {
+      expect(
+        PUBLIC_ROUTES.some((route) => pattern.test(route)),
+        `"${name}" ailesi build çıktısında yok`
+      ).toBe(true);
+    }
+  });
+
+  /**
+   * BESLEMELER SAYFA DEĞİL, KAYNAKTIR — keşif onları bulmaz (`index.html`
+   * tarıyor). Bu yüzden ayrıca kontrol edilirler.
+   */
+  test("besleme adresleri çalışıyor ve XML dönüyor", async ({ request }) => {
+    for (const feed of FEED_ROUTES) {
+      const response = await request.get(feed);
+      expect(response.status(), feed).toBe(200);
+      expect(response.headers()["content-type"], feed).toContain("xml");
+    }
+  });
+
   for (const route of PUBLIC_ROUTES) {
     test(`${route} — 200 dönüyor ve tek H1 taşıyor`, async ({ page }) => {
       const response = await page.goto(route);
@@ -58,6 +107,8 @@ test.describe("rota envanteri", () => {
 
     expect(targets.size).toBeGreaterThan(5);
     for (const target of targets) {
+      // Besleme adresleri sayfa envanterinde DEĞİLDİR ama geçerli hedeflerdir.
+      if ((FEED_ROUTES as readonly string[]).includes(target)) continue;
       expect(ALL_ROUTES, `${target} envanterde yok (kırık ya da kayıtsız rota)`).toContain(target);
     }
   });

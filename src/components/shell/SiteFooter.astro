@@ -14,7 +14,7 @@
  */
 import type { Locale } from "@lib/content/schema";
 import { t } from "@lib/i18n/dictionary";
-import { activeNavItems, brandHref } from "@config/navigation";
+import { activeNavItems, brandHref, secondaryNavItems } from "@config/navigation";
 import LogoMark from "@components/ui/LogoMark.astro";
 
 interface Props {
@@ -23,7 +23,12 @@ interface Props {
 
 const { locale }: Props = Astro.props;
 
-const items = activeNavItems(locale);
+/*
+ * Footer site haritası ana menüyle AYNI kaynaktan beslenir, ayrıca ana menüye
+ * sığmayan ikincil hedefleri (teknoloji atlası) de taşır — footer'ın altı
+ * girdi sınırı yoktur.
+ */
+const items = [...activeNavItems(locale), ...secondaryNavItems(locale)];
 
 /** Derleme zamanından üretilir; elle güncellenmesi gereken sabit yıl yoktur. */
 const year = new Date().getFullYear();

@@ -1,0 +1,107 @@
+---
+/**
+ * TARİH VE SERİ RAYI (S11 §9).
+ *
+ * Yayın bilgisi tek bir satırda toplanır: seri → tarih → okuma süresi →
+ * yazar. Seri bir BAĞLANTIDIR; okur bir yazıyı beğendiyse serinin tamamına
+ * tek tıkla ulaşır.
+ *
+ * Okuma süresi gövdeden hesaplanır; kayıtta böyle bir alan yoktur.
+ * Güncelleme tarihi YALNIZCA varsa gösterilir — boş alan bölüm üretmez.
+ */
+import type { Locale } from "@lib/content/schema";
+import type { InsightView } from "@lib/content/insightView";
+import { t } from "@lib/i18n/dictionary";
+
+interface Props {
+  locale: Locale;
+  view: InsightView;
+  /** Yazar adı; yalnızca detay sayfasında gösterilir. */
+  authorName?: string;
+  authorRole?: string;
+}
+
+const { locale, view, authorName, authorRole }: Props = Astro.props;
+---
+
+<p class="meta" data-testid="insight-meta">
+  <a class="meta__series" href={view.seriesHref} data-series={view.seriesKey}>
+    {view.seriesLabel}
+  </a>
+  <span class="meta__sep" aria-hidden="true">·</span>
+  <time class="meta__date" datetime={view.publishedIso}>{view.publishedLabel}</time>
+  <span class="meta__sep" aria-hidden="true">·</span>
+  <span class="meta__reading" data-testid="reading-time">
+    {view.readingMinutes}
+    {" "}
+    {t(locale, "insights.readingTimeUnit")}
+  </span>
+  {
+    view.updatedLabel !== undefined && view.updatedIso !== undefined && (
+      <>
+        <span class="meta__sep" aria-hidden="true">
+          ·
+        </span>
+        <span class="meta__updated">
+          {t(locale, "insights.updatedAt")}{" "}
+          <time datetime={view.updatedIso}>{view.updatedLabel}</time>
+        </span>
+      </>
+    )
+  }
+  {
+    authorName !== undefined && (
+      <>
+        <span class="meta__sep" aria-hidden="true">
+          ·
+        </span>
+        <span class="meta__author">
+          {t(locale, "insights.author")}: {authorName}
+          {authorRole !== undefined && <span class="meta__role"> ({authorRole})</span>}
+        </span>
+      </>
+    )
+  }
+</p>
+
+<style>
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-3xs) var(--space-2xs);
+    margin: 0 0 var(--space-2xs);
+    max-width: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    /*
+     * BÜYÜK HARF YOK. Ray tarih ve özel ad taşıyor: "10 EYLÜL 2026" ve
+     * "DUOSİS MÜHENDİSLİK EKİBİ" hem okunaksız hem de Türkçe'de noktalı/noktasız
+     * i ayrımını font seviyesinde riske atıyor. Mono aile ve harf aralığı
+     * sistem etiketi hissini zaten veriyor.
+     */
+    color: var(--text-muted);
+  }
+
+  /* Seri, raydaki tek etkileşimli öğedir; sinyal rengiyle ayrışır. */
+  .meta__series {
+    color: var(--signal);
+    text-decoration: none;
+    border-bottom: var(--border-width) solid transparent;
+    transition: border-color var(--motion-fast) var(--motion-ease);
+  }
+
+  .meta__series:hover,
+  .meta__series:focus-visible {
+    border-bottom-color: currentColor;
+  }
+
+  .meta__sep {
+    color: var(--border-strong);
+  }
+
+  .meta__role {
+    text-transform: none;
+  }
+</style>

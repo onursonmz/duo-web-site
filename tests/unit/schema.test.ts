@@ -127,12 +127,19 @@ describe("proofSchema", () => {
     translationKey: "anonymous-public-bank",
     locale: "tr",
     status: "published",
+    // S10 §7: kanıt türü ZORUNLU — müşteri kanıtı mı, kendi ölçümümüz mü.
+    kind: "customer-reference",
     logoPermission: "unknown",
     verificationStatus: "pending",
   };
 
   it("geçerli kaydı kabul eder", () => {
     expect(proofSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("tür alanı olmadan REDDEDER", () => {
+    const { kind: _kind, ...withoutKind } = valid;
+    expect(proofSchema.safeParse(withoutKind).success).toBe(false);
   });
 
   it("geçersiz verificationStatus enum'unu REDDEDER", () => {

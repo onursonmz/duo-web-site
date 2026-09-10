@@ -1,0 +1,72 @@
+---
+/**
+ * İÇGÖRÜ DETAY GÖVDESİ — TEK ŞABLON, İKİ DİL (S11 §13).
+ *
+ * Sayfa dosyaları yalnızca rota ve BaseLayout meta'sını kurar; anlatı, kaynak
+ * listesi, ilgili çözümler, etiketler, CTA ve yapılandırılmış veri burada
+ * üretilir. İki dil için iki ayrı şablon TUTULMAZ.
+ */
+import { render, type CollectionEntry } from "astro:content";
+import type { Locale } from "@lib/content/schema";
+import type { InsightView } from "@lib/content/insightView";
+import { PUBLIC, getAuthor, getSolutions } from "@lib/content/selectors";
+import { t, type TranslationKey } from "@lib/i18n/dictionary";
+import { contactPath } from "@lib/i18n/routes";
+import InsightArticle from "@components/insights/InsightArticle.astro";
+import InsightJsonLd from "@components/insights/InsightJsonLd.astro";
+
+interface Props {
+  locale: Locale;
+  insight: CollectionEntry<"insights">;
+  view: InsightView;
+  canonical: string;
+}
+
+const { locale, insight, view, canonical }: Props = Astro.props;
+const data = insight.data;
+
+const { Content } = await render(insight);
+
+/* Yazar kaydı bulunamazsa build kırılır — sessiz "Anonim" fallback yok. */
+const author = await getAuthor(data.authorRef.id);
+
+/*
+ * İlgili çözümler YALNIZCA yayındaki kayıtlarla eşleştirilir; yayından
+ * kalkmış bir çözüme referans kalırsa satır sessizce düşer, kırık bağlantı
+ * üretilmez. Referansın var olduğu ayrıca `assertContentGraph` tarafından
+ * build sırasında denetlenir.
+ */
+const solutions = await getSolutions(locale, PUBLIC);
+const solutionById = new Map(solutions.map((s) => [s.id, s]));
+const relatedSolutions = data.relatedSolutionRefs
+  .map((ref) => solutionById.get(ref.id))
+  .filter((s) => s !== undefined)
+  .map((s) => ({ title: s.data.title, slug: s.data.slug }));
+
+/* Kayıtta özel bir CTA yoksa iletişim rotası kullanılır. */
+const ctaHref = data.cta?.href ?? contactPath(locale);
+const ctaLabel = t(locale, (data.cta?.labelKey ?? "cta.contactUs") as TranslationKey);
+---
+
+<InsightArticle
+  locale={locale}
+  insight={insight}
+  view={view}
+  authorName={author.data.name[locale]}
+  authorRole={author.data.role[locale]}
+  relatedSolutions={relatedSolutions}
+  ctaHref={ctaHref}
+  ctaLabel={ctaLabel}
+>
+  <Content />
+</InsightArticle>
+
+<InsightJsonLd
+  locale={locale}
+  view={view}
+  headline={data.title}
+  description={data.excerpt}
+  authorName={author.data.name[locale]}
+  canonical={canonical}
+  publisherName={t(locale, "site.name")}
+/>

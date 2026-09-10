@@ -1,20 +1,18 @@
 ---
 /**
- * İÇGÖRÜLER — MİNİMAL LİSTE.
+ * İÇGÖRÜLER LANDING (S11 §9).
  *
- * S11'in tam blog kapsamı DEĞİLDİR: kategori, arama, sayfalama ve RSS yok.
- * Amaç ana sayfadaki güncellik bölümünün gerçek bir hedefe bağlanması.
- * Tüm sayfalar `noindex` kalır.
+ * Gövde `InsightsBody` içindedir ve iki dil tarafından paylaşılır: öne çıkan
+ * yazı, son yazılar, seri ve etiket dizini, RSS bağlantısı.
  */
 import BaseLayout from "@layouts/BaseLayout.astro";
-import InsightList from "@components/InsightList.astro";
-import { PUBLIC, getInsights } from "@lib/content/selectors";
+import InsightsBody from "@components/insights/InsightsBody.astro";
 import { insightsIndexPath } from "@lib/i18n/routes";
 import { t } from "@lib/i18n/dictionary";
 
 const locale = "tr" as const;
-const insights = await getInsights(locale, PUBLIC);
 const alternates = { tr: insightsIndexPath("tr"), en: insightsIndexPath("en") };
+// Yayın olgunluk politikası: geliştirme sürümü indekslenmez.
 ---
 
 <BaseLayout
@@ -23,12 +21,11 @@ const alternates = { tr: insightsIndexPath("tr"), en: insightsIndexPath("en") };
   description={t(locale, "insights.intro")}
   alternates={alternates}
   noindex={true}
+  wide={true}
   breadcrumbs={[
     { label: t(locale, "nav.home"), href: "/" },
     { label: t(locale, "insights.title") },
   ]}
 >
-  <h1>{t(locale, "insights.title")}</h1>
-  <p>{t(locale, "insights.intro")}</p>
-  <InsightList locale={locale} insights={insights} />
+  <InsightsBody locale={locale} />
 </BaseLayout>

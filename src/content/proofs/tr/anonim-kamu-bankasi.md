@@ -2,6 +2,7 @@
 translationKey: anonymous-public-bank
 locale: tr
 status: published
+kind: customer-reference
 anonymousSector: Bir kamu bankası
 logoPermission: unknown
 metrics: []
