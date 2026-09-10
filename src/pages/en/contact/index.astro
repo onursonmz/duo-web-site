@@ -1,20 +1,22 @@
 ---
 /**
- * İLETİŞİM — MİNİMAL KABUK (S07).
+ * CONTACT (S12).
  *
- * S12'nin tam form kapsamı DEĞİLDİR: form, kişisel veri toplama ve analytics
- * yoktur. Amaç, çözüm CTA'larının kırık bağlantı üretmemesidir.
- *
- * CTA `?topic=<slug>` bağlamı taşıyabilir; bu sayfa query değerini OKUMAZ ve
- * İŞLEMEZ — yalnızca pasif bir işaret olarak kalır.
+ * Doğrulanmış iletişim bilgileri + veri minimizasyonlu form. CTA'ların
+ * taşıdığı `?topic=` TEK canonical anahtardır ve merkezî kapalı allowlist'ten
+ * geçirilir; bilinmeyen/tekrarlı/aşırı uzun değer `genel`e düşer.
  */
 import BaseLayout from "@layouts/BaseLayout.astro";
 import ContactDetails from "@components/ContactDetails.astro";
-import { contactPath } from "@lib/i18n/routes";
+import ContactForm from "@components/contact/ContactForm.astro";
+import { contactPath, legalPath } from "@lib/i18n/routes";
 import { t } from "@lib/i18n/dictionary";
+import { GENERAL_TOPIC, topicFromSearchParams } from "@lib/contact/topics";
 
 const locale = "en" as const;
 const alternates = { tr: contactPath("tr"), en: contactPath("en") };
+
+const topic = topicFromSearchParams(Astro.url.searchParams) ?? GENERAL_TOPIC;
 ---
 
 <BaseLayout
@@ -31,4 +33,17 @@ const alternates = { tr: contactPath("tr"), en: contactPath("en") };
   <h1>{t(locale, "contact.title")}</h1>
   <p>{t(locale, "contact.intro")}</p>
   <ContactDetails locale={locale} />
+  <ContactForm locale={locale} topic={topic} legalHref={legalPath(locale)} />
 </BaseLayout>
+
+<script>
+  /* Konu eşleme — istemci tarafı; aynı merkezî allowlist. */
+  import { topicFromSearchParams } from "@lib/contact/topics";
+
+  const select = document.querySelector<HTMLSelectElement>("#field-topic");
+  if (select !== null) {
+    const topic = topicFromSearchParams(new URLSearchParams(window.location.search));
+    const option = select.querySelector<HTMLOptionElement>(`option[value="${topic}"]`);
+    if (option !== null) select.value = topic;
+  }
+</script>

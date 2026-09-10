@@ -5,6 +5,7 @@ import {
   authorSchema,
   homepageSchema,
   insightSchema,
+  legalSchema,
   milestoneSchema,
   productSchema,
   proofSchema,
@@ -67,6 +68,11 @@ export const collections = {
     // Hakkımızda metni TEK veri kaynağıdır; şablona gömülmez.
     loader: file("./src/content/about/about.json"),
     schema: aboutSchema,
+  }),
+  legal: defineCollection({
+    // Hukuki metinler: taslak durumu şemada kapalı bir kümedir.
+    loader: file("./src/content/legal/legal.json"),
+    schema: legalSchema,
   }),
   products: defineCollection({
     // Ürün sayfası metni TEK veri kaynağıdır; şablona gömülmez.

@@ -38,6 +38,7 @@ type Author = CollectionEntry<"authors">;
 type Region = CollectionEntry<"regions">;
 type Product = CollectionEntry<"products">;
 type About = CollectionEntry<"about">;
+type Legal = CollectionEntry<"legal">;
 type Homepage = CollectionEntry<"homepage">;
 
 // ---------------------------------------------------------------- yüklem katmanı
@@ -286,6 +287,20 @@ export async function getProduct(
       entry.data.locale === locale &&
       entry.data.slug === slug &&
       isPublishedStatus(entry.data.status, mode)
+  );
+}
+
+/**
+ * HUKUKİ METİN.
+ *
+ * Public modda yalnızca `published` kayıt döner; taslak metin yalnızca
+ * PREVIEW modunda okunur. Çağıran taraf ikisini de deneyebilir, fakat
+ * `status` atlanmaz.
+ */
+export async function getLegal(locale: Locale, mode: ViewMode): Promise<Legal | undefined> {
+  const all = await getCollection("legal");
+  return all.find(
+    (entry) => entry.data.locale === locale && isPublishedStatus(entry.data.status, mode)
   );
 }
 

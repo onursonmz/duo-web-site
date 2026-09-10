@@ -26,6 +26,7 @@ const SEGMENTS = {
     contact: "iletisim",
     cyclops: "cyclops",
     about: "hakkimizda",
+    legal: "aydinlatma-metni",
     services: "hizmetler",
     technologies: "teknolojiler",
     series: "seri",
@@ -37,6 +38,7 @@ const SEGMENTS = {
     contact: "contact",
     cyclops: "cyclops",
     about: "about",
+    legal: "privacy-notice",
     services: "services",
     technologies: "technologies",
     series: "series",
@@ -54,6 +56,7 @@ const SEGMENTS = {
     technologies: string;
     series: string;
     tag: string;
+    legal: string;
   }
 >;
 
@@ -169,6 +172,11 @@ export function cyclopsPath(locale: Locale): string {
 /** Hakkımızda yolu: /hakkimizda/ veya /en/about/ */
 export function aboutPath(locale: Locale): string {
   return localizedPath(locale, SEGMENTS[locale].about);
+}
+
+/** Aydınlatma metni: /aydinlatma-metni/ veya /en/privacy-notice/ */
+export function legalPath(locale: Locale): string {
+  return localizedPath(locale, SEGMENTS[locale].legal);
 }
 
 /** Zaman çizelgesi çapası; ana sayfadan derin bağlantı buraya gider. */

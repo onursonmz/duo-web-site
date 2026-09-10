@@ -1,0 +1,34 @@
+---
+/**
+ * AYDINLATMA METNİ — TASLAK (S12).
+ *
+ * `reviewStatus: legal-review-required` olduğu sürece sayfa taslaktır ve bunu
+ * ziyaretçiye AÇIKÇA söyler. Mevzuat iddiası veya uydurma saklama süresi
+ * içermez; production formu bu onay olmadan veri gönderemez.
+ */
+import BaseLayout from "@layouts/BaseLayout.astro";
+import LegalNotice from "@components/legal/LegalNotice.astro";
+import { getLegal, PUBLIC, PREVIEW } from "@lib/content/selectors";
+import { legalPath } from "@lib/i18n/routes";
+
+const locale = "en" as const;
+
+// Taslak metin PREVIEW modunda okunur; rota her iki ortamda da üretilir ve
+// noindex kalır.
+const notice = (await getLegal(locale, PUBLIC)) ?? (await getLegal(locale, PREVIEW));
+if (notice === undefined) {
+  throw new Error("aydınlatma metni kaydı bulunamadı");
+}
+
+const alternates = { tr: legalPath("tr"), en: legalPath("en") };
+---
+
+<BaseLayout
+  locale={locale}
+  title={notice.data.seo.title}
+  description={notice.data.seo.description}
+  alternates={alternates}
+  noindex={true}
+>
+  <LegalNotice locale={locale} notice={notice} />
+</BaseLayout>

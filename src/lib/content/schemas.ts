@@ -659,3 +659,31 @@ export const aboutSchema = z
     seo: seoSchema,
   })
   .strict();
+
+/* ------------------------------------------------------------------ S12 */
+
+/**
+ * HUKUKİ METİN (aydınlatma metni).
+ *
+ * `reviewStatus` KAPALI bir kümedir ve `legal-review-required` olduğu sürece
+ * metin TASLAKTIR: production formu veri gönderemez (bkz. `src/config/site.ts`
+ * ve `tests/unit/contact-core.test.ts`).
+ *
+ * Bu şemada saklama süresi, mevzuat maddesi veya uyumluluk iddiası için ALAN
+ * YOKTUR: hukuk onayı gelmeden böyle bir cümle veriye yazılamaz.
+ */
+export const legalSchema = z
+  .object({
+    id: z.string().min(1),
+    locale: localeEnum,
+    slug: slugSchema,
+    status: statusEnum,
+    reviewStatus: z.enum(["legal-review-required", "approved"]),
+    title: z.string().min(1),
+    lead: z.string().min(1),
+    sections: z
+      .array(z.object({ heading: z.string().min(1), body: z.string().min(1) }).strict())
+      .min(3),
+    seo: seoSchema,
+  })
+  .strict();

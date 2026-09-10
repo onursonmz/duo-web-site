@@ -1,0 +1,64 @@
+---
+/**
+ * HUKUKİ METİN GÖRÜNÜMÜ.
+ *
+ * Taslak durumu ziyaretçiden GİZLENMEZ: bu, iç yayın süreci anlatmak değil,
+ * hukuki bir metnin bağlayıcı olmadığını söylemektir — okuyucunun bilmesi
+ * gereken bir olgudur.
+ */
+import type { CollectionEntry } from "astro:content";
+import type { Locale } from "@lib/content/schema";
+
+interface Props {
+  locale: Locale;
+  notice: CollectionEntry<"legal">;
+}
+
+const { notice }: Props = Astro.props;
+const data = notice.data;
+const isDraft = data.reviewStatus === "legal-review-required";
+---
+
+<article class="legal" data-testid="legal-notice" data-review-status={data.reviewStatus}>
+  <h1>{data.title}</h1>
+
+  {
+    isDraft && (
+      <p class="legal__flag" data-testid="legal-draft-flag" role="note">
+        {data.lead}
+      </p>
+    )
+  }
+
+  {
+    data.sections.map((section) => (
+      <section>
+        <h2>{section.heading}</h2>
+        <p>{section.body}</p>
+      </section>
+    ))
+  }
+</article>
+
+<style>
+  .legal section {
+    margin-top: var(--space-xl);
+    padding-top: var(--space-sm);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .legal h2 {
+    font-size: var(--text-lg);
+  }
+
+  .legal p {
+    max-width: 68ch;
+  }
+
+  /* Taslak uyarısı: dikkat çekici ama panik değil. */
+  .legal__flag {
+    padding: var(--space-2xs) var(--space-sm);
+    border-left: var(--border-width-strong) solid var(--action);
+    font-weight: var(--weight-medium);
+  }
+</style>

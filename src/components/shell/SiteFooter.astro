@@ -15,6 +15,7 @@
 import type { Locale } from "@lib/content/schema";
 import { t } from "@lib/i18n/dictionary";
 import { activeNavItems, brandHref, secondaryNavItems } from "@config/navigation";
+import { legalPath } from "@lib/i18n/routes";
 import LogoMark from "@components/ui/LogoMark.astro";
 
 interface Props {
@@ -92,6 +93,21 @@ const telHref = (phone: string): string => `tel:${phone.replace(/[^\d+]/g, "")}`
   </div>
 
   <div class="site-footer__bar">
+    <p class="site-footer__legal-links">
+      <a href={legalPath(locale)}>{t(locale, "contact.legalLink")}</a>
+      <!--
+        Çerez paneli buradan yeniden açılır. Bu bir GEZİNME değil EYLEMDİR;
+        bu yüzden `<a href="#">` yerine gerçek bir `<button>` kullanılır.
+      -->
+      <button
+        type="button"
+        class="site-footer__linklike"
+        data-consent-reopen
+        data-testid="consent-reopen"
+      >
+        {t(locale, "consent.reopen")}
+      </button>
+    </p>
     <p class="site-footer__legal">
       © {year} Duosis. {t(locale, "footer.rights")}
     </p>
@@ -171,6 +187,35 @@ const telHref = (phone: string): string => `tel:${phone.replace(/[^\d+]/g, "")}`
     margin-inline: auto;
     padding: var(--space-md) var(--container-gutter) var(--space-xl);
     border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  /* Metin bağlantısı gibi görünen ama gerçek buton olan eylem. */
+  .site-footer__linklike {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--signal);
+    font: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    cursor: pointer;
+  }
+
+  .site-footer__linklike:hover {
+    color: var(--signal-hover);
+  }
+
+  .site-footer__linklike:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .site-footer__legal-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin: 0;
+    font-size: var(--text-xs);
   }
 
   .site-footer__legal {
