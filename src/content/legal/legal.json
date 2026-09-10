@@ -1,0 +1,82 @@
+[
+  {
+    "id": "privacy-tr",
+    "locale": "tr",
+    "slug": "aydinlatma-metni",
+    "status": "draft",
+    "reviewStatus": "legal-review-required",
+    "title": "Aydınlatma metni (taslak)",
+    "lead": "Bu sayfa bir TASLAKTIR ve hukuki incelemeden geçmemiştir. Bağlayıcı bir aydınlatma metni değildir.",
+    "sections": [
+      {
+        "heading": "Bu sayfanın durumu",
+        "body": "Aşağıdaki başlıklar, iletişim formunun hangi verileri neden istediğini teknik olarak açıklar. Mevzuata uygunluk iddiası taşımaz; nihai metin hukuk onayından sonra yayımlanacaktır. Onay verilmeden form gerçek bir gönderim yapamaz."
+      },
+      {
+        "heading": "Hangi veriler isteniyor?",
+        "body": "İletişim formu yalnızca yanıt verebilmek için gereken alanları ister: ad soyad, kurumsal e-posta adresi, kurum adı, ilgi alanı ve mesaj. Telefon numarası istenmez. Zorunlu olmayan hiçbir alan bulunmaz."
+      },
+      {
+        "heading": "Neden isteniyor?",
+        "body": "Bilgiler, gönderdiğiniz talebe dönüş yapabilmek için işlenir. Bu talebin dışında bir amaçla kullanılması planlanmamaktadır."
+      },
+      {
+        "heading": "Nereye gidiyor?",
+        "body": "Bu sürümde form gönderimi AÇIK DEĞİLDİR: girdiğiniz bilgiler hiçbir yere iletilmez ve saklanmaz. Teslim hedefi (e-posta veya CRM) belirlendikten ve hukuki metin onaylandıktan sonra bu bölüm gerçek alıcıyı adıyla belirtecektir."
+      },
+      {
+        "heading": "Ne kadar süreyle saklanır?",
+        "body": "Saklama süresi HENÜZ BELİRLENMEMİŞTİR. Uydurma bir süre yazmak yerine bu alan boş bırakılmıştır; süre, hukuk onayıyla birlikte netleşecektir."
+      },
+      {
+        "heading": "Çerezler",
+        "body": "Sitenin çalışması için gereken çerezler dışında çerez kullanılmaz. Ölçümleme çerezleri varsayılan olarak kapalıdır ve şu an tanımlı bir ölçümleme sağlayıcısı bulunmamaktadır."
+      }
+    ],
+    "seo": {
+      "title": "Aydınlatma metni (taslak)",
+      "description": "İletişim formunun hangi verileri neden istediğini açıklayan taslak metin. Hukuki incelemeden geçmemiştir.",
+      "noindex": true
+    }
+  },
+  {
+    "id": "privacy-en",
+    "locale": "en",
+    "slug": "privacy-notice",
+    "status": "draft",
+    "reviewStatus": "legal-review-required",
+    "title": "Privacy notice (draft)",
+    "lead": "This page is a DRAFT and has not been through legal review. It is not a binding privacy notice.",
+    "sections": [
+      {
+        "heading": "Status of this page",
+        "body": "The sections below explain, in technical terms, which data the contact form asks for and why. They make no claim of regulatory compliance; the final text will be published after legal review. Until that approval, the form cannot perform a real submission."
+      },
+      {
+        "heading": "Which data is requested?",
+        "body": "The contact form asks only for what is needed to reply: full name, work email address, organisation, area of interest and message. No phone number is requested. There are no optional fields."
+      },
+      {
+        "heading": "Why is it requested?",
+        "body": "The details are processed so we can respond to the enquiry you send. No use beyond that enquiry is planned."
+      },
+      {
+        "heading": "Where does it go?",
+        "body": "In this build form submission is NOT ENABLED: what you type is not transmitted anywhere and is not stored. Once a delivery target (email or CRM) is chosen and the legal text approved, this section will name the actual recipient."
+      },
+      {
+        "heading": "How long is it kept?",
+        "body": "The retention period has NOT been determined. Rather than inventing one, this field is left open; it will be settled together with legal approval."
+      },
+      {
+        "heading": "Cookies",
+        "body": "No cookies are used beyond those required for the site to work. Measurement cookies are off by default and no measurement provider is currently configured."
+      }
+    ],
+    "seo": {
+      "title": "Privacy notice (draft)",
+      "description": "A draft page explaining which data the contact form asks for and why. It has not been through legal review.",
+      "noindex": true
+    }
+  }
+]

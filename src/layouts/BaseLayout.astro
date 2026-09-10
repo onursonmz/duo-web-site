@@ -1,9 +1,12 @@
 ---
 import { buildPageTitle } from "@lib/seo/pageTitle";
+import { hreflangLinks } from "@lib/seo/hreflang";
+import { breadcrumbLd, organizationLd } from "@lib/seo/structuredData";
 import { t } from "@lib/i18n/dictionary";
 import type { Locale } from "@lib/content/schema";
 import SiteHeader from "@components/shell/SiteHeader.astro";
 import SiteFooter from "@components/shell/SiteFooter.astro";
+import ConsentBanner from "@components/consent/ConsentBanner.astro";
 import Breadcrumb, { type Crumb } from "@components/shell/Breadcrumb.astro";
 import "../styles/base.css";
 
@@ -20,10 +23,23 @@ interface Props {
   wide?: boolean;
   /** Breadcrumb izi; iki veya daha fazla öğe varsa render edilir. */
   breadcrumbs?: Crumb[];
-  /** Sosyal önizleme görseli (mutlak veya kök-göreli yol). */
+  /**
+   * Sosyal önizleme görseli (kök-göreli yol).
+   *
+   * Varsayılan marka kartı `public/og/og-default.png`; rota aileleri kendi
+   * kartını geçer. Üçüncü taraf logosu veya müşteri markası TAŞIMAZ
+   * (bkz. `scripts/build-og-images.mjs`).
+   */
   ogImage?: string;
   /** Sayfa türü — Open Graph. */
   ogType?: "website" | "article";
+  /**
+   * Sayfaya özel JSON-LD blokları.
+   *
+   * Organization ve BreadcrumbList burada OTOMATİK üretilir; sayfa yalnızca
+   * kendi türünü (Service, BlogPosting, SoftwareApplication) ekler.
+   */
+  jsonLd?: Record<string, unknown>[];
 }
 
 const {
@@ -34,14 +50,51 @@ const {
   noindex = false,
   wide = false,
   breadcrumbs = [],
-  ogImage,
+  ogImage = "/og/og-default.png",
   ogType = "website",
+  jsonLd = [],
 }: Props = Astro.props;
 
 const SITE_NAME = t(locale, "site.name");
 const pageTitle = buildPageTitle({ pageTitle: title, siteName: SITE_NAME });
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
 const ogImageUrl = ogImage === undefined ? undefined : new URL(ogImage, canonical).href;
+
+/*
+ * HREFLANG: karşılıklı, sahte çevirisiz ve x-default'lu küme
+ * (bkz. `@lib/seo/hreflang`). Tek dilli sayfada BOŞ döner.
+ */
+const alternateLinks = hreflangLinks(locale, Astro.url.pathname, alternates);
+
+/*
+ * STRUCTURED DATA.
+ *
+ * Organization her sayfada, BreadcrumbList ise gerçekten breadcrumb varsa
+ * üretilir. İkisi de yalnızca sayfada GÖRÜNEN bilgiyi taşır: doğrulanmamış
+ * sosyal hesap, müşteri sayısı veya partnerlik iddiası eklenmez.
+ */
+const siteOrigin = (Astro.site ?? new URL(Astro.url.origin)).origin;
+
+const organization = organizationLd({
+  siteUrl: siteOrigin,
+  name: SITE_NAME,
+  description: t(locale, "footer.value"),
+  logoUrl: new URL("/brand/duosis-logo.svg", siteOrigin).href,
+  email: "info@duosis.com",
+  telephones: ["0(216) 999 98 57", "0(216) 212 51 52"],
+});
+
+const breadcrumbLdBlock =
+  breadcrumbs.length > 1
+    ? breadcrumbLd(
+        siteOrigin,
+        breadcrumbs.map((crumb) =>
+          crumb.href === undefined ? { name: crumb.label } : { name: crumb.label, path: crumb.href }
+        )
+      )
+    : undefined;
+
+const ldBlocks = [organization, ...(breadcrumbLdBlock ? [breadcrumbLdBlock] : []), ...jsonLd];
 ---
 
 <!doctype html>
@@ -79,8 +132,8 @@ const ogImageUrl = ogImage === undefined ? undefined : new URL(ogImage, canonica
     <link rel="canonical" href={canonical.href} />
     {noindex && <meta name="robots" content="noindex" />}
     {
-      Object.entries(alternates).map(([altLocale, href]) => (
-        <link rel="alternate" hreflang={altLocale} href={new URL(href, canonical).href} />
+      alternateLinks.map((link) => (
+        <link rel="alternate" hreflang={link.hreflang} href={new URL(link.href, canonical).href} />
       ))
     }
 
@@ -97,6 +150,12 @@ const ogImageUrl = ogImage === undefined ? undefined : new URL(ogImage, canonica
     />
 
     <meta name="generator" content={Astro.generator} />
+
+    {
+      ldBlocks.map((block) => (
+        <script type="application/ld+json" is:inline set:html={JSON.stringify(block)} />
+      ))
+    }
   </head>
   <body>
     <a class="skip-link" href="#main-content">{t(locale, "nav.skipToContent")}</a>
@@ -115,6 +174,8 @@ const ogImageUrl = ogImage === undefined ? undefined : new URL(ogImage, canonica
     </main>
 
     <SiteFooter locale={locale} />
+
+    <ConsentBanner locale={locale} />
   </body>
 </html>
 

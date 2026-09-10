@@ -74,6 +74,28 @@ const FORBIDDEN_WORDS = [
   /\bmaturity\b/,
 ];
 
+/**
+ * TASLAK BİLDİRİMİ İSTİSNASI — YALNIZCA AYDINLATMA METNİ (S12).
+ *
+ * Bu iki rotada "taslak" / "draft" bir İÇ SÜREÇ SIZINTISI DEĞİL, ziyaretçiye
+ * verilen KASITLI bir uyarıdır: metin hukuk incelemesinden geçmemiştir ve
+ * bağlayıcı değildir. Bunu gizlemek, onaylanmamış bir metni onaylanmış gibi
+ * göstermek olurdu.
+ *
+ * İstisna YALNIZCA bu iki kelimeyi ve YALNIZCA bu iki rotayı kapsar; diğer
+ * tüm iç süreç ifadeleri burada da geçerlidir. Metin hukuk onayı aldığında
+ * (`reviewStatus: "approved"`) bu istisna KALDIRILIR.
+ */
+const DRAFT_DISCLOSURE_ROUTES: readonly string[] = ["/aydinlatma-metni/", "/en/privacy-notice/"];
+const DRAFT_WORDS = [/\btaslak/, /\bdraft\b/];
+
+function forbiddenWordsFor(route: string): RegExp[] {
+  if (!DRAFT_DISCLOSURE_ROUTES.includes(route)) return FORBIDDEN_WORDS;
+  return FORBIDDEN_WORDS.filter(
+    (word) => !DRAFT_WORDS.some((draft) => draft.source === word.source)
+  );
+}
+
 test.describe("public arayüzde iç süreç dili yok", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
@@ -91,7 +113,7 @@ test.describe("public arayüzde iç süreç dili yok", () => {
         ).toBe(false);
       }
 
-      for (const word of FORBIDDEN_WORDS) {
+      for (const word of forbiddenWordsFor(route)) {
         expect(word.test(visible), `${route} görünür metni ${word} içeriyor`).toBe(false);
       }
     });
@@ -114,7 +136,7 @@ test.describe("public arayüzde iç süreç dili yok", () => {
       for (const phrase of FORBIDDEN_PHRASES) {
         expect(lower.includes(phrase), `${route} metadata "${phrase}" içeriyor`).toBe(false);
       }
-      for (const word of FORBIDDEN_WORDS) {
+      for (const word of forbiddenWordsFor(route)) {
         expect(word.test(lower), `${route} metadata ${word} içeriyor`).toBe(false);
       }
     });

@@ -1,4 +1,5 @@
 import { getCollection, type CollectionEntry } from "astro:content";
+import { isTagKey, type TagKey } from "@config/tags";
 import type {
   CapabilityLayer,
   InsightSeries,
@@ -38,6 +39,7 @@ type Author = CollectionEntry<"authors">;
 type Region = CollectionEntry<"regions">;
 type Product = CollectionEntry<"products">;
 type About = CollectionEntry<"about">;
+type Legal = CollectionEntry<"legal">;
 type Homepage = CollectionEntry<"homepage">;
 
 // ---------------------------------------------------------------- yüklem katmanı
@@ -255,11 +257,15 @@ export async function getMilestones(locale: Locale, mode: ViewMode): Promise<Mil
 }
 
 /** Ana sayfa metni. Locale başına tek kayıt; bulunamazsa build kırılır. */
-export async function getHomepage(locale: Locale): Promise<Homepage> {
+export async function getHomepage(locale: Locale, mode: ViewMode): Promise<Homepage> {
   const all = await getCollection("homepage");
-  const entry = all.find((e) => e.data.locale === locale);
+  const entry = all.find((e) => e.data.locale === locale && isPublishedStatus(e.data.status, mode));
   if (entry === undefined) {
-    throw new Error(`[homepage] "${locale}" için ana sayfa içeriği bulunamadı.`);
+    throw new Error(
+      `[homepage] "${locale}" için "${mode}" modunda yayınlanabilir ana sayfa içeriği yok. ` +
+        `Ana sayfa da diğer rota aileleriyle AYNI olgunluk politikasına tabidir; ` +
+        `status alanı atlanmaz.`
+    );
   }
   return entry;
 }
@@ -286,6 +292,20 @@ export async function getProduct(
       entry.data.locale === locale &&
       entry.data.slug === slug &&
       isPublishedStatus(entry.data.status, mode)
+  );
+}
+
+/**
+ * HUKUKİ METİN.
+ *
+ * Public modda yalnızca `published` kayıt döner; taslak metin yalnızca
+ * PREVIEW modunda okunur. Çağıran taraf ikisini de deneyebilir, fakat
+ * `status` atlanmaz.
+ */
+export async function getLegal(locale: Locale, mode: ViewMode): Promise<Legal | undefined> {
+  const all = await getCollection("legal");
+  return all.find(
+    (entry) => entry.data.locale === locale && isPublishedStatus(entry.data.status, mode)
   );
 }
 
@@ -402,13 +422,19 @@ export async function getInsightsBySeries(
   return insights.filter((e) => e.data.series === series);
 }
 
-/** Bir etiketi taşıyan içgörüler. */
+/**
+ * Bir etiketi taşıyan içgörüler.
+ *
+ * Girdi dilden bağımsız KEY'dir. Kapalı küme dışında bir değer gelirse
+ * eşleşme aranmaz ve BOŞ döner — uydurma bir etiket için sayfa üretilmez.
+ */
 export async function getInsightsByTag(
   tag: string,
   locale: Locale,
   mode: ViewMode,
   now: Date = new Date()
 ): Promise<Insight[]> {
+  if (!isTagKey(tag)) return [];
   const insights = await getInsights(locale, mode, now);
   return insights.filter((e) => e.data.tags.includes(tag));
 }
@@ -438,9 +464,9 @@ export async function getTagsWithCounts(
   locale: Locale,
   mode: ViewMode,
   now: Date = new Date()
-): Promise<{ tag: string; count: number }[]> {
+): Promise<{ tag: TagKey; count: number }[]> {
   const insights = await getInsights(locale, mode, now);
-  const counts = new Map<string, number>();
+  const counts = new Map<TagKey, number>();
   for (const entry of insights) {
     for (const tag of entry.data.tags) {
       counts.set(tag, (counts.get(tag) ?? 0) + 1);

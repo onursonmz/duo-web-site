@@ -1,12 +1,31 @@
 ---
 import BaseLayout from "@layouts/BaseLayout.astro";
 import ServicesBody from "@components/services/ServicesBody.astro";
+import { PUBLIC, getServices } from "@lib/content/selectors";
 import { servicesIndexPath } from "@lib/i18n/routes";
 import { t } from "@lib/i18n/dictionary";
+import { ldOrigin, serviceLd } from "@lib/seo/structuredData";
 
 const locale = "tr" as const;
 const alternates = { tr: servicesIndexPath("tr"), en: servicesIndexPath("en") };
 // Yayın olgunluk politikası: geliştirme sürümü indekslenmez.
+
+/*
+ * STRUCTURED DATA: hizmetler TEK sayfada anlatılıyor, ayrı detay rotası YOK.
+ * Bu yüzden her hizmet aynı sayfayı gösterir ve `@id` slug ile ayrılır.
+ * Ad ve açıklama sayfada GÖRÜNEN değerlerdir.
+ */
+const services = await getServices(locale, PUBLIC);
+const serviceBlocks = services.map((service) =>
+  serviceLd({
+    siteUrl: ldOrigin(Astro.site, Astro.url),
+    path: servicesIndexPath(locale),
+    slug: service.data.slug,
+    name: service.data.title,
+    description: service.data.summary,
+    locale,
+  })
+);
 ---
 
 <BaseLayout
@@ -15,6 +34,7 @@ const alternates = { tr: servicesIndexPath("tr"), en: servicesIndexPath("en") };
   description={t(locale, "services.intro")}
   alternates={alternates}
   noindex={true}
+  jsonLd={serviceBlocks}
   wide={true}
   breadcrumbs={[
     { label: t(locale, "nav.home"), href: "/" },

@@ -131,6 +131,50 @@ const dictionaries = {
     "contact.phone": "Telefon",
     "contact.email": "E-posta",
 
+    // --- S12: iletişim formu ---
+    "contact.formTitle": "Bize yazın",
+    "contact.formIntro":
+      "Aşağıdaki bilgiler size dönebilmemiz için gereklidir; fazlasını istemiyoruz.",
+    "contact.field.name": "Ad soyad",
+    "contact.field.email": "Kurumsal e-posta",
+    "contact.field.organization": "Kurum",
+    "contact.field.topic": "İlgi alanı",
+    "contact.field.message": "Mesajınız",
+    "contact.field.consent":
+      "Aydınlatma metnini okudum; bilgilerimin bu talep için işlenmesini kabul ediyorum.",
+    "contact.field.honeypot": "Bu alanı boş bırakın",
+    "contact.topic.genel": "Genel",
+    "contact.submit": "Gönder",
+    "contact.required": "zorunlu",
+    "contact.legalLink": "Aydınlatma metni",
+    "contact.error.required": "Bu alan zorunlu.",
+    "contact.error.too_short": "Girilen değer çok kısa.",
+    "contact.error.too_long": "Girilen değer çok uzun.",
+    "contact.error.invalid_format": "Biçim geçerli değil.",
+    "contact.error.invalid_choice": "Listeden bir seçenek seçin.",
+    "contact.error.not_accepted": "Devam etmek için onay gerekli.",
+    "contact.error.summary": "Form gönderilemedi. Aşağıdaki alanları kontrol edin.",
+    "contact.notDelivered":
+      "Bu sürümde form gönderimi HENÜZ AÇIK DEĞİL: mesajınız iletilmedi. Lütfen bilgilerinizi kopyalayıp e-posta ile gönderin.",
+    "contact.noJs":
+      "Form doğrulaması JavaScript ile çalışır. JavaScript kapalıyken gönderim yapılamaz; e-posta veya telefonla ulaşabilirsiniz.",
+
+    // --- S12: çerez izni ---
+    "consent.title": "Çerez tercihleri",
+    "consent.body":
+      "Sitenin çalışması için gereken çerezler her zaman etkindir. Ölçümleme çerezleri varsayılan olarak KAPALIDIR ve yalnızca siz açarsanız kullanılır.",
+    "consent.accept": "Kabul et",
+    "consent.reject": "Reddet",
+    "consent.customize": "Özelleştir",
+    "consent.save": "Tercihleri kaydet",
+    "consent.category.essential": "Zorunlu",
+    "consent.category.essentialNote": "Her zaman etkin; kapatılamaz.",
+    "consent.category.analytics": "Ölçümleme",
+    "consent.category.analyticsNote":
+      "Varsayılan kapalı. Şu an bir ölçümleme sağlayıcısı tanımlı değildir; açsanız bile dış istek yapılmaz.",
+    "consent.reopen": "Çerez tercihleri",
+    "consent.savedOn": "Tercih kaydedildi",
+
     "translation.unavailableTitle": "Bu sayfa henüz Türkçe değil",
     // Dil değiştiricide kullanılır: hedef dilde karşılık YOK demektir.
     "translation.notAvailableInTarget": "bu dilde henüz yayınlanmadı",
@@ -261,6 +305,49 @@ const dictionaries = {
     "contact.offices": "Offices",
     "contact.phone": "Phone",
     "contact.email": "Email",
+
+    // --- S12: contact form ---
+    "contact.formTitle": "Write to us",
+    "contact.formIntro": "The fields below are what we need to reply; we do not ask for more.",
+    "contact.field.name": "Full name",
+    "contact.field.email": "Work email",
+    "contact.field.organization": "Organisation",
+    "contact.field.topic": "Area of interest",
+    "contact.field.message": "Your message",
+    "contact.field.consent":
+      "I have read the privacy notice and accept that my details are processed for this enquiry.",
+    "contact.field.honeypot": "Leave this field empty",
+    "contact.topic.genel": "General",
+    "contact.submit": "Send",
+    "contact.required": "required",
+    "contact.legalLink": "Privacy notice",
+    "contact.error.required": "This field is required.",
+    "contact.error.too_short": "This value is too short.",
+    "contact.error.too_long": "This value is too long.",
+    "contact.error.invalid_format": "The format is not valid.",
+    "contact.error.invalid_choice": "Choose an option from the list.",
+    "contact.error.not_accepted": "Your approval is required to continue.",
+    "contact.error.summary": "The form was not sent. Check the fields below.",
+    "contact.notDelivered":
+      "Form submission is NOT ENABLED in this build: your message was not sent. Please copy your details and email them to us.",
+    "contact.noJs":
+      "Form validation runs with JavaScript. With JavaScript disabled the form cannot be submitted; please reach us by email or phone.",
+
+    // --- S12: cookie consent ---
+    "consent.title": "Cookie preferences",
+    "consent.body":
+      "Cookies required for the site to work are always on. Measurement cookies are OFF by default and are used only if you turn them on.",
+    "consent.accept": "Accept",
+    "consent.reject": "Reject",
+    "consent.customize": "Customise",
+    "consent.save": "Save preferences",
+    "consent.category.essential": "Essential",
+    "consent.category.essentialNote": "Always on; cannot be turned off.",
+    "consent.category.analytics": "Measurement",
+    "consent.category.analyticsNote":
+      "Off by default. No measurement provider is configured at the moment; even when enabled, no external request is made.",
+    "consent.reopen": "Cookie preferences",
+    "consent.savedOn": "Preference saved",
 
     "translation.unavailableTitle": "This page is not available in English yet",
     // Used in the language switcher: no counterpart exists in the target language.

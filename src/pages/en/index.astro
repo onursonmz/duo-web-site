@@ -43,7 +43,8 @@ import { t } from "@lib/i18n/dictionary";
 const locale = "en" as const;
 
 // Üretim sayfası: PUBLIC modu AÇIKÇA kullanılır.
-const page = (await getHomepage(locale)).data;
+// Ana sayfa da AYNI olgunluk süzgecinden geçer; PUBLIC modu açıkça verilir.
+const page = (await getHomepage(locale, PUBLIC)).data;
 const solutions = await getSolutions(locale, PUBLIC);
 const milestones = await getMilestones(locale, PUBLIC);
 const regions = await getRegions(locale, PUBLIC);

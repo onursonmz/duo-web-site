@@ -240,3 +240,46 @@ test.describe("JavaScript kapalı — 10. yıl", () => {
     await expect(page.locator("#yil-2026")).toBeInViewport();
   });
 });
+
+/**
+ * S12 — JS KAPALIYKEN İLETİŞİM VE İZİN.
+ *
+ * Dürüstlük kuralı: JavaScript olmadan form gönderilemez ve bu KULLANICIYA
+ * SÖYLENİR. Sessizce çalışıyormuş gibi davranılmaz.
+ */
+test.describe("JavaScript kapalı — iletişim", () => {
+  test("form görünür ama gönderilemeyeceği AÇIKÇA yazıyor", async ({ page }) => {
+    await page.goto("/iletisim/");
+
+    await expect(page.getByTestId("contact-form")).toBeVisible();
+    const notice = page.getByTestId("contact-nojs");
+    await expect(notice).toBeVisible();
+    const text = ((await notice.textContent()) ?? "").toLocaleLowerCase("tr");
+    expect(text).toContain("javascript");
+  });
+
+  test("doğrulanmış iletişim bilgileri JS olmadan da erişilebilir", async ({ page }) => {
+    await page.goto("/iletisim/");
+    await expect(page.getByTestId("contact-details").locator('a[href^="mailto:"]')).not.toHaveCount(
+      0
+    );
+  });
+
+  test("aydınlatma metni JS olmadan okunuyor", async ({ page }) => {
+    await page.goto("/aydinlatma-metni/");
+    await expect(page.getByTestId("legal-draft-flag")).toBeVisible();
+  });
+
+  test("JS KAPALIYKEN izin banner'ı görünmüyor ve dış istek yok", async ({ page }) => {
+    const external: string[] = [];
+    page.on("request", (request) => {
+      if (!request.url().includes("127.0.0.1") && !request.url().includes("localhost")) {
+        external.push(request.url());
+      }
+    });
+    await page.goto("/");
+    // Banner JS ile açılır; JS yoksa gizli kalır ve hiçbir şey yüklenmez.
+    await expect(page.getByTestId("consent-banner")).toBeHidden();
+    expect(external).toEqual([]);
+  });
+});

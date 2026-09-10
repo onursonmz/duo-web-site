@@ -1,6 +1,6 @@
 ---
 /**
- * BlogPosting YAPILANDIRILMIŞ VERİ (S11 §14).
+ * BlogPosting YAPILANDIRILMIŞ VERİ (S11 §14, S13'te tekilleştirildi).
  *
  * TEMEL KURAL: burada üretilen her alanın sayfada GÖRÜNEN bir karşılığı
  * vardır. Yapılandırılmış veri, sayfanın söylemediği bir şeyi arama motoruna
@@ -8,17 +8,22 @@
  *
  *   headline      = sayfadaki <h1> ile AYNI metin (sayfa başlığı + site adı
  *                   birleşimi DEĞİL)
- *   author        = meta rayında görünen yazar
+ *   author        = meta rayında görünen yazar (ortak imza → Organization)
  *   datePublished = meta rayındaki <time> ile aynı gün
  *   dateModified  = yalnızca sayfada güncelleme tarihi gösteriliyorsa
  *   mainEntityOfPage = canonical URL
  *
  * TAŞIMADIKLARI: müşteri adı, kurum iddiası, derecelendirme, etkileşim
- * sayacı veya sayfada gösterilmeyen herhangi bir metrik. Şema bunlara alan
- * açmaz çünkü nesne burada elle kuruluyor.
+ * sayacı veya sayfada gösterilmeyen herhangi bir metrik.
+ *
+ * S13 NOTU: nesne artık burada elle kurulmuyor; TEK üretici
+ * `blogPostingLd` kullanılıyor. İki ayrı BlogPosting üreticisi olsaydı biri
+ * diğerinden sessizce ayrışabilirdi (ve bir süre ikisi birden basılmıştı).
+ * `tests/unit/structured-data.test.ts` bu tek üreticiyi doğruluyor.
  */
 import type { Locale } from "@lib/content/schema";
 import type { InsightView } from "@lib/content/insightView";
+import { blogPostingLd } from "@lib/seo/structuredData";
 
 interface Props {
   locale: Locale;
@@ -28,38 +33,28 @@ interface Props {
   description: string;
   authorName: string;
   canonical: string;
-  publisherName: string;
 }
 
-const { locale, view, headline, description, authorName, canonical, publisherName }: Props =
-  Astro.props;
+const { locale, view, headline, description, authorName, canonical }: Props = Astro.props;
 
 /*
- * Nesne elle kuruluyor: kaydın tamamını serialize etmek, ileride eklenen
- * herhangi bir alanın (ör. iç notlar) sessizce yapılandırılmış veriye
- * sızması demekti.
+ * `url` ve `@id` canonical'dan TÜRETİLİR; ayrı yoldan kurulup "aynı olmasını
+ * ummak" yerine yapı gereği aynıdır.
  */
-const jsonLd: Record<string, unknown> = {
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
+const canonicalUrl = new URL(canonical);
+
+const jsonLd = blogPostingLd({
+  siteUrl: canonicalUrl.origin,
+  path: canonicalUrl.pathname,
   headline,
   description,
-  inLanguage: locale,
+  locale,
   datePublished: view.publishedIso,
-  author: { "@type": "Organization", name: authorName },
-  publisher: { "@type": "Organization", name: publisherName },
-  mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
-  url: canonical,
+  ...(view.updatedIso === undefined ? {} : { dateModified: view.updatedIso }),
+  authorName,
   articleSection: view.seriesLabel,
-};
-
-if (view.updatedIso !== undefined) {
-  jsonLd.dateModified = view.updatedIso;
-}
-
-if (view.tags.length > 0) {
-  jsonLd.keywords = [...view.tags].join(", ");
-}
+  ...(view.tags.length === 0 ? {} : { keywords: view.tags }),
+});
 ---
 
 <script

@@ -1,5 +1,6 @@
 import { reference } from "astro:content";
 import { z } from "astro/zod";
+import { TAG_KEYS_TUPLE } from "@config/tags";
 import { CTA_LABEL_KEYS } from "@lib/i18n/dictionary";
 import {
   SERVICE_TOPICS,
@@ -307,7 +308,12 @@ export const insightSchema = z
     /** Kapalı küme; yazım hatası yeni bir seri rotası ÜRETEMEZ. */
     series: insightSeriesEnum,
     /** Etiketler URL'de yaşar: ASCII kebab-case zorunlu. */
-    tags: z.array(slugSchema).default([]),
+    /**
+     * Etiketler dilden bağımsız KEY değerleridir (`src/config/tags.ts`).
+     * Kapalı küme: kayıtta olmayan bir etiket build'i kırar, dolayısıyla
+     * bilinmeyen bir etiket için rota da üretilemez.
+     */
+    tags: z.array(z.enum(TAG_KEYS_TUPLE)).default([]),
     authorRef: reference("authors"),
     relatedSolutionRefs: z.array(reference("solutions")).default([]),
     publishedAt: z.coerce.date().optional(),
@@ -656,6 +662,34 @@ export const aboutSchema = z
         labelKey: z.string().min(1),
       })
       .strict(),
+    seo: seoSchema,
+  })
+  .strict();
+
+/* ------------------------------------------------------------------ S12 */
+
+/**
+ * HUKUKİ METİN (aydınlatma metni).
+ *
+ * `reviewStatus` KAPALI bir kümedir ve `legal-review-required` olduğu sürece
+ * metin TASLAKTIR: production formu veri gönderemez (bkz. `src/config/site.ts`
+ * ve `tests/unit/contact-core.test.ts`).
+ *
+ * Bu şemada saklama süresi, mevzuat maddesi veya uyumluluk iddiası için ALAN
+ * YOKTUR: hukuk onayı gelmeden böyle bir cümle veriye yazılamaz.
+ */
+export const legalSchema = z
+  .object({
+    id: z.string().min(1),
+    locale: localeEnum,
+    slug: slugSchema,
+    status: statusEnum,
+    reviewStatus: z.enum(["legal-review-required", "approved"]),
+    title: z.string().min(1),
+    lead: z.string().min(1),
+    sections: z
+      .array(z.object({ heading: z.string().min(1), body: z.string().min(1) }).strict())
+      .min(3),
     seo: seoSchema,
   })
   .strict();

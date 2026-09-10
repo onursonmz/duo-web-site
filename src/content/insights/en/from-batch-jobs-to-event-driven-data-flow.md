@@ -10,10 +10,10 @@ excerpt: >-
   choosing a new tool.
 series: data-and-ai
 tags:
-  - veri-akisi
-  - entegrasyon
+  - data-flow
+  - integration
   - streaming
-  - mimari
+  - architecture
 authorRef: duosis-muhendislik-ekibi
 relatedSolutionRefs:
   - en/data-streaming-and-integration

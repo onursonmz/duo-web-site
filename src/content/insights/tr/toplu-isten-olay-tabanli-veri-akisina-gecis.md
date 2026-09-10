@@ -10,10 +10,10 @@ excerpt: >-
   değiştirmekle başlar.
 series: data-and-ai
 tags:
-  - veri-akisi
-  - entegrasyon
+  - data-flow
+  - integration
   - streaming
-  - mimari
+  - architecture
 authorRef: duosis-muhendislik-ekibi
 relatedSolutionRefs:
   - tr/veri-akisi-ve-entegrasyon

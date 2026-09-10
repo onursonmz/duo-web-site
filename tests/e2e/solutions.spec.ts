@@ -336,9 +336,31 @@ test.describe("CTA bağlamı", () => {
     expect(external).toEqual([]);
   });
 
+  /*
+   * S12 GÜNCELLEMESİ.
+   *
+   * Bu test S07'de "sayfada hiç form yok" diye yazılmıştı; S12 formu ekledi.
+   * Korunması gereken GARANTİ form olmaması değil, `topic` değerinin KİŞİSEL
+   * VERİ gibi işlenmemesiydi: değer kapalı allowlist'ten geçer, serbest metin
+   * alanına yazılmaz ve sayfada ham sorgu dizesi olarak yankılanmaz.
+   */
   test("iletişim sayfası topic parametresini KİŞİSEL VERİ olarak işlemez", async ({ page }) => {
     await page.goto(`/iletisim/?topic=${DEEP[0].slug}`);
-    await expect(page.locator("form, input, textarea, select")).toHaveCount(0);
+
+    // Değer YALNIZCA kapalı kümeli select'e taşınır.
+    await expect(page.locator("select[name='topic']")).toHaveValue(DEEP[0].slug);
+
+    // Hiçbir serbest metin alanı sorgudan doldurulmaz.
+    const prefilled = await page
+      .locator("input[type='text'], input[type='email'], textarea")
+      .evaluateAll((els) =>
+        els.map((el) => (el as HTMLInputElement).value).filter((v) => v !== "")
+      );
+    expect(prefilled, "sorgu parametresi serbest metin alanına yazılmış").toEqual([]);
+
+    // Ham sorgu dizesi sayfada yankılanmaz.
+    const body = await page.locator("body").innerText();
+    expect(body).not.toContain("?topic=");
   });
 });
 
@@ -346,13 +368,26 @@ test.describe("CTA bağlamı", () => {
 
 test.describe("iletişim kabuğu", () => {
   for (const url of ["/iletisim/", "/en/contact/"]) {
-    test(`form ve kişisel veri toplama YOK: ${url}`, async ({ page }) => {
+    /*
+     * S12 GÜNCELLEMESİ: sayfa artık TEK bir iletişim formu taşıyor. Kabuk
+     * garantisi "form yok" değil, "gereğinden fazla veri istenmiyor" oldu.
+     * Ayrıntılı negatif matris `tests/e2e/contact-form.spec.ts` içindedir;
+     * burada yalnızca kabuk düzeyindeki değişmezler denetlenir.
+     */
+    test(`iletişim kabuğu ve veri minimizasyonu: ${url}`, async ({ page }) => {
       const response = await page.goto(url);
       expect(response?.status()).toBe(200);
-      await expect(page.locator("form, input, textarea, select, button[type=submit]")).toHaveCount(
-        0
-      );
+      await expect(page.locator("form")).toHaveCount(1);
       await expect(page.locator("h1")).toHaveCount(1);
+
+      // Zorunlu olmayan telefon alanı YOK.
+      await expect(
+        page.locator("input[type='tel'], [name*='phone'], [name*='telefon']")
+      ).toHaveCount(0);
+
+      // Dosya yükleme veya gizli serbest metin toplama YOK.
+      await expect(page.locator("input[type='file']")).toHaveCount(0);
+
       const robots = await page.locator('meta[name="robots"]').getAttribute("content");
       expect(robots).toContain("noindex");
     });

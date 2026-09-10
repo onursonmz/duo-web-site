@@ -1,0 +1,446 @@
+---
+/**
+ * İLETİŞİM FORMU (S12).
+ *
+ * VERİ MİNİMİZASYONU: ad soyad, kurumsal e-posta, kurum, ilgi alanı, mesaj ve
+ * onay. Telefon alanı YOKTUR.
+ *
+ * KURAL KAYNAĞI: HTML öznitelikleri `@lib/contact/schema` içindeki `FIELDS`
+ * tanımından üretilir — sunucu da aynı tanımı kullanır, kurallar birbirinden
+ * kayamaz.
+ *
+ * KONU: CTA'ların taşıdığı `?topic=` TEK canonical anahtardır. Değer merkezî
+ * kapalı allowlist'ten geçer; bilinmeyen, tekrarlı veya aşırı uzun parametre
+ * forma taşınmaz ve `genel`e düşer.
+ *
+ * DÜRÜSTLÜK: bu sürümde gerçek teslim hedefi (CRM/e-posta) ve spam sağlayıcısı
+ * tanımlı değildir. Form gönderimi kullanıcıya AÇIKÇA "iletilmedi" der; sahte
+ * başarı ekranı gösterilmez. JS kapalıyken de bu durum yazılıdır.
+ */
+import type { Locale } from "@lib/content/schema";
+import { t, type TranslationKey } from "@lib/i18n/dictionary";
+import {
+  HONEYPOT_FIELD,
+  IDEMPOTENCY_FIELD,
+  SPAM_TOKEN_FIELD,
+  TIMESTAMP_FIELD,
+  htmlAttributes,
+} from "@lib/contact/schema";
+import { CONTACT_TOPICS, GENERAL_TOPIC, type ContactTopic } from "@lib/contact/topics";
+
+interface Props {
+  locale: Locale;
+  /** Sunucuda/derleme sırasında normalize edilmiş konu. */
+  topic: ContactTopic;
+  /** Aydınlatma metninin yolu. */
+  legalHref: string;
+}
+
+const { locale, topic, legalHref }: Props = Astro.props;
+
+const labelFor = (name: string): string => t(locale, `contact.field.${name}` as TranslationKey);
+
+/**
+ * Konu etiketleri: çözüm/ürün slug'ları okunabilir hâle getirilir. Slug'lar
+ * zaten allowlist'te olduğu için burada serbest metin oluşmaz.
+ */
+function topicLabel(value: string): string {
+  if (value === GENERAL_TOPIC) return t(locale, "contact.topic.genel");
+  return value
+    .split("-")
+    .map((part) => part.charAt(0).toLocaleUpperCase(locale) + part.slice(1))
+    .join(" ");
+}
+
+/**
+ * İstemci tarafındaki mesajlar: metin koda gömülmez, sözlükten gelir ve
+ * sayfaya JSON olarak yazılır. Kişisel veri veya secret İÇERMEZ.
+ */
+const clientMessages = {
+  "error.required": t(locale, "contact.error.required"),
+  "error.too_short": t(locale, "contact.error.too_short"),
+  "error.too_long": t(locale, "contact.error.too_long"),
+  "error.invalid_format": t(locale, "contact.error.invalid_format"),
+  "error.invalid_choice": t(locale, "contact.error.invalid_choice"),
+  "error.not_accepted": t(locale, "contact.error.not_accepted"),
+  summary: t(locale, "contact.error.summary"),
+  notDelivered: t(locale, "contact.notDelivered"),
+};
+
+const nameAttrs = htmlAttributes("name");
+const emailAttrs = htmlAttributes("email");
+const orgAttrs = htmlAttributes("organization");
+const messageAttrs = htmlAttributes("message");
+---
+
+<section class="form" aria-labelledby="contact-form-heading" data-testid="contact-form-section">
+  <h2 id="contact-form-heading">{t(locale, "contact.formTitle")}</h2>
+  <p class="form__intro">{t(locale, "contact.formIntro")}</p>
+
+  {/* JS kapalıyken gönderim yapılamaz; bu DÜRÜSTÇE yazılır. */}
+  <p class="form__nojs" data-testid="contact-nojs">{t(locale, "contact.noJs")}</p>
+
+  <form
+    class="form__body"
+    data-testid="contact-form"
+    method="post"
+    novalidate
+    aria-describedby="contact-form-status"
+  >
+    {/* Bot tuzağı: ekran okuyucudan ve gözden gizli, ama var. */}
+    <div class="form__trap" aria-hidden="true">
+      <label for="field-honeypot">{t(locale, "contact.field.honeypot")}</label>
+      <input
+        id="field-honeypot"
+        name={HONEYPOT_FIELD}
+        type="text"
+        tabindex="-1"
+        autocomplete="off"
+      />
+    </div>
+
+    <input type="hidden" name={TIMESTAMP_FIELD} data-testid="rendered-at" value="" />
+    <input type="hidden" name={IDEMPOTENCY_FIELD} data-testid="submission-id" value="" />
+    <input type="hidden" name={SPAM_TOKEN_FIELD} value="" />
+
+    <div class="field">
+      <label for="field-name">
+        {labelFor("name")}
+        <span class="field__req">({t(locale, "contact.required")})</span>
+      </label>
+      <input id="field-name" {...nameAttrs} aria-describedby="error-name" />
+      <p class="field__error" id="error-name" data-error-for="name"></p>
+    </div>
+
+    <div class="field">
+      <label for="field-email">
+        {labelFor("email")}
+        <span class="field__req">({t(locale, "contact.required")})</span>
+      </label>
+      <input id="field-email" {...emailAttrs} aria-describedby="error-email" />
+      <p class="field__error" id="error-email" data-error-for="email"></p>
+    </div>
+
+    <div class="field">
+      <label for="field-organization">
+        {labelFor("organization")}
+        <span class="field__req">({t(locale, "contact.required")})</span>
+      </label>
+      <input id="field-organization" {...orgAttrs} aria-describedby="error-organization" />
+      <p class="field__error" id="error-organization" data-error-for="organization"></p>
+    </div>
+
+    <div class="field">
+      <label for="field-topic">
+        {labelFor("topic")}
+        <span class="field__req">({t(locale, "contact.required")})</span>
+      </label>
+      <select id="field-topic" name="topic" required aria-describedby="error-topic">
+        {
+          CONTACT_TOPICS.map((value) => (
+            <option value={value} selected={value === topic}>
+              {topicLabel(value)}
+            </option>
+          ))
+        }
+      </select>
+      <p class="field__error" id="error-topic" data-error-for="topic"></p>
+    </div>
+
+    <div class="field">
+      <label for="field-message">
+        {labelFor("message")}
+        <span class="field__req">({t(locale, "contact.required")})</span>
+      </label>
+      <textarea id="field-message" rows="6" {...messageAttrs} aria-describedby="error-message"
+      ></textarea>
+      <p class="field__error" id="error-message" data-error-for="message"></p>
+    </div>
+
+    <div class="field field--check">
+      <input
+        id="field-consent"
+        name="consent"
+        type="checkbox"
+        required
+        aria-describedby="error-consent"
+      />
+      <label for="field-consent">
+        {labelFor("consent")}
+        <a href={legalHref}>{t(locale, "contact.legalLink")}</a>
+      </label>
+      <p class="field__error" id="error-consent" data-error-for="consent"></p>
+    </div>
+
+    <button class="form__submit" type="submit">{t(locale, "contact.submit")}</button>
+
+    {/* Canlı bölge: hata özeti ve gönderim sonucu buraya yazılır. */}
+    <p
+      class="form__status"
+      id="contact-form-status"
+      role="status"
+      aria-live="polite"
+      data-testid="contact-status"
+    >
+    </p>
+  </form>
+
+  {/* Saf veri; işlenmesi gerekmez — `is:inline` AÇIKÇA belirtilir. */}
+  <script
+    is:inline
+    type="application/json"
+    id="contact-messages"
+    set:html={JSON.stringify(clientMessages)}
+  />
+</section>
+
+<script>
+  import {
+    FIELDS,
+    IDEMPOTENCY_FIELD,
+    MIN_FILL_MS,
+    TIMESTAMP_FIELD,
+    validateSubmission,
+    type FieldName,
+  } from "@lib/contact/schema";
+
+  /*
+   * İSTEMCİ DOĞRULAMASI — sunucuyla AYNI fonksiyon.
+   *
+   * Gönderim gerçek bir hedefe gitmez: bu sürümde teslim kanalı yoktur ve
+   * kullanıcıya bunu açıkça söyleriz. Sahte başarı ekranı GÖSTERİLMEZ.
+   */
+  const form = document.querySelector<HTMLFormElement>('[data-testid="contact-form"]');
+  const status = document.querySelector<HTMLElement>('[data-testid="contact-status"]');
+  const noJs = document.querySelector<HTMLElement>('[data-testid="contact-nojs"]');
+
+  if (form !== null && status !== null) {
+    // JS varsa "JS kapalı" uyarısı kaldırılır.
+    noJs?.remove();
+
+    const renderedAt = form.querySelector<HTMLInputElement>(`[name="${TIMESTAMP_FIELD}"]`);
+    if (renderedAt !== null) renderedAt.value = String(Date.now());
+
+    const submissionId = form.querySelector<HTMLInputElement>(`[name="${IDEMPOTENCY_FIELD}"]`);
+    if (submissionId !== null) submissionId.value = crypto.randomUUID();
+
+    const messages = JSON.parse(
+      document.querySelector<HTMLScriptElement>("#contact-messages")?.textContent ?? "{}"
+    ) as Record<string, string>;
+
+    const showError = (field: FieldName, code: string | null): void => {
+      const box = form.querySelector<HTMLElement>(`[data-error-for="${field}"]`);
+      const input = form.querySelector<HTMLElement>(`[name="${field}"]`);
+      if (box === null || input === null) return;
+      box.textContent = code === null ? "" : (messages[`error.${code}`] ?? "");
+      input.setAttribute("aria-invalid", code === null ? "false" : "true");
+    };
+
+    let submitting = false;
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      // Çift gönderim koruması: ikinci tıklama işlenmez.
+      if (submitting) return;
+
+      const data = new FormData(form);
+      const values: Record<string, unknown> = {};
+      for (const field of FIELDS) {
+        values[field.name] =
+          field.type === "checkbox" ? data.get(field.name) !== null : data.get(field.name);
+      }
+
+      const result = validateSubmission(values);
+      for (const field of FIELDS) {
+        const error = result.errors.find((item) => item.field === field.name);
+        showError(field.name, error?.code ?? null);
+      }
+
+      if (!result.ok) {
+        status.textContent = messages["summary"] ?? "";
+        status.dataset["state"] = "error";
+        // Odağı ilk hatalı alana taşı; girilen değerler KORUNUR.
+        const first = result.errors[0];
+        if (first !== undefined) {
+          form.querySelector<HTMLElement>(`[name="${first.field}"]`)?.focus();
+        }
+        return;
+      }
+
+      // Çok hızlı gönderim istemcide de elenir (sunucu ayrıca denetler).
+      const started = Number(renderedAt?.value ?? 0);
+      if (Number.isFinite(started) && Date.now() - started < MIN_FILL_MS) {
+        status.textContent = messages["notDelivered"] ?? "";
+        status.dataset["state"] = "not-delivered";
+        return;
+      }
+
+      submitting = true;
+      form.querySelector<HTMLButtonElement>('button[type="submit"]')?.setAttribute("disabled", "");
+
+      /*
+       * Teslim kanalı yok: DEMO modunda hiçbir ağ isteği yapılmaz ve sonuç
+       * "gönderilmedi"dir. Değerler formda kalır ki kullanıcı kopyalayabilsin.
+       */
+      status.textContent = messages["notDelivered"] ?? "";
+      status.dataset["state"] = "not-delivered";
+    });
+  }
+</script>
+
+<style>
+  .form {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-md);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .form__intro,
+  .form__nojs {
+    max-width: 60ch;
+    color: var(--text-secondary);
+  }
+
+  .form__nojs {
+    padding: var(--space-2xs) var(--space-sm);
+    border-left: var(--border-width-strong) solid var(--action);
+    font-size: var(--text-sm);
+  }
+
+  /*
+   * `minmax(0, 1fr)` ZORUNLU.
+   *
+   * Grid öğesinin varsayılan `min-width: auto` değeri, form denetimlerinin
+   * İÇSEL genişliğinin (input `size`, select'in en uzun seçeneği) altına
+   * inmeyi engelliyor; 320 px'de sayfa 364 px'e taşıyordu. Track'i sıfıra
+   * kadar daraltılabilir yapmak taşmayı kökünden kaldırır.
+   */
+  .form__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-md);
+    max-width: 42rem;
+    margin-top: var(--space-lg);
+  }
+
+  /* Tuzak alanı: görünmez ama `display:none` değil — botlar onu da atlar. */
+  .form__trap {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3xs);
+  }
+
+  .field label {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+  }
+
+  .field__req {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-regular);
+    color: var(--text-muted);
+  }
+
+  /*
+   * Alanlar Command Atlas dilinde: keskin, düşük radius, ince teknik çizgi.
+   * Jenerik SaaS yuvarlaklığı ve gölge KULLANILMAZ.
+   */
+  .field input,
+  .field select,
+  .field textarea {
+    /* Denetim kendi içsel genişliğine değil, sütuna uyar. */
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: var(--space-2xs) var(--space-xs);
+    border: var(--border-width) solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface-canvas);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: var(--text-md);
+  }
+
+  .field textarea {
+    resize: vertical;
+  }
+
+  .field input:focus-visible,
+  .field select:focus-visible,
+  .field textarea:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .field input[aria-invalid="true"],
+  .field select[aria-invalid="true"],
+  .field textarea[aria-invalid="true"] {
+    border-color: var(--action);
+  }
+
+  .field--check {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-2xs);
+  }
+
+  .field--check .field__error {
+    grid-column: 1 / -1;
+  }
+
+  .field__error:empty {
+    display: none;
+  }
+
+  .field__error {
+    margin: 0;
+    color: var(--action);
+    font-size: var(--text-sm);
+  }
+
+  .form__submit {
+    justify-self: start;
+    padding: var(--space-2xs) var(--space-md);
+    border: var(--border-width-strong) solid var(--action);
+    border-radius: var(--radius-sm);
+    background: var(--action);
+    color: var(--action-contrast);
+    font: inherit;
+    font-weight: var(--weight-medium);
+    cursor: pointer;
+  }
+
+  .form__submit[disabled] {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  .form__status:empty {
+    display: none;
+  }
+
+  .form__status {
+    margin: 0;
+    padding: var(--space-2xs) var(--space-sm);
+    border-left: var(--border-width-strong) solid var(--border-strong);
+    max-width: 60ch;
+    font-size: var(--text-sm);
+  }
+
+  .form__status[data-state="error"] {
+    border-left-color: var(--action);
+  }
+
+  .form__status[data-state="not-delivered"] {
+    border-left-color: var(--signal);
+  }
+</style>

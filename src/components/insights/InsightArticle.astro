@@ -23,6 +23,7 @@ import type { Locale } from "@lib/content/schema";
 import type { InsightView } from "@lib/content/insightView";
 import { t } from "@lib/i18n/dictionary";
 import { insightTagPath, solutionPath } from "@lib/i18n/routes";
+import { tagLabel } from "@config/tags";
 import InsightMeta from "@components/insights/InsightMeta.astro";
 import Button from "@components/ui/Button.astro";
 
@@ -118,8 +119,9 @@ const data = insight.data;
         <ul class="article__tags">
           {data.tags.map((tag) => (
             <li>
+              {/* Adres locale slug'ı, metin locale etiketi, `data-tag` KEY. */}
               <a href={insightTagPath(locale, tag)} data-tag={tag}>
-                #{tag}
+                #{tagLabel(locale, tag)}
               </a>
             </li>
           ))}

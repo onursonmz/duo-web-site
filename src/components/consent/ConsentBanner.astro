@@ -1,0 +1,269 @@
+---
+/**
+ * ÇEREZ İZNİ (S12).
+ *
+ * - `essential` her zaman açık ve KAPATILAMAZ.
+ * - `analytics` varsayılan KAPALI.
+ * - `marketing` kategorisi YOK.
+ * - Kabul / Reddet / Özelleştir EŞİT görünürlükte ve klavyeyle erişilebilir.
+ * - Tercih SÜRÜMLÜ saklanır; sürüm değişirse yeniden sorulur.
+ * - Footer'daki bağlantı paneli yeniden açar.
+ *
+ * İzin öncesinde HİÇBİR üçüncü taraf script, iframe, pixel, DNS veya ağ
+ * isteği yoktur — analytics sağlayıcısı `none` olduğu için izin verildiğinde
+ * de dış istek oluşmaz. Kanal hazırdır, açık değildir.
+ */
+import type { Locale } from "@lib/content/schema";
+import { t } from "@lib/i18n/dictionary";
+import { CONSENT_STORAGE_KEY, CONSENT_VERSION } from "@lib/consent/policy";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale }: Props = Astro.props;
+---
+
+<aside
+  class="consent"
+  data-testid="consent-banner"
+  data-storage-key={CONSENT_STORAGE_KEY}
+  data-version={CONSENT_VERSION}
+  aria-labelledby="consent-title"
+  hidden
+>
+  <div class="consent__inner">
+    <h2 class="consent__title" id="consent-title">{t(locale, "consent.title")}</h2>
+    <p class="consent__body">{t(locale, "consent.body")}</p>
+
+    <div class="consent__options" data-testid="consent-options" hidden>
+      <div class="consent__option">
+        <input
+          id="consent-essential"
+          type="checkbox"
+          checked
+          disabled
+          data-testid="consent-essential"
+        />
+        <label for="consent-essential">
+          <strong>{t(locale, "consent.category.essential")}</strong>
+          <span>{t(locale, "consent.category.essentialNote")}</span>
+        </label>
+      </div>
+      <div class="consent__option">
+        <input id="consent-analytics" type="checkbox" data-testid="consent-analytics" />
+        <label for="consent-analytics">
+          <strong>{t(locale, "consent.category.analytics")}</strong>
+          <span>{t(locale, "consent.category.analyticsNote")}</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="consent__actions">
+      <button type="button" class="consent__btn" data-consent-action="accept">
+        {t(locale, "consent.accept")}
+      </button>
+      <button type="button" class="consent__btn" data-consent-action="reject">
+        {t(locale, "consent.reject")}
+      </button>
+      <button type="button" class="consent__btn" data-consent-action="customize">
+        {t(locale, "consent.customize")}
+      </button>
+      <button type="button" class="consent__btn" data-consent-action="save" hidden>
+        {t(locale, "consent.save")}
+      </button>
+    </div>
+  </div>
+</aside>
+
+<script>
+  import {
+    CONSENT_STORAGE_KEY,
+    CONSENT_VERSION,
+    parseConsent,
+    serializeConsent,
+  } from "@lib/consent/policy";
+
+  const banner = document.querySelector<HTMLElement>('[data-testid="consent-banner"]');
+
+  if (banner !== null) {
+    const options = banner.querySelector<HTMLElement>('[data-testid="consent-options"]');
+    const analytics = banner.querySelector<HTMLInputElement>('[data-testid="consent-analytics"]');
+    const saveButton = banner.querySelector<HTMLElement>('[data-consent-action="save"]');
+    const customizeButton = banner.querySelector<HTMLElement>('[data-consent-action="customize"]');
+
+    const read = (): ReturnType<typeof parseConsent> => {
+      try {
+        return parseConsent(localStorage.getItem(CONSENT_STORAGE_KEY));
+      } catch {
+        // Depoya erişilemiyorsa karar VERİLMEMİŞ sayılır (fail-closed).
+        return null;
+      }
+    };
+
+    const store = (allowAnalytics: boolean): void => {
+      try {
+        localStorage.setItem(
+          CONSENT_STORAGE_KEY,
+          serializeConsent({
+            version: CONSENT_VERSION,
+            decidedAt: new Date().toISOString(),
+            essential: true,
+            analytics: allowAnalytics,
+          })
+        );
+      } catch {
+        /* depo yoksa tercih saklanamaz; davranış yine de varsayılan kapalıdır */
+      }
+    };
+
+    /*
+     * ODAK ÇALMA YOK.
+     *
+     * Panel bir MODAL DEĞİL; sayfa açılışında kendiliğinden görünür. Açılışta
+     * odağı kendine alsaydı klavye kullanıcısının ilk TAB durağı "ana içeriğe
+     * geç" bağlantısı olmaktan çıkardı — nitekim S12 ilk sürümünde tam olarak
+     * bu oldu ve dört erişilebilirlik testi kırıldı.
+     *
+     * Odak YALNIZCA kullanıcı paneli KENDİSİ açtığında (footer'daki buton)
+     * taşınır; orada odağı taşımak beklenen davranıştır, çünkü eylemi
+     * kullanıcı başlatmıştır.
+     */
+    const open = (moveFocus: boolean): void => {
+      banner.hidden = false;
+      const existing = read();
+      if (analytics !== null) analytics.checked = existing?.analytics === true;
+      if (moveFocus) banner.querySelector<HTMLElement>("[data-consent-action]")?.focus();
+    };
+
+    const close = (): void => {
+      banner.hidden = true;
+      if (options !== null) options.hidden = true;
+      saveButton?.setAttribute("hidden", "");
+      customizeButton?.removeAttribute("hidden");
+    };
+
+    const decide = (allowAnalytics: boolean): void => {
+      store(allowAnalytics);
+      close();
+      /*
+       * Analytics sağlayıcısı `none`: izin verilse bile hiçbir script
+       * yüklenmez ve hiçbir istek yapılmaz. Buraya sağlayıcı eklendiğinde
+       * yükleme YALNIZCA bu dalda yapılacaktır.
+       */
+    };
+
+    banner.addEventListener("click", (event) => {
+      const target = (event.target as HTMLElement).closest<HTMLElement>("[data-consent-action]");
+      if (target === null) return;
+      const action = target.dataset["consentAction"];
+
+      if (action === "accept") decide(true);
+      else if (action === "reject") decide(false);
+      else if (action === "save") decide(analytics?.checked === true);
+      else if (action === "customize") {
+        if (options !== null) options.hidden = false;
+        saveButton?.removeAttribute("hidden");
+        customizeButton?.setAttribute("hidden", "");
+        analytics?.focus();
+      }
+    });
+
+    // Footer bağlantısı paneli yeniden açar.
+    document.addEventListener("click", (event) => {
+      const trigger = (event.target as HTMLElement).closest("[data-consent-reopen]");
+      if (trigger === null) return;
+      event.preventDefault();
+      open(true);
+    });
+
+    // Karar verilmemişse veya sürüm eskiyse sor — ODAĞI TAŞIMADAN.
+    if (read() === null) open(false);
+  }
+</script>
+
+<style>
+  .consent {
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: 50;
+    border-top: var(--border-width-strong) solid var(--signal);
+    background: var(--surface-raised);
+    color: var(--text-primary);
+  }
+
+  .consent__inner {
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding: var(--space-md) var(--container-gutter);
+  }
+
+  .consent__title {
+    margin: 0 0 var(--space-3xs);
+    font-size: var(--text-md);
+  }
+
+  .consent__body {
+    margin: 0;
+    max-width: 72ch;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .consent__options {
+    display: grid;
+    gap: var(--space-2xs);
+    margin-top: var(--space-sm);
+  }
+
+  .consent__option {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-2xs);
+    align-items: start;
+  }
+
+  .consent__option label {
+    display: grid;
+    gap: 2px;
+    font-size: var(--text-sm);
+  }
+
+  .consent__option span {
+    color: var(--text-secondary);
+    font-size: var(--text-xs);
+  }
+
+  .consent__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+    margin-top: var(--space-sm);
+  }
+
+  /*
+   * EŞİT GÖRÜNÜRLÜK: kabul, reddet ve özelleştir aynı boyut, aynı kontrast,
+   * aynı kenarlık. "Reddet"i silikleştiren karanlık desen kullanılmaz.
+   */
+  .consent__btn {
+    padding: var(--space-2xs) var(--space-sm);
+    border: var(--border-width-strong) solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-primary);
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    cursor: pointer;
+  }
+
+  .consent__btn:hover {
+    border-color: var(--signal);
+  }
+
+  .consent__btn:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+</style>

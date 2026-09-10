@@ -2,7 +2,7 @@
   {
     "id": "tr",
     "locale": "tr",
-    "status": "draft",
+    "status": "published",
     "hero": {
       "eyebrow": "Operasyon zekâsı",
       "title": "Operasyonu görün, veriyi bağlayın, yapay zekâ ile harekete geçin.",
@@ -194,7 +194,7 @@
   {
     "id": "en",
     "locale": "en",
-    "status": "draft",
+    "status": "published",
     "hero": {
       "eyebrow": "Operational intelligence",
       "title": "See the operation, connect the data, act with AI.",

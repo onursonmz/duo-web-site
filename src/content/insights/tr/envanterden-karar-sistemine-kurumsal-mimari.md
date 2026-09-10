@@ -10,10 +10,10 @@ excerpt: >-
   değil, ilişki ve soru.
 series: architecture-notes
 tags:
-  - kurumsal-mimari
-  - yonetisim
-  - envanter
-  - karar-yonetimi
+  - enterprise-architecture
+  - governance
+  - inventory
+  - decision-management
 authorRef: duosis-muhendislik-ekibi
 relatedSolutionRefs:
   - tr/kurumsal-mimari-ve-yonetisim

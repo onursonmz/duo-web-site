@@ -45,20 +45,36 @@ describe("insightSchema", () => {
   });
 
   /**
-   * Etiketler URL'de yaşar. Türkçe karakterli veya boşluklu bir etiket,
-   * üretilebilir olmayan bir rota isteyecekti.
+   * ETİKET MODELİ S13'TE DEĞİŞTİ.
+   *
+   * Kayıtta artık bir SLUG değil, dilden bağımsız bir ANAHTAR tutuluyor
+   * (`src/config/tags.ts`). Slug ve görünen etiket dile göre türetilir; bu
+   * sayede İngilizce rotalarda `/en/insights/tag/veri-akisi/` gibi Türkçe
+   * adresler oluşmuyor. Şema kapalı bir `enum` olduğu için serbest metin,
+   * Türkçe karakter veya boşluk zaten giremez.
    */
-  it("ASCII kebab-case olmayan etiketi REDDEDER", () => {
-    for (const tag of ["Kurumsal Mimari", "veri akışı", "TAG", "veri_akisi", "-bas", "son-"]) {
+  it("kapalı küme dışı etiketi REDDEDER", () => {
+    for (const tag of [
+      "Kurumsal Mimari",
+      "veri akışı",
+      "TAG",
+      "veri_akisi",
+      "-bas",
+      "son-",
+      // Eski Türkçe slug'lar artık ANAHTAR değil; kayda giremezler.
+      "veri-akisi",
+      "entegrasyon",
+      "kurumsal-mimari",
+    ]) {
       const result = insightSchema.safeParse({ ...validInsight, tags: [tag] });
       expect(result.success, `"${tag}" kabul edilmemeliydi`).toBe(false);
     }
   });
 
-  it("geçerli etiketleri kabul eder", () => {
+  it("geçerli etiket ANAHTARLARINI kabul eder", () => {
     const result = insightSchema.safeParse({
       ...validInsight,
-      tags: ["observability", "veri-akisi", "aiops"],
+      tags: ["observability", "data-flow", "aiops"],
     });
     expect(result.success).toBe(true);
   });

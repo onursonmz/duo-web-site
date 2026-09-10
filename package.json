@@ -11,7 +11,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node scripts/build-redirects.mjs",
     "preview": "astro preview",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -21,7 +21,9 @@
     "test:watch": "vitest",
     "test:e2e": "node tests/support/run-e2e.mjs",
     "test:a11y": "node tests/support/run-e2e.mjs --grep @a11y",
-    "quality": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e && pnpm build"
+    "seo:report": "node scripts/seo-report.mjs",
+    "og:images": "node scripts/build-og-images.mjs",
+    "quality": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e && pnpm build && pnpm seo:report"
   },
   "dependencies": {
     "astro": "7.3.1",

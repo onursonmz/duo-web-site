@@ -33,7 +33,24 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  /*
+   * CI'da İKİ worker.
+   *
+   * Süit S13'te ~1005 teste çıktı ve worker sayısı 1'den 2'ye alındı.
+   *
+   * ÖLÇÜLEN: iki worker ile CI koşusu 7 dakika 31 saniye sürdü (kurulum ve
+   * tarayıcı indirme dâhil). GitHub `ubuntu-latest` çalıştırıcısı 4 vCPU
+   * taşıdığı için iki worker aşırı abonelik değildir; `retries: 1` yerinde
+   * duruyor.
+   *
+   * ÖLÇÜLMEYEN: CI'da TEK worker'ın ne kadar süreceği hiç ölçülmedi. Bu
+   * dosyanın önceki hâli "tek worker'la 20 dakikalık bütçe aşılıyordu"
+   * diyordu; bu bir TAHMİNDİ ve kanıtı yoktu. İş adımı bütçesinin 40 dakika
+   * olması bir ZORUNLULUK DEĞİL, güvenlik payıdır.
+   *
+   * Yerelde `undefined`: Playwright çekirdek sayısının yarısını kullanır.
+   */
+  workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : [["list"]],
   timeout: 30_000,
   expect: { timeout: 10_000 },
