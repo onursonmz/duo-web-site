@@ -386,17 +386,41 @@ Karşılaştırma için S00'da ölçülen mevcut site ana sayfası: 7,17 MB / ~1
 
 ## 10. Teslim
 
-| Öğe            | Değer                                                                |
-| -------------- | -------------------------------------------------------------------- |
-| Branch         | `duosis-web/s10-s11-services-insights`                               |
-| Paralel taban  | `9fc01619c29d540e4e693690a72a5cefa3414631`                           |
-| S10 checkpoint | `a2dee8448b9b15d8330a64c3de51f5510576d839`                           |
-| S11 final      | `164641b2a3e3c900de0d2d07b38d5dbddce20efa`                           |
-| Remote CI      | `https://github.com/onursonmz/duo-web-site/actions/runs/34427674500` |
-| Review bundle  | `duosis-web-S10-S11-review.bundle`                                   |
-| Evidence ZIP   | `duosis-web-S10-S11-evidence.zip`                                    |
+> ### ⚠️ BU PAKETLER SUPERSEDED — İNCELEMEYİN
+>
+> Bu bölümde adı geçen **bağımsız S10+S11 review bundle ve evidence ZIP
+> dosyaları geçersizdir**. Yerlerine **S08–S11 integration paketi** geçmiştir;
+> nihai ve yetkili teslim kaynağı odur
+> (`S08_S11_INTEGRATION_REPORT.md` + `duosis-web-S08-S11-integration-*`).
+>
+> Gerekçeler ölçülerek doğrulandı:
+>
+> | Kusur                        | Ölçüm                                                                                                                                                                                             |
+> | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+> | Bundle **eski uçta kalmış**  | `git bundle list-heads` → `62d4df0`; branch ucu ise `e89dbd1`. Bundle `164641b` ve `e89dbd1` commit'lerini **içermiyor** — yani sızan fixture düzeltmesi ve final rapor güncellemesi pakette yok. |
+> | Evidence ZIP **temiz değil** | `git-status.txt` içeriği: ` D src/content/insights/tr/__gelecek-tarihli.md`. Silinmiş test fixture'ı nedeniyle çalışma ağacı kirli görünüyor.                                                     |
+>
+> 23 MB'lık eski kanıt paketi **yeniden üretilmedi**: içeriği zaten integration
+> paketinde güncel hâliyle bulunuyor ve yeniden üretmek inceleme süresini
+> uzatmaktan başka bir şey sağlamıyor.
 
-`main` branch'ine **merge edilmedi**. S12'ye geçilmedi.
+### Commit ayrımı
+
+Aşağıdaki üç HEAD **farklı şeylerdir** ve önceki sürümde tek satıra
+sıkıştırılmıştı:
+
+| Öğe                                 | Değer                                                                                 | Anlamı                                               |
+| ----------------------------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Branch                              | `duosis-web/s10-s11-services-insights`                                                | —                                                    |
+| Paralel taban                       | `9fc01619c29d540e4e693690a72a5cefa3414631`                                            | S06+S07 merge'lenmiş `main`                          |
+| S10 checkpoint                      | `a2dee8448b9b15d8330a64c3de51f5510576d839`                                            | S10 kalite kapısı yeşil                              |
+| **Implementation HEAD**             | `164641b2a3e3c900de0d2d07b38d5dbddce20efa`                                            | Son **kod/test** commit'i (sızan fixture düzeltmesi) |
+| **Docs/delivery HEAD (branch ucu)** | `e89dbd1722269a289fcd46427c9c2154cf068944`                                            | Yalnızca rapor güncellemesi; kod değişikliği yok     |
+| Superseded bundle'ın taşıdığı uç    | `62d4df031dc705af636667ad86f659664cf48922`                                            | **Eski** — yukarıdaki iki commit'i içermiyor         |
+| Remote CI                           | [run 34427674500](https://github.com/onursonmz/duo-web-site/actions/runs/34427674500) | Branch CI'ı                                          |
+
+Nihai teslim: **S08–S11 integration paketi**. `main` branch'ine bu rapor
+yazıldığı anda **merge edilmemişti**; S12'ye geçilmemişti.
 
 ### `git status --short`
 
