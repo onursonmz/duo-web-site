@@ -15,10 +15,10 @@ incelenmek üzere üretildi; canlı bir sunucuya uygulanmadı.
 
 ## 1. Commit ayrımı
 
-| Commit       | Kapsam                                                | Kapı                                      |
-| ------------ | ----------------------------------------------------- | ----------------------------------------- |
-| `325ef68`    | S12 — iletişim formu, onay yönetimi, ölçümleme kanalı | `pnpm quality` yeşil (400 birim, 838 E2E) |
-| S13 commit'i | S13 — SEO, URL migrasyonu, yapılandırılmış veri, OG   | `pnpm quality` yeşil (489 birim)          |
+| Commit    | Kapsam                                                | Kapı                                       |
+| --------- | ----------------------------------------------------- | ------------------------------------------ |
+| `325ef68` | S12 — iletişim formu, onay yönetimi, ölçümleme kanalı | `pnpm quality` yeşil (400 birim, 838 E2E)  |
+| `a9e8634` | S13 — SEO, URL migrasyonu, yapılandırılmış veri, OG   | `pnpm quality` yeşil (493 birim, 1005 E2E) |
 
 Çalışma emri "önce S12 tamamlanacak ve **ayrı checkpoint commit'i** oluşturulacak"
 diyordu.
@@ -419,16 +419,42 @@ SaaS yuvarlaklığı ve gölge kullanılmadı.
 
 ## 12. Kapılar ve ölçümler
 
-| Kapı                                     | Sonuç                        |
-| ---------------------------------------- | ---------------------------- |
-| `pnpm format:check`                      | temiz                        |
-| `pnpm lint`                              | temiz                        |
-| `pnpm typecheck` (`astro check` + `tsc`) | 181 dosya, 0 hata            |
-| `pnpm test` (birim)                      | 24 dosya, 489 test           |
-| `pnpm test:e2e`                          | S12 checkpoint'inde 838 test |
-| `pnpm build`                             | 64 sayfa                     |
-| `pnpm seo:report`                        | 64 sayfa, 0 ihlal            |
-| `pnpm audit --prod`                      | bilinen açık yok             |
+| Kapı                                     | S12 checkpoint     | S13 (final)        |
+| ---------------------------------------- | ------------------ | ------------------ |
+| `pnpm format:check`                      | temiz              | temiz              |
+| `pnpm lint`                              | temiz              | temiz              |
+| `pnpm typecheck` (`astro check` + `tsc`) | 165 dosya, 0 hata  | 181 dosya, 0 hata  |
+| `pnpm test` (birim)                      | 20 dosya, 400 test | 24 dosya, 493 test |
+| `pnpm test:e2e`                          | 838 test           | **1005 test**      |
+| `pnpm build`                             | 63 sayfa           | 64 sayfa           |
+| `pnpm seo:report`                        | —                  | 64 sayfa, 0 ihlal  |
+| `pnpm audit --prod`                      | bilinen açık yok   | bilinen açık yok   |
+
+### Temiz klon + frozen install
+
+Depo ayrı bir dizine **klonlandı** ve `pnpm install --frozen-lockfile` ile
+kurulum yapıldı (46,9 sn, pnpm 12.3.4). Klonda hem önizleme hem üretim
+derlemesi çalıştı; `git status` temiz.
+
+Üretim derlemesi temiz klonda ayrıca tarandı: **`dist/` içinde `localhost`
+veya `127.0.0.1` geçen TEK BİR dosya yok**; canonical değerleri
+`https://duosis.com/...` biçiminde.
+
+### Test süitinin bölünmesi ve CI bütçesi
+
+Süit S13'te ~1005 E2E testine ulaştı. Tek test içinde tüm rotaları gezen
+taramalar (iç bağlantı taraması ve çıktı biçimi kontrolleri) 30 saniyelik test
+bütçesini aşmaya başladı.
+
+**Süre limiti yükseltilmedi; kapsam bölündü.** Aynı kural, aynı rotalar, rota
+başına kendi bütçesi. Ek fayda: hatalı sayfa artık doğrudan test adından
+okunuyor. Bu, depoda daha önce de uygulanmış bir çözümün tekrarıdır.
+
+CI da ölçüme göre ayarlandı: `workers` 1'den **2**'ye, iş adımı bütçesi
+20'den **40 dakikaya**. Yerelde iki worker'la koşu 19 dakika sürüyor; tek
+worker bunun yaklaşık iki katıdır ve eski 20 dakikalık bütçe artık yetmezdi.
+GitHub `ubuntu-latest` çalıştırıcısı 4 vCPU taşıdığı için iki worker aşırı
+abonelik değildir; `retries: 1` yerinde durmaktadır.
 
 ### Ortam kaynaklı bir kesinti ve neden rapor edilmediği
 
@@ -445,6 +471,62 @@ hata bölüm 5'te anlatıldı ve düzeltildi.
 Bu kayıt bilerek tutuldu: yeşil olmayan bir kapıyı "ortam sorunu" diyerek
 geçiştirmek yerine, kök neden ölçülüp ayrıştırıldı ve kapı **gerçekten**
 yeşile alındı.
+
+---
+
+## 12b. Teslim paketi ve kanıtlar
+
+| Dosya                              | İçerik                                                |
+| ---------------------------------- | ----------------------------------------------------- |
+| `duosis-web-S12-S13-review.bundle` | kendi kendine yeten git bundle (`main` + sprint dalı) |
+| `duosis-web-S12-S13-evidence.zip`  | kanıt arşivi                                          |
+| `PACKAGES-S12-S13.sha256`          | SHA-256 manifesti                                     |
+
+Manifest **commit'lenmez**: teslim HEAD'ini taşır ve HEAD commit'ten önce
+bilinemez. Önceki sprintlerdeki düzenin aynısıdır.
+
+Paketleyici üç doğrulamayı da **gerçekten çalıştırır** ve biri düşerse sıfırdan
+farklı çıkış kodu döner:
+
+- bundle `git bundle verify` ile doğrulanır **ve gerçekten klonlanıp** HEAD'i
+  karşılaştırılır — "doğrulandı" demek yetmez, klon açılır;
+- ZIP `testzip()` ile bozulmaya karşı denetlenir;
+- ZIP içindeki **her yol** güvenlik denetiminden geçer: mutlak yol, sürücü
+  harfi, `..` segmenti veya symlink girişi kabul edilmez.
+
+### Ölçülen kanıtlar (`evidence/s12-s13/evidence.json`)
+
+**Ekranlar** — 12 ekran; masaüstü 1440, mobil 390, dar 320, %200 zoom
+(640 CSS px) ve **JavaScript kapalı** varyantları. Her ekranda yatay taşma da
+ölçüldü: **taşan ekran sayısı 0**.
+
+**İzin öncesi ve sonrası ağ** — dört senaryoda da **dış istek sayısı 0**:
+
+| Senaryo                   | Toplam istek | Dış istek |
+| ------------------------- | ------------ | --------- |
+| izin öncesi (`/`)         | 9            | **0**     |
+| izin KABUL sonrası        | 9            | **0**     |
+| izin RED sonrası          | 9            | **0**     |
+| izin öncesi (`/cyclops/`) | 13           | **0**     |
+
+**Form negatif matrisi** — ölçülen davranış:
+
+| Durum                        | Sonuç                                                    |
+| ---------------------------- | -------------------------------------------------------- |
+| boş gönderim                 | 5 alan hatası, canlı bölge özeti, **0 ağ isteği**        |
+| `?topic=uydurma-konu`        | `genel`, ham sorgu yankısı yok                           |
+| `?topic=cyclops&topic=genel` | `genel`, ham sorgu yankısı yok                           |
+| `?topic=` (200 karakter)     | `genel`, ham sorgu yankısı yok                           |
+| `?topic=cyclops`             | `cyclops`, ham sorgu yankısı yok                         |
+| geçerli gönderim (demo)      | `not-delivered`, "mesajınız iletilmedi", **0 ağ isteği** |
+
+Son satır çalışma emrinin açık şartıdır: gerçek teslim mümkün değilken
+kullanıcıya **gönderilmediği söylenir**; sahte başarı üretilmez.
+
+**SEO kanıtları** (`evidence/seo/`) — önizleme ve üretim `robots.txt` /
+`sitemap.xml` dosyaları, üretim derlemesi güvenlik kapılarının ölçülmüş
+çıktısı, yönlendirme manifesti ile `_redirects` ve nginx örneği, her iki
+ortam için metadata raporu.
 
 ---
 
