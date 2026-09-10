@@ -295,6 +295,7 @@ Bunların hiçbiri elle gözden geçirmeyle bulunmadı; hepsini bir test bildird
 | 6   | **Tablo dar ekranda sütunları eziyordu.**                                                                                                                                                                                                                                                                                                                                                              | `insights.spec.ts` tablo testi                            |
 | 7   | **`proof-system` alan okuyucusundaki regex kaçışı bozuktu** — desen `\s` yerine `s` üretiyordu ve kazara çalışıyordu.                                                                                                                                                                                                                                                                                  | `pnpm lint` (`no-useless-escape`)                         |
 | 8   | **Mono fallback yazı tipi %9,1 dar olduğu için düzen kayması.** `/en/technologies/` CLS 0,1317 ölçüldü (bütçe 0,1). Kayma değişkendi — sıcak koşuda 0,004 — bu yüzden bütçeyi yükseltmek sorunu gizlerdi. Ölçüm, JetBrains Mono'nun Consolas'tan %9,1 geniş olduğunu ve `size-adjust: 100%`in yalnızca DİKEY metrikleri hizaladığını gösterdi. Düzeltmeden sonra dört kritik rotada da CLS **0,0000**. | `performance.spec.ts` CLS bütçesi                         |
+| 9   | **Test fixture'ı repoya sızdı.** `content-validation.test.ts` bozuk/uç durum kayıtlarını gerçek koleksiyon klasörüne yazıp `afterEach` ile siliyor; test koşarken atılan bir `git add -A` `__gelecek-tarihli.md` dosyasını commit'lemiş. Zararsızdı (2099 tarihli, rota üretmiyor) ama repoda duracak bir kayıt değil. `.gitignore`a `src/content/**/__*.md` deseni eklendi.                           | Teslim öncesi `git status --short`                        |
 
 **Süreç notu:** Playwright'ın list reporter'ı yeniden denenen başarısızlıkları
 `x` ile işaretliyor, `not ok` ile değil. İlk taramada `not ok` aranınca iki
@@ -385,20 +386,20 @@ Karşılaştırma için S00'da ölçülen mevcut site ana sayfası: 7,17 MB / ~1
 
 ## 10. Teslim
 
-| Öğe            | Değer                                      |
-| -------------- | ------------------------------------------ |
-| Branch         | `duosis-web/s10-s11-services-insights`     |
-| Paralel taban  | `9fc01619c29d540e4e693690a72a5cefa3414631` |
-| S10 checkpoint | `a2dee8448b9b15d8330a64c3de51f5510576d839` |
-| S11 final      | `__FINAL_SHA__`                            |
-| Remote CI      | `__CI_URL__`                               |
-| Review bundle  | `duosis-web-S10-S11-review.bundle`         |
-| Evidence ZIP   | `duosis-web-S10-S11-evidence.zip`          |
+| Öğe            | Değer                                                                |
+| -------------- | -------------------------------------------------------------------- |
+| Branch         | `duosis-web/s10-s11-services-insights`                               |
+| Paralel taban  | `9fc01619c29d540e4e693690a72a5cefa3414631`                           |
+| S10 checkpoint | `a2dee8448b9b15d8330a64c3de51f5510576d839`                           |
+| S11 final      | `164641b2a3e3c900de0d2d07b38d5dbddce20efa`                           |
+| Remote CI      | `https://github.com/onursonmz/duo-web-site/actions/runs/34427674500` |
+| Review bundle  | `duosis-web-S10-S11-review.bundle`                                   |
+| Evidence ZIP   | `duosis-web-S10-S11-evidence.zip`                                    |
 
 `main` branch'ine **merge edilmedi**. S12'ye geçilmedi.
 
 ### `git status --short`
 
 ```
-__GIT_STATUS__
+(temiz — çıktı yok)
 ```
