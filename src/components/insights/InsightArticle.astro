@@ -255,6 +255,13 @@ const data = insight.data;
 
   .article__body :global(th),
   .article__body :global(td) {
+    /*
+     * `min-width` olmadan `display: block` tablo dar ekranda sütunları
+     * kelime kelime sarmalayarak eziyordu: teknik olarak taşma yok ama
+     * karşılaştırma da okunmuyordu. Alt sınır verildiğinde tablo kendi
+     * kabında KAYIYOR ve sütunlar okunabilir kalıyor.
+     */
+    min-width: 7rem;
     padding: var(--space-2xs) var(--space-sm);
     border-bottom: var(--border-width) solid var(--border-subtle);
     text-align: left;

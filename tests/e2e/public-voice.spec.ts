@@ -44,6 +44,14 @@ const PUBLIC_ROUTES = [
   "/en/contact/",
   "/icgoruler/",
   "/en/insights/",
+  "/icgoruler/zabbix-alarmindan-cyclops-olayina/",
+  "/icgoruler/toplu-isten-olay-tabanli-veri-akisina-gecis/",
+  "/icgoruler/envanterden-karar-sistemine-kurumsal-mimari/",
+  "/icgoruler/operasyon-verisinin-dort-hali/",
+  "/en/insights/from-batch-jobs-to-event-driven-data-flow/",
+  "/icgoruler/seri/cyclops-gunlugu/",
+  "/icgoruler/etiket/observability/",
+  "/en/insights/series/data-and-ai/",
   "/404-kontrol/",
 ];
 

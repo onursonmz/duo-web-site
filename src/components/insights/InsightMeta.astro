@@ -75,7 +75,12 @@ const { locale, view, authorName, authorRole }: Props = Astro.props;
     font-family: var(--font-mono);
     font-size: var(--text-2xs);
     letter-spacing: var(--tracking-wide);
-    text-transform: uppercase;
+    /*
+     * BÜYÜK HARF YOK. Ray tarih ve özel ad taşıyor: "10 EYLÜL 2026" ve
+     * "DUOSİS MÜHENDİSLİK EKİBİ" hem okunaksız hem de Türkçe'de noktalı/noktasız
+     * i ayrımını font seviyesinde riske atıyor. Mono aile ve harf aralığı
+     * sistem etiketi hissini zaten veriyor.
+     */
     color: var(--text-muted);
   }
 
