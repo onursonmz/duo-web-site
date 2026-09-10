@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { PUBLIC_PAGE_ROUTES } from "../support/public-routes";
 
 /**
  * PUBLIC SES REGRESYONU (S04+S05 takip kararı).
@@ -14,46 +15,17 @@ import { expect, test } from "@playwright/test";
  * kuralın kapsamı dışındadır.
  */
 
-/** Ziyaretçiye gösterilen tüm üretim rotaları. */
-const PUBLIC_ROUTES = [
-  "/",
-  "/en/",
-  "/cozumler/",
-  "/en/solutions/",
-  "/cozumler/operasyonel-gorunurluk/",
-  "/cozumler/konfigurasyon-ve-varlik-yonetimi/",
-  "/cozumler/bt-hizmet-yonetimi/",
-  "/cozumler/veri-akisi-ve-entegrasyon/",
-  "/cozumler/kurumsal-mimari-ve-yonetisim/",
-  "/cozumler/aiops-ve-olay-yasam-dongusu/",
-  "/cozumler/otomasyon/",
-  "/cozumler/muhendislik-ve-urun-gelistirme/",
-  "/en/solutions/observability-and-apm/",
-  "/en/solutions/configuration-and-asset-management/",
-  "/en/solutions/it-service-management/",
-  "/en/solutions/data-streaming-and-integration/",
-  "/en/solutions/enterprise-architecture/",
-  "/en/solutions/aiops-and-event-lifecycle/",
-  "/en/solutions/automation/",
-  "/en/solutions/engineering-and-product-development/",
-  "/hizmetler/",
-  "/en/services/",
-  "/teknolojiler/",
-  "/en/technologies/",
-  "/iletisim/",
-  "/en/contact/",
-  "/icgoruler/",
-  "/en/insights/",
-  "/icgoruler/zabbix-alarmindan-cyclops-olayina/",
-  "/icgoruler/toplu-isten-olay-tabanli-veri-akisina-gecis/",
-  "/icgoruler/envanterden-karar-sistemine-kurumsal-mimari/",
-  "/icgoruler/operasyon-verisinin-dort-hali/",
-  "/en/insights/from-batch-jobs-to-event-driven-data-flow/",
-  "/icgoruler/seri/cyclops-gunlugu/",
-  "/icgoruler/etiket/observability/",
-  "/en/insights/series/data-and-ai/",
-  "/404-kontrol/",
-];
+/**
+ * Ziyaretçiye gösterilen tüm üretim rotaları — PAYLAŞILAN ENVANTERDEN.
+ *
+ * Liste burada tekrar yazılmıyor: `tests/support/public-routes.ts` tek kaynak
+ * ve `route-inventory.spec.ts` onu build çıktısıyla karşılaştırıyor. Böylece
+ * yeni bir rota açıldığında ses taramasının kapsamı kendiliğinden genişler.
+ *
+ * `/404-kontrol/` gerçek bir rota değildir: 404 şablonunu tetiklemek için
+ * bilinçli olarak var olmayan bir adres istenir.
+ */
+const PUBLIC_ROUTES = [...PUBLIC_PAGE_ROUTES, "/404-kontrol/"];
 
 /**
  * Yasak ifadeler. Küçük harfe indirgenmiş metinde aranır.
