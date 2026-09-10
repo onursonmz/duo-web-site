@@ -572,3 +572,44 @@ S13 sonunda **durulmuştur**.
 - **S14 başlatılmadı**.
 - Gerçek dağıtım, DNS değişikliği, dış servis hesabı ve üretim kimlik bilgisi
   **oluşturulmadı**.
+
+---
+
+## 15. R1 notu — yorum düzeltmeleri ve CI kaydı
+
+Bu bölüm, S12/S13 onayından sonra yapılan **ileri yönlü** düzeltmeyi kaydeder.
+Geçmiş değiştirilmedi; düzeltme ayrı bir commit olarak eklendi.
+
+### 15.1 Düzeltilen iki yorum
+
+İki dosyada, ölçülmemiş bir tahmin ölçülmüş gibi yazılmıştı.
+
+| Dosya                      | Eski (yanlış) ifade                                            | Gerçek durum                         |
+| -------------------------- | -------------------------------------------------------------- | ------------------------------------ |
+| `playwright.config.ts`     | "Tek worker'la CI iş adımının 20 dakikalık bütçesi aşılıyordu" | CI'da **tek worker hiç ölçülmedi**   |
+| `.github/workflows/ci.yml` | "20 dakika artık yetmiyordu"                                   | Aynı şekilde ölçülmemiş bir tahmindi |
+
+**Ölçülen tek değer:** iki worker ile CI koşusu **7 dakika 31 saniye** sürdü
+(bağımlılık kurulumu ve tarayıcı indirme dâhil).
+
+Buradan çıkan sonuç: `workers: 2` değişikliği yerinde, fakat iş adımı
+bütçesinin **40 dakika** olması bir zorunluluk değil, **güvenlik payıdır**.
+Her iki yorum da bu ayrımı yapacak biçimde yeniden yazıldı: neyin ölçüldüğü
+ve neyin ölçülmediği ayrı ayrı belirtiliyor.
+
+### 15.2 CI koşuları
+
+| Koşu                                                                              | HEAD      | Kapsam                                                        | Sonuç             |
+| --------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------- | ----------------- |
+| [34528452647](https://github.com/onursonmz/duo-web-site/actions/runs/34528452647) | `77a364a` | **kod checkpoint'i** — S12+S13 uygulamasının tamamı           | yeşil, 7 dk 35 sn |
+| [34529314148](https://github.com/onursonmz/duo-web-site/actions/runs/34529314148) | `187456e` | **final dokümantasyon HEAD'i** — yalnızca rapor metni değişti | yeşil, 7 dk 59 sn |
+
+Ayrım önemlidir: birinci koşu **çalışan kodu** doğrular; ikinci koşu, rapor
+metni eklendikten sonra ağacın hâlâ yeşil olduğunu gösterir. Aradaki tek fark
+`S12_S13_REPORT.md` içeriğidir, üründe değişiklik yoktur.
+
+### 15.3 Kanıt paketi
+
+S12/S13 kanıt paketi **baştan üretilmedi**; düzeltme yalnızca iki yorum ve bu
+rapor bölümüdür. Bölüm 12b'deki paket bilgileri `187456e` HEAD'i içindir.
+Bu R1 commit'inin kendi HEAD'i, diff'i ve CI sonucu S14/S15 raporunda kayıtlıdır.

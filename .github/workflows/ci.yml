@@ -22,7 +22,9 @@ jobs:
   quality:
     name: Quality gates
     runs-on: ubuntu-latest
-    # S13'te süit ~1005 E2E testine çıktı; 20 dakika artık yetmiyordu.
+    # S13'te süit ~1005 E2E testine çıktı. ÖLÇÜLEN: iki worker ile koşu
+    # 7 dk 31 sn sürüyor. CI'da TEK worker hiç ölçülmedi; bu yüzden "20
+    # dakika yetmiyordu" denemez. 40 dakika zorunluluk değil, güvenlik payı.
     timeout-minutes: 40
 
     steps:
