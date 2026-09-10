@@ -285,27 +285,21 @@ hiç render edilmiyor.
 
 Bunların hiçbiri elle gözden geçirmeyle bulunmadı; hepsini bir test bildirdi.
 
-| #   | Hata                                                                                                                                                                                                           | Nasıl bulundu                                             |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| 1   | **12 kırık iç bağlantı.** Seri ve etiket sayfaları dil karşılığını sabit olarak iki dile birden veriyordu; karşı dilde o seride/etikette yazı olmadığı için adres hiç üretilmemişti.                           | `route-inventory.spec.ts` bağlantı taraması               |
-| 2   | **Rota envanteri testi ana sayfayı atlıyordu.** `/404.html` girdisini elemek için yazılan `replace()` yolu `"/"` hâline getirip ana sayfayı karşılaştırmadan düşürüyordu — testi sessizce zayıflatan bir hata. | Kendi kodunun gözden geçirilmesi (test yeşil görünüyordu) |
-| 3   | **Bölge sırası alfabetikti.** Koleksiyon yükleyicisi kimliğe göre sıralıyordu; Türkiye üçüncü sıraya düşmüştü.                                                                                                 | `services.spec.ts` bölge sırası testi                     |
-| 4   | **Bölüm metni ziyaretçiye yayın politikası anlatıyordu.**                                                                                                                                                      | `services.spec.ts` yasak ifade taraması                   |
-| 5   | **Meta rayı tarihi ve yazar adını büyük harfe çeviriyordu** ("10 EYLÜL 2026"); Türkçe noktalı/noktasız i ayrımı da riske giriyordu.                                                                            | `insights.spec.ts` tarih biçimi testi                     |
-| 6   | **Tablo dar ekranda sütunları eziyordu.**                                                                                                                                                                      | `insights.spec.ts` tablo testi                            |
-| 7   | **`proof-system` alan okuyucusundaki regex kaçışı bozuktu** — desen `\s` yerine `s` üretiyordu ve kazara çalışıyordu.                                                                                          | `pnpm lint` (`no-useless-escape`)                         |
+| #   | Hata                                                                                                                                                                                                                                                                                                                                                                                                   | Nasıl bulundu                                             |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
+| 1   | **12 kırık iç bağlantı.** Seri ve etiket sayfaları dil karşılığını sabit olarak iki dile birden veriyordu; karşı dilde o seride/etikette yazı olmadığı için adres hiç üretilmemişti.                                                                                                                                                                                                                   | `route-inventory.spec.ts` bağlantı taraması               |
+| 2   | **Rota envanteri testi ana sayfayı atlıyordu.** `/404.html` girdisini elemek için yazılan `replace()` yolu `"/"` hâline getirip ana sayfayı karşılaştırmadan düşürüyordu — testi sessizce zayıflatan bir hata.                                                                                                                                                                                         | Kendi kodunun gözden geçirilmesi (test yeşil görünüyordu) |
+| 3   | **Bölge sırası alfabetikti.** Koleksiyon yükleyicisi kimliğe göre sıralıyordu; Türkiye üçüncü sıraya düşmüştü.                                                                                                                                                                                                                                                                                         | `services.spec.ts` bölge sırası testi                     |
+| 4   | **Bölüm metni ziyaretçiye yayın politikası anlatıyordu.**                                                                                                                                                                                                                                                                                                                                              | `services.spec.ts` yasak ifade taraması                   |
+| 5   | **Meta rayı tarihi ve yazar adını büyük harfe çeviriyordu** ("10 EYLÜL 2026"); Türkçe noktalı/noktasız i ayrımı da riske giriyordu.                                                                                                                                                                                                                                                                    | `insights.spec.ts` tarih biçimi testi                     |
+| 6   | **Tablo dar ekranda sütunları eziyordu.**                                                                                                                                                                                                                                                                                                                                                              | `insights.spec.ts` tablo testi                            |
+| 7   | **`proof-system` alan okuyucusundaki regex kaçışı bozuktu** — desen `\s` yerine `s` üretiyordu ve kazara çalışıyordu.                                                                                                                                                                                                                                                                                  | `pnpm lint` (`no-useless-escape`)                         |
+| 8   | **Mono fallback yazı tipi %9,1 dar olduğu için düzen kayması.** `/en/technologies/` CLS 0,1317 ölçüldü (bütçe 0,1). Kayma değişkendi — sıcak koşuda 0,004 — bu yüzden bütçeyi yükseltmek sorunu gizlerdi. Ölçüm, JetBrains Mono'nun Consolas'tan %9,1 geniş olduğunu ve `size-adjust: 100%`in yalnızca DİKEY metrikleri hizaladığını gösterdi. Düzeltmeden sonra dört kritik rotada da CLS **0,0000**. | `performance.spec.ts` CLS bütçesi                         |
 
 **Süreç notu:** Playwright'ın list reporter'ı yeniden denenen başarısızlıkları
 `x` ile işaretliyor, `not ok` ile değil. İlk taramada `not ok` aranınca iki
 başarısızlık gözden kaçtı. Kapı sonucunun tek güvenilir göstergesi **çıkış
 kodudur**; log deseni değil.
-
---- | ---------------------------------------------------------------------------- | --------------------------------------- |
-| 1 | Bölge sırası alfabetikti (Türkiye üçüncü sırada) | `services.spec.ts` bölge sırası testi |
-| 2 | Bölüm metni ziyaretçiye yayın politikası anlatıyordu | `services.spec.ts` yasak ifade taraması |
-| 3 | Meta rayı tarihi ve yazar adını büyük harfe çeviriyordu | `insights.spec.ts` tarih biçimi testi |
-| 4 | Tablo dar ekranda sütunları eziyordu | `insights.spec.ts` tablo testi |
-| 5 | `proof-system` alan okuyucusundaki regex kaçışı bozuktu (kazara çalışıyordu) | `pnpm lint` (`no-useless-escape`) |
 
 ---
 
@@ -352,6 +346,59 @@ kopyalanmadı**; yalnızca S10+S11'in ihtiyacı kadar değiştirildi.
 
 ---
 
-## 9. Kalite kapıları ve teslim
+## 9. Kalite kapıları
 
-_(Bu bölüm final koşulardan sonra dolduruldu — aşağıya bakınız.)_
+Tümü bu branch'in HEAD'inde, `../duo-web-site-s10-s11` worktree'sinde koşuldu.
+Node `24.20.0` (`.nvmrc` ile pinli), pnpm `12.3.4` (`packageManager` ile pinli).
+
+| Kapı                             | Sonuç                                    |
+| -------------------------------- | ---------------------------------------- |
+| `pnpm install --frozen-lockfile` | Başarılı — lockfile değişmedi            |
+| `pnpm format:check`              | Temiz                                    |
+| `pnpm lint`                      | 0 bulgu                                  |
+| `pnpm typecheck`                 | 0 hata, 0 uyarı, 0 ipucu (113 dosya)     |
+| `pnpm test`                      | **257 / 257** (14 dosya)                 |
+| `pnpm test:e2e`                  | **640 / 640** (chromium + chromium-nojs) |
+| `pnpm build`                     | 57 sayfa                                 |
+| `pnpm audit --prod`              | Bilinen güvenlik açığı yok               |
+| RSS + BlogPosting doğrulaması    | **113 / 113** kontrol                    |
+
+`pnpm quality` çıkış kodu: **0**.
+
+### Ölçülen bundle
+
+| Ölçüm                     | Değer                                              |
+| ------------------------- | -------------------------------------------------- |
+| `dist/` toplam            | ~1,9 MB (57 sayfa + 2 besleme + font + marka SVG)  |
+| En ağır HTML              | 48,1 KB (`/`)                                      |
+| CSS toplam                | 53,3 KB (6 dosya; sayfa başına 1–2'si yüklenir)    |
+| Bundle edilmiş JS dosyası | **0**                                              |
+| Satır içi script          | 2 blok / ~2,5 KB (`no-js` sınıfı + menü davranışı) |
+| Font                      | 176 KB (4 woff2; latin alt kümesi ön yüklenir)     |
+| Sayfa ağırlığı bütçesi    | ≤ 600 KB — tüm kritik rotalarda geçildi            |
+| İstek bütçesi             | ≤ 25 — tüm kritik rotalarda geçildi                |
+| CLS                       | **0,0000** (13 kritik rota)                        |
+
+Karşılaştırma için S00'da ölçülen mevcut site ana sayfası: 7,17 MB / ~102 istek.
+
+---
+
+## 10. Teslim
+
+| Öğe            | Değer                                      |
+| -------------- | ------------------------------------------ |
+| Branch         | `duosis-web/s10-s11-services-insights`     |
+| Paralel taban  | `9fc01619c29d540e4e693690a72a5cefa3414631` |
+| S10 checkpoint | `a2dee8448b9b15d8330a64c3de51f5510576d839` |
+| S11 final      | `__FINAL_SHA__`                            |
+| Remote CI      | `__CI_URL__`                               |
+| Review bundle  | `duosis-web-S10-S11-review.bundle`         |
+| Evidence ZIP   | `duosis-web-S10-S11-evidence.zip`          |
+
+`main` branch'ine **merge edilmedi**. S12'ye geçilmedi.
+
+### `git status --short`
+
+```
+__GIT_STATUS__
+```
