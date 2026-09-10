@@ -56,7 +56,8 @@ test.describe("rota envanteri", () => {
      * envanter karşılaştırmasından düşürüyordu — testi sessizce zayıflatan
      * bir hataydı.
      */
-    const internal = new Set(INTERNAL_ROUTES.filter((r) => r.endsWith("/")));
+    // `Set<string>`: INTERNAL_ROUTES bir literal tuple, dar tipi `has(string)`i reddediyor.
+    const internal = new Set<string>(INTERNAL_ROUTES.filter((r) => r.endsWith("/")));
     const publicBuilt = built.filter((route) => !internal.has(route));
 
     const expected = [...PUBLIC_PAGE_ROUTES].sort();
