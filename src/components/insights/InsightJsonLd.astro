@@ -1,0 +1,70 @@
+---
+/**
+ * BlogPosting YAPILANDIRILMIŞ VERİ (S11 §14).
+ *
+ * TEMEL KURAL: burada üretilen her alanın sayfada GÖRÜNEN bir karşılığı
+ * vardır. Yapılandırılmış veri, sayfanın söylemediği bir şeyi arama motoruna
+ * söylemek için kullanılmaz.
+ *
+ *   headline      = sayfadaki <h1> ile AYNI metin (sayfa başlığı + site adı
+ *                   birleşimi DEĞİL)
+ *   author        = meta rayında görünen yazar
+ *   datePublished = meta rayındaki <time> ile aynı gün
+ *   dateModified  = yalnızca sayfada güncelleme tarihi gösteriliyorsa
+ *   mainEntityOfPage = canonical URL
+ *
+ * TAŞIMADIKLARI: müşteri adı, kurum iddiası, derecelendirme, etkileşim
+ * sayacı veya sayfada gösterilmeyen herhangi bir metrik. Şema bunlara alan
+ * açmaz çünkü nesne burada elle kuruluyor.
+ */
+import type { Locale } from "@lib/content/schema";
+import type { InsightView } from "@lib/content/insightView";
+
+interface Props {
+  locale: Locale;
+  view: InsightView;
+  /** Sayfadaki <h1> metni. */
+  headline: string;
+  description: string;
+  authorName: string;
+  canonical: string;
+  publisherName: string;
+}
+
+const { locale, view, headline, description, authorName, canonical, publisherName }: Props =
+  Astro.props;
+
+/*
+ * Nesne elle kuruluyor: kaydın tamamını serialize etmek, ileride eklenen
+ * herhangi bir alanın (ör. iç notlar) sessizce yapılandırılmış veriye
+ * sızması demekti.
+ */
+const jsonLd: Record<string, unknown> = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline,
+  description,
+  inLanguage: locale,
+  datePublished: view.publishedIso,
+  author: { "@type": "Organization", name: authorName },
+  publisher: { "@type": "Organization", name: publisherName },
+  mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
+  url: canonical,
+  articleSection: view.seriesLabel,
+};
+
+if (view.updatedIso !== undefined) {
+  jsonLd.dateModified = view.updatedIso;
+}
+
+if (view.tags.length > 0) {
+  jsonLd.keywords = [...view.tags].join(", ");
+}
+---
+
+<script
+  type="application/ld+json"
+  is:inline
+  set:html={JSON.stringify(jsonLd)}
+  data-testid="blogposting-jsonld"
+/>

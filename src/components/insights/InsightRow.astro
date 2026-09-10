@@ -1,0 +1,145 @@
+---
+/**
+ * İÇGÖRÜ SATIRI (S11 §9).
+ *
+ * Generic kart grid'i DEĞİL. Yazılar bir dergi içindekiler sayfası gibi
+ * dizilir: solda tarih/seri rayı, sağda başlık ve giriş cümlesi. Kutu, gölge
+ * ve köşe yuvarlaması yok; ayrım ince bir çizgiyle kurulur.
+ *
+ * Başlık seviyesi çağırandan gelir: aynı satır hem landing'de (h2 altında h3)
+ * hem de seri sayfasında kullanılabilsin diye şablon kendi seviyesini
+ * varsaymaz.
+ */
+import type { Locale } from "@lib/content/schema";
+import type { InsightView } from "@lib/content/insightView";
+import { t } from "@lib/i18n/dictionary";
+
+interface Props {
+  locale: Locale;
+  view: InsightView;
+  headingLevel?: "h2" | "h3";
+  /** Öne çıkan yazı daha büyük tipografi alır. */
+  featured?: boolean;
+}
+
+const { locale, view, headingLevel: Heading = "h3", featured = false }: Props = Astro.props;
+---
+
+<article
+  class:list={["row", featured && "row--featured"]}
+  data-testid={featured ? "insight-featured" : "insight-row"}
+  data-slug={view.slug}
+>
+  <div class="row__rail">
+    <a class="row__series" href={view.seriesHref} data-series={view.seriesKey}>
+      {view.seriesLabel}
+    </a>
+    <time class="row__date" datetime={view.publishedIso}>{view.publishedLabel}</time>
+    <span class="row__reading">
+      {view.readingMinutes}
+      {t(locale, "insights.readingTimeUnit")}
+    </span>
+  </div>
+
+  <div class="row__main">
+    <Heading class="row__title">
+      <a href={view.href}>{view.title}</a>
+    </Heading>
+    <p class="row__excerpt">{view.excerpt}</p>
+  </div>
+</article>
+
+<style>
+  .row {
+    display: grid;
+    gap: var(--space-2xs) var(--space-lg);
+    padding-block: var(--space-md);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  /*
+   * Masaüstünde tarih/seri rayı sola ayrılır ve tüm satırlarda AYNI genişlikte
+   * durur; göz başlıkları tek bir dikey eksende tarayabilir. Mobilde ray
+   * başlığın üstüne geçer.
+   */
+  @media (min-width: 48rem) {
+    .row {
+      grid-template-columns: 12rem minmax(0, 1fr);
+    }
+  }
+
+  .row__rail {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3xs) var(--space-2xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 48rem) {
+    .row__rail {
+      flex-direction: column;
+      gap: var(--space-3xs);
+      padding-top: 0.4rem;
+    }
+  }
+
+  .row__series {
+    color: var(--signal);
+    text-decoration: none;
+  }
+
+  .row__series:hover,
+  .row__series:focus-visible {
+    text-decoration: underline;
+  }
+
+  .row__title {
+    margin: 0 0 var(--space-2xs);
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .row__title a {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .row__title a:hover,
+  .row__title a:focus-visible {
+    color: var(--signal);
+    text-decoration: underline;
+  }
+
+  .row__excerpt {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  /* ------------------------------------------------------------- öne çıkan */
+
+  /*
+   * Öne çıkan yazı ayrı bir kart DEĞİL: aynı satır, daha büyük tipografiyle.
+   * Böylece liste tek bir ritimde kalır ve "öne çıkan" görsel bir sıçrama
+   * değil, bir vurgu olur.
+   */
+  .row--featured {
+    border-top: 0;
+    padding-block: 0 var(--space-lg);
+  }
+
+  .row--featured .row__title {
+    font-size: var(--text-2xl);
+  }
+
+  .row--featured .row__excerpt {
+    font-size: var(--text-lg);
+    color: var(--text-secondary);
+  }
+</style>

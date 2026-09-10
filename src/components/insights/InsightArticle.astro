@@ -1,0 +1,340 @@
+---
+/**
+ * UZUN YAZI ŞABLONU (S11 §13).
+ *
+ * TEK H1: sayfa başlığı yalnızca burada üretilir. Gövde markdown'ı `##` ile
+ * başlar; içerikte ikinci bir `#` kullanılamaz (test bunu denetler).
+ *
+ * OKUMA ÖLÇÜSÜ: gövde `--container-text` genişliğinde tutulur (~65-75
+ * karakter). Tam genişlik bir sayfada uzun metin okunmaz; bu yüzden makale
+ * geniş bir Section içinde bile kendi dar sütununu korur.
+ *
+ * GENİŞ İÇERİK: tablo ve kod blokları `.scroll-x` kabında KENDİLERİNİ
+ * kaydırır, sayfayı değil. Kap `tabindex="0"` alır ki klavye kullanıcısı da
+ * kaydırabilsin (WCAG 2.1.1). Bu, kaydırma kabı oluşturulduktan sonra
+ * istemci JS'i olmadan çalışır.
+ *
+ * SCROLLJACKING YOK, STICKY İÇİNDEKİLER YOK, OKUMA İLERLEME ÇUBUĞU YOK:
+ * hiçbiri istemci JS'i gerektirmeden yapılamaz ve hiçbiri okumayı
+ * kolaylaştırmıyor.
+ */
+import type { CollectionEntry } from "astro:content";
+import type { Locale } from "@lib/content/schema";
+import type { InsightView } from "@lib/content/insightView";
+import { t } from "@lib/i18n/dictionary";
+import { insightTagPath, solutionPath } from "@lib/i18n/routes";
+import InsightMeta from "@components/insights/InsightMeta.astro";
+import Button from "@components/ui/Button.astro";
+
+interface Props {
+  locale: Locale;
+  insight: CollectionEntry<"insights">;
+  view: InsightView;
+  authorName: string;
+  authorRole: string;
+  /** Yayınlanmış ilgili çözümler; kırık bağlantı üretilmez. */
+  relatedSolutions: { title: string; slug: string }[];
+  /** CTA hedefi — kayıtta özel bir CTA yoksa iletişim rotası. */
+  ctaHref: string;
+  ctaLabel: string;
+}
+
+const {
+  locale,
+  insight,
+  view,
+  authorName,
+  authorRole,
+  relatedSolutions,
+  ctaHref,
+  ctaLabel,
+}: Props = Astro.props;
+
+const data = insight.data;
+---
+
+<article class="article" data-testid="insight-article" data-slug={data.slug}>
+  <header class="article__header">
+    <InsightMeta locale={locale} view={view} authorName={authorName} authorRole={authorRole} />
+    <h1 class="article__title">{data.title}</h1>
+    <p class="article__lead">{data.excerpt}</p>
+  </header>
+
+  <div class="article__body">
+    <slot />
+  </div>
+
+  {
+    data.sources.length > 0 && (
+      <section
+        class="article__section"
+        aria-labelledby="sources-heading"
+        data-testid="insight-sources"
+      >
+        <h2 id="sources-heading">{t(locale, "insights.sources")}</h2>
+        <ul class="article__sources">
+          {data.sources.map((source) => (
+            <li>
+              {/*
+                Dış bağlantı: `rel` ile referrer sızıntısı ve bağlantı
+                değeri aktarımı engellenir. Yeni sekme AÇILMAZ - hedefi
+                seçmek okurun kararıdır.
+              */}
+              <a href={source.url} rel="noopener noreferrer nofollow">
+                {source.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  {
+    relatedSolutions.length > 0 && (
+      <section
+        class="article__section"
+        aria-labelledby="related-heading"
+        data-testid="insight-related-solutions"
+      >
+        <h2 id="related-heading">{t(locale, "insights.relatedSolutions")}</h2>
+        <ul class="article__related">
+          {relatedSolutions.map((solution) => (
+            <li>
+              <a href={solutionPath(locale, solution.slug)}>{solution.title}</a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  {
+    data.tags.length > 0 && (
+      <section class="article__section" aria-labelledby="tags-heading" data-testid="insight-tags">
+        <h2 id="tags-heading" class="article__tags-heading">
+          {t(locale, "insights.tags")}
+        </h2>
+        <ul class="article__tags">
+          {data.tags.map((tag) => (
+            <li>
+              <a href={insightTagPath(locale, tag)} data-tag={tag}>
+                #{tag}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <footer class="article__footer">
+    <Button variant="primary" href={ctaHref} data-testid="insight-cta">{ctaLabel}</Button>
+  </footer>
+</article>
+
+<style>
+  /* Makale kendi okuma sütununu taşır; geniş bir Section içinde de dar kalır. */
+  .article {
+    max-width: var(--container-text);
+    margin-inline: auto;
+  }
+
+  .article__header {
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-md);
+    border-bottom: var(--border-width) solid var(--border-subtle);
+  }
+
+  .article__title {
+    margin: var(--space-2xs) 0 var(--space-sm);
+  }
+
+  .article__lead {
+    margin: 0;
+    max-width: none;
+    font-size: var(--text-lg);
+    line-height: var(--leading-normal);
+    color: var(--text-secondary);
+  }
+
+  /* ------------------------------------------------------------ gövde */
+
+  .article__body :global(h2) {
+    margin-top: var(--space-xl);
+    margin-bottom: var(--space-sm);
+    font-size: var(--text-xl);
+  }
+
+  .article__body :global(h3) {
+    margin-top: var(--space-lg);
+    margin-bottom: var(--space-2xs);
+    font-size: var(--text-lg);
+  }
+
+  .article__body :global(p) {
+    max-width: none;
+  }
+
+  .article__body :global(ul),
+  .article__body :global(ol) {
+    margin: 0 0 var(--space-sm);
+    padding-left: var(--space-md);
+  }
+
+  .article__body :global(li + li) {
+    margin-top: var(--space-3xs);
+  }
+
+  .article__body :global(strong) {
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+  }
+
+  /* ------------------------------------------------------------ alıntı */
+
+  .article__body :global(blockquote) {
+    margin: var(--space-lg) 0;
+    padding-left: var(--space-md);
+    border-left: var(--border-width-strong) solid var(--signal);
+    color: var(--text-secondary);
+    font-size: var(--text-lg);
+  }
+
+  /* ------------------------------------------------------------ kod */
+
+  .article__body :global(pre) {
+    /*
+     * Kod bloğu KENDİ kabında kayar. `tabindex` markdown çıktısına
+     * eklenemediği için kaydırılabilir alan doğrudan <pre> üzerindedir ve
+     * klavyeyle odaklanabilir olması aşağıdaki kuralla sağlanır.
+     */
+    margin: var(--space-md) 0;
+    padding: var(--space-sm) var(--space-md);
+    overflow-x: auto;
+    max-width: 100%;
+    background: var(--surface-sunken);
+    border: var(--border-width) solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+  }
+
+  .article__body :global(pre:focus-visible) {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .article__body :global(:not(pre) > code) {
+    padding: 0.1em 0.3em;
+    background: var(--surface-sunken);
+    border-radius: var(--radius-sm);
+  }
+
+  /* ------------------------------------------------------------ tablo */
+
+  /*
+   * GENİŞ TABLO SAYFAYI TAŞIRMAZ.
+   * `display: block` + `overflow-x: auto` tabloyu kendi kabına hapseder.
+   * Semantik kaybolmasın diye satır/sütun yapısı korunur; yalnızca dış
+   * kutunun taşma davranışı değişir.
+   */
+  .article__body :global(table) {
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
+    margin: var(--space-md) 0;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+  }
+
+  .article__body :global(table:focus-visible) {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .article__body :global(th),
+  .article__body :global(td) {
+    padding: var(--space-2xs) var(--space-sm);
+    border-bottom: var(--border-width) solid var(--border-subtle);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .article__body :global(thead th) {
+    border-bottom: var(--border-width-strong) solid var(--border-strong);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .article__body :global(img) {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .article__body :global(hr) {
+    margin: var(--space-xl) 0;
+    border: 0;
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  /* ------------------------------------------------------------ bölümler */
+
+  .article__section {
+    margin-top: var(--space-xl);
+    padding-top: var(--space-md);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .article__section h2 {
+    margin: 0 0 var(--space-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .article__sources,
+  .article__related {
+    margin: 0;
+    padding-left: var(--space-md);
+    font-size: var(--text-sm);
+  }
+
+  .article__sources li + li,
+  .article__related li + li {
+    margin-top: var(--space-3xs);
+  }
+
+  .article__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .article__tags a {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-decoration: none;
+  }
+
+  .article__tags a:hover,
+  .article__tags a:focus-visible {
+    text-decoration: underline;
+  }
+
+  .article__footer {
+    margin-top: var(--space-xl);
+    padding-top: var(--space-md);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+</style>

@@ -1,0 +1,56 @@
+---
+/**
+ * ETİKET GÖRÜNÜMÜ (S11 §11).
+ *
+ * Seri görünümüyle aynı kural: rota yalnızca gerçekten kullanılan etiketler
+ * için üretilir; bilinmeyen etiket 404 döner.
+ */
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "@layouts/BaseLayout.astro";
+import InsightFilterBody from "@components/insights/InsightFilterBody.astro";
+import { PUBLIC, getInsightsByTag, getTagsWithCounts } from "@lib/content/selectors";
+import { toInsightViews } from "@lib/content/insightView";
+import { insightTagPath, insightsIndexPath } from "@lib/i18n/routes";
+import { t } from "@lib/i18n/dictionary";
+
+export const getStaticPaths = (async () => {
+  const tags = await getTagsWithCounts("tr", PUBLIC);
+  return tags.map((entry) => ({
+    params: { slug: entry.tag },
+    props: { tag: entry.tag },
+  }));
+}) satisfies GetStaticPaths;
+
+const locale = "tr" as const;
+const { tag } = Astro.props;
+const insights = await getInsightsByTag(tag, locale, PUBLIC);
+const views = toInsightViews(insights, locale);
+const title = `#${tag}`;
+
+/*
+ * Etiket slug'ı dile göre DEĞİŞMEZ (kayıtlarda ASCII kebab-case olarak
+ * tutulur), bu yüzden iki dilin karşılığı aynı slug'tır.
+ */
+const alternates = { tr: insightTagPath("tr", tag), en: insightTagPath("en", tag) };
+---
+
+<BaseLayout
+  locale={locale}
+  title={title}
+  description={`${title} — ${t(locale, "insights.intro")}`}
+  alternates={alternates}
+  noindex={true}
+  wide={true}
+  breadcrumbs={[
+    { label: t(locale, "nav.home"), href: "/" },
+    { label: t(locale, "insights.title"), href: insightsIndexPath(locale) },
+    { label: title },
+  ]}
+>
+  <InsightFilterBody
+    locale={locale}
+    kindLabel={t(locale, "insights.tagLabel")}
+    title={title}
+    views={views}
+  />
+</BaseLayout>
