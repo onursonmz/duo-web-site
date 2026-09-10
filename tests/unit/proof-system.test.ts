@@ -130,8 +130,13 @@ describe("mevcut kanıt verisi", () => {
     const text = readFileSync(`${ROOT}src/content/proofs/tr/${file}`, "utf8");
     const match = /^---\r?\n([\s\S]*?)\r?\n---/.exec(text);
     if (match === null) throw new Error(`frontmatter yok: ${file}`);
-    const line = new RegExp(`^${name}:\s*(.*)$`, "m").exec(match[1] ?? "");
-    return line?.[1]?.trim() ?? "";
+    // Satır satır tarama: dinamik `RegExp` burada gereksiz bir kaçış katmanı
+    // ekliyor ve alan adının desene sızmasına izin veriyordu.
+    const prefix = `${name}:`;
+    for (const line of (match[1] ?? "").split(/\r?\n/)) {
+      if (line.startsWith(prefix)) return line.slice(prefix.length).trim();
+    }
+    return "";
   }
 
   it("her kayıt bir tür taşıyor", () => {
