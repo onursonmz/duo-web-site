@@ -55,6 +55,12 @@ Hash, slayt sayısı ve format **kullanıcı beyanıdır**; bu çalışma alanı
 SRC-03'ün export'u **olabilir** (sayfa sayısı aynı); bu **doğrulanmamıştır**.
 Ayrı bir türev kaynak olarak kaydedilir, asli PPTX'in yerine yazılmaz.
 
+> **S08 notu.** S08 talimatı `Cyclops_v1.pdf` için SRC-03'ün (PPTX) hash'ini
+> veriyordu; çalışma alanındaki PDF'in ölçülen hash'i farklıdır
+> (`6a98ff91…b5d7`). PDF sessizce asli kaynak sayılmadı: ürün ekranları bu
+> dosyadan çıkarıldı ve `src/assets/cyclops/MANIFEST.json` içinde gerçek hash
+> ile kaydedildi. SRC-03 hâlâ eksiktir. Bkz. ADR-012 §1.
+
 **Duosis global tasarım şablonu DEĞİLDİR.** CyclOps turkuazı yalnızca CyclOps'a
 ait sınırlı tema bağlamında kullanılabilir; site geneline taşınmaz.
 

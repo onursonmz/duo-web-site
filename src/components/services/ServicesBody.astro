@@ -1,0 +1,114 @@
+---
+/**
+ * HİZMETLER SAYFA GÖVDESİ — TEK ŞABLON, İKİ DİL (S10 §2-§3, §6).
+ *
+ * TR ve EN sayfaları bu gövdeyi paylaşır; hiçbir dil için ayrı düzen kodu
+ * yoktur. Dile bağlı olan her şey içerik kaydından ve sözlükten gelir.
+ *
+ * BÖLÜM RİTMİ: her hizmet kendi Section'ında ve tonlar dönüşümlü (açık-koyu).
+ * Ritim `index` üzerinden hesaplanır, elle yazılmaz — altıncı bir hizmet
+ * eklense düzen kendiliğinden devam eder.
+ */
+import type { Locale } from "@lib/content/schema";
+import { PUBLIC, getRegions, getServices, getSolutions } from "@lib/content/selectors";
+import { t } from "@lib/i18n/dictionary";
+import { technologiesIndexPath } from "@lib/i18n/routes";
+import Section from "@components/ui/Section.astro";
+import SectionHeading from "@components/ui/SectionHeading.astro";
+import Button from "@components/ui/Button.astro";
+import ServiceEntry from "@components/services/ServiceEntry.astro";
+import RegionalPresence from "@components/regions/RegionalPresence.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale }: Props = Astro.props;
+
+const services = await getServices(locale, PUBLIC);
+const solutions = await getSolutions(locale, PUBLIC);
+const regions = await getRegions(locale, PUBLIC);
+
+/*
+ * İLİŞKİLİ ÇÖZÜM ÇÖZÜMLEMESİ.
+ *
+ * Referans id'si (`tr/otomasyon`) yalnızca YAYINDAKİ çözümlerle eşleştirilir.
+ * Yayından kalkmış bir çözüme referans kalırsa satır sessizce düşer; kırık
+ * bağlantı üretilmez. (Referansın var olduğu zaten `assertContentGraph`
+ * tarafından build sırasında denetlenir.)
+ */
+const solutionById = new Map(solutions.map((s) => [s.id, s]));
+const entries = services.map((service) => ({
+  service,
+  relatedSolutions: service.data.relatedSolutionRefs
+    .map((ref) => solutionById.get(ref.id))
+    .filter((s) => s !== undefined)
+    .map((s) => ({ title: s.data.title, slug: s.data.slug })),
+}));
+---
+
+<Section tone="light" width="wide" id="services">
+  <SectionHeading
+    eyebrow={t(locale, "services.eyebrow")}
+    as="h1"
+    lead={t(locale, "services.intro")}
+  >
+    {t(locale, "services.title")}
+  </SectionHeading>
+  <p class="services__distinction" data-testid="service-distinction">
+    {t(locale, "services.distinction")}
+  </p>
+</Section>
+
+{
+  entries.map(({ service, relatedSolutions }, index) => (
+    <Section
+      tone={index % 2 === 0 ? "light" : "dark"}
+      width="wide"
+      id={`service-${service.data.translationKey}-section`}
+    >
+      <ServiceEntry
+        locale={locale}
+        service={service}
+        index={index + 1}
+        relatedSolutions={relatedSolutions}
+      />
+    </Section>
+  ))
+}
+
+{
+  regions.length > 0 && (
+    <Section tone="light" width="wide" id="regions">
+      <RegionalPresence locale={locale} regions={regions} headingLevel="h2" />
+    </Section>
+  )
+}
+
+<Section tone="dark" width="wide" id="services-technologies">
+  <SectionHeading
+    eyebrow={t(locale, "technologies.eyebrow")}
+    lead={t(locale, "technologies.intro")}
+  >
+    {t(locale, "technologies.title")}
+  </SectionHeading>
+  <p>
+    <Button variant="secondary" href={technologiesIndexPath(locale)}>
+      {t(locale, "cta.exploreTechnologies")}
+    </Button>
+  </p>
+</Section>
+
+<style>
+  /*
+   * Hizmet/çözüm ayrımı sayfanın en başında, tek cümlede kurulur. Ziyaretçi
+   * "bunu çözüm sayfasında zaten okumadım mı?" diye sormadan önce cevabı alır.
+   */
+  .services__distinction {
+    max-width: 60ch;
+    padding-left: var(--space-sm);
+    border-left: var(--border-width-strong) solid var(--signal);
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+</style>

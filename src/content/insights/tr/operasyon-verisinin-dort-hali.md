@@ -7,11 +7,12 @@ title: Operasyon verisinin dört hâli
 excerpt: >-
   Metrik, log, event ve trace aynı olayın dört farklı görüntüsüdür. Bunları ayrı
   araçlarda tutmak, kök nedeni aramayı bir arşiv çalışmasına çevirir.
-series: Mimari Notları
+series: architecture-notes
 tags:
   - observability
   - operasyon
-authorRef: duosis-ekibi
+  - apm
+authorRef: duosis-muhendislik-ekibi
 relatedSolutionRefs:
   - tr/operasyonel-gorunurluk
 publishedAt: 2026-09-09

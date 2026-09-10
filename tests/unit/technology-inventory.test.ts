@@ -17,6 +17,15 @@ import { TECHNOLOGY_LIFECYCLES, type TechnologyLifecycle } from "@lib/content/sc
  * Bu liste TEK doğruluk kaynağıdır: envanterdeki her `active` kayıt burada
  * bulunmalı, buradaki her kayıt `active` olmalıdır.
  */
+/**
+ * ADR-012 ile logo izni AÇILAN tek kayıt.
+ *
+ * Kullanıcının CyclOps ürün sunumunu site için sağlaması, CyclOps wordmark'ının
+ * kullanım onayı sayıldı. Bu karar ÜÇÜNCÜ TARAF logolarını açmaz: aşağıdaki
+ * testler diğer 34 kaydın `unknown` kaldığını doğrular.
+ */
+const ADR012_LOGO_ALLOWED = ["cyclops"];
+
 const ADR011_APPROVED = [
   "airflow",
   "ansible",
@@ -190,6 +199,8 @@ describe("alan korunumu — sessiz veri kaybı yok", () => {
   it("logoPermission S00 ile birebir aynı", () => {
     for (const src of s00) {
       const id = src["id"] ?? "";
+      // ADR-012 ile YALNIZCA CyclOps açıldı; kalan her kayıt S00 ile aynı.
+      if (ADR012_LOGO_ALLOWED.includes(id)) continue;
       expect(byId.get(id)?.["logoPermission"], `${id} logoPermission`).toBe(src["logoPermission"]);
     }
   });
@@ -259,8 +270,14 @@ describe("lifecycle dönüşümü — sessizce active yapılmadı", () => {
     }
   });
 
-  it("LOGO İZNİ hiçbir kayıtta gevşemedi", () => {
+  it("LOGO İZNİ yalnızca ADR-012'nin açtığı kayıtta gevşedi", () => {
+    const allowed = s02
+      .filter((record) => record["logoPermission"] === "allowed")
+      .map((record) => String(record["id"]));
+    expect(allowed).toEqual(ADR012_LOGO_ALLOWED);
+
     for (const record of s02) {
+      if (ADR012_LOGO_ALLOWED.includes(String(record["id"]))) continue;
       expect(record["logoPermission"], `${String(record["id"])}`).toBe("unknown");
     }
   });
@@ -330,8 +347,9 @@ describe("public seçici FAIL-CLOSED", () => {
     const cyclops = s02.find((r) => r["id"] === "cyclops");
     expect(cyclops, "cyclops kaydı bulunmalı").toBeDefined();
     expect(isVisibleTechnology(visibilityOf(cyclops), PUBLIC)).toBe(true);
-    // Logo izni yine de gevşemedi.
-    expect(cyclops?.["logoPermission"]).toBe("unknown");
+    // Logo izni ADR-012 ile YALNIZCA bu kayıt için açıldı ve yolu yazılı.
+    expect(cyclops?.["logoPermission"]).toBe("allowed");
+    expect(cyclops?.["logoPath"]).toBe("/brand/cyclops-wordmark.png");
   });
 
   it("public'te görünen küme ADR-011 listesiyle BİREBİR aynı", () => {

@@ -215,3 +215,19 @@
     --motion-slow: 1ms;
   }
 }
+
+/*
+ * ÜRÜN YEREL VURGUSU — CyclOps (S08 / ADR-012).
+ *
+ * Duosis paletinin PARÇASI DEĞİLDİR ve global yüzeylere uygulanmaz. Yalnızca
+ * `/cyclops/` sayfasının koyu bloklarında yerel vurgu olarak kullanılır:
+ *   #00c7b1  koyu yüzeyde (#14181c) 8.6:1 — grafik ve çizgi için yeterli
+ * Açık yüzeyde metin veya kenarlık olarak KULLANILMAZ (kontrast yetersiz).
+ *
+ * `--product-plate`: açık zeminli bir marka asset'ini koyu yüzeye
+ * yerleştirirken kullanılan taşıyıcı. Asset'in kendisi değiştirilmez.
+ */
+.product-accent-cyclops {
+  --product-accent: #00c7b1;
+  --product-plate: #ffffff;
+}

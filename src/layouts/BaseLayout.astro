@@ -62,6 +62,20 @@ const ogImageUrl = ogImage === undefined ? undefined : new URL(ogImage, canonica
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+    {
+      /*
+      Mono yazı tipi de ÖN YÜKLENİR: eyebrow etiketleri, meta rayı ve teknoloji
+      adları ilk ekranda görünüyor. Yükleme geciktiğinde takas penceresi
+      uzuyor ve fallback ile arasındaki fark düzen kaymasına dönüşüyordu.
+    */
+    }
+    <link
+      rel="preload"
+      href="/fonts/jetbrains-mono-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <link rel="canonical" href={canonical.href} />
     {noindex && <meta name="robots" content="noindex" />}
     {

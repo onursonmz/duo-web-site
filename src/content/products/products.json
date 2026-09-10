@@ -1,0 +1,208 @@
+[
+  {
+    "id": "cyclops-tr",
+    "locale": "tr",
+    "slug": "cyclops",
+    "status": "published",
+    "ownership": "duosis-own-product",
+    "name": "CyclOps",
+    "eyebrow": "Duosis ürünü",
+    "valueProposition": "CyclOps, farklı araçlardan gelen olayları tek bir yaşam döngüsünde toplar ve onaylı aksiyona bağlar.",
+    "positioning": "Mevcut izleme araçlarınızın yerine geçmez; ürettikleri olayları ortak bir bağlamda toplar, ilişkilendirir ve ne yapılacağına karar verilen yeri tek bir yere taşır.",
+    "problem": {
+      "title": "Hangi operasyon problemine odaklanır?",
+      "body": "Bir kurumda olay üreten araç sayısı arttıkça, sorunun kendisi değil sorunun nerede olduğu belirsizleşir. Aynı kesinti üç ayrı araçta üç ayrı alarma dönüşür; hangi alarmın hangi olaya ait olduğu, kimin ilgileneceği ve ne yapılacağı ekip hafızasında kalır. CyclOps bu dağınıklığı bir yaşam döngüsüne oturtur: olay nereden geldi, neyi etkiliyor, hangi kurala göre ilişkilendirildi ve sonrasında ne yapıldı."
+    },
+    "flowTitle": "Sinyalden aksiyona",
+    "flow": [
+      {
+        "key": "signal",
+        "title": "Sinyal",
+        "body": "İzleme araçları, uygulamalar ve altyapı bileşenleri olay üretir. CyclOps bunları kendi alıcıları (receiver) üzerinden toplar; kaynak aracın yerine geçmez."
+      },
+      {
+        "key": "context",
+        "title": "Bağlam",
+        "body": "Her olay kaynağı, sürümü ve konfigürasyonuyla birlikte kayıt altına alınır. Bir kuralın ne zaman değiştiği ve o anda hangi sürümün çalıştığı görünür kalır."
+      },
+      {
+        "key": "correlate",
+        "title": "İlişkilendirme",
+        "body": "Filtreler ve matcher kuralları, aynı olguya ait sinyalleri tek bir olayda toplar. Kural ağacı okunabilir bir yapıdadır; ilişkilendirmenin neden kurulduğu incelenebilir."
+      },
+      {
+        "key": "decide",
+        "title": "Karar",
+        "body": "Olay önceliklendirilir, ilgili ekibe atanır ve durumu (açık, çalışılıyor, çözüldü) tek bir yerden izlenir. Inspector, olayın teknik ayrıntısını ve önerilen adımı yan yana gösterir."
+      },
+      {
+        "key": "act",
+        "title": "Aksiyon",
+        "body": "Karar, dispatcher ve entegrasyonlar üzerinden bir aksiyona bağlanır: bilet açmak, bildirim göndermek veya onaylı bir otomasyon akışını tetiklemek. Yapılan iş olayın kaydında kalır."
+      }
+    ],
+    "scenario": {
+      "title": "Önce ve sonra",
+      "beforeTitle": "CyclOps olmadan",
+      "before": [
+        "Aynı kesinti farklı araçlarda ayrı ayrı alarma dönüşür; hangisinin aynı olaya ait olduğu elle çıkarılır.",
+        "Alarmın kime ait olduğu ve hangi aşamada olduğu ekip sohbetlerinde takip edilir.",
+        "Bir kuralın ne zaman ve neden değiştiği çoğu zaman kayıt altında değildir.",
+        "Aksiyon, olayın kaydından bağımsız olarak başka bir araçta yürütülür."
+      ],
+      "afterTitle": "CyclOps ile",
+      "after": [
+        "İlişkili sinyaller tek bir olayda toplanır; olay listesi araç sayısı kadar değil, olay sayısı kadar uzar.",
+        "Önceliklendirme, atama ve durum aynı ekranda yürür.",
+        "Kural ve veri kaynağı sürümleri kayıt altındadır; değişiklik geriye dönük incelenebilir.",
+        "Aksiyon olaya bağlı kalır: ne yapıldığı olayın kendi kaydından okunur."
+      ]
+    },
+    "galleryTitle": "Ürün deneyimi",
+    "galleryNote": "Aşağıdakiler CyclOps'un gerçek ürün ekranlarıdır. Görsellerdeki veriler demo ortamına aittir; hassas alanlar yayın öncesi maskelenmiştir.",
+    "gallery": [
+      {
+        "key": "event-browser",
+        "caption": "Event Browser ve Inspector: olay listesi, önem/öncelik/durum sütunları ve seçilen olayın teknik ayrıntısı.",
+        "alt": "CyclOps Event Browser ekranı: solda olay listesi, sağda seçili olayın Inspector panelinde açıklama, kök neden ve önerilen çözüm alanları."
+      },
+      {
+        "key": "matchers",
+        "caption": "Matcher kuralları ve veri kaynağı sürüm geçmişi: bir olayın hangi koşullarla eşleştiği okunabilir bir kural ağacında durur.",
+        "alt": "CyclOps Matchers ekranı: solda kural listesi, sağda AND/OR koşullarından oluşan kural ağacı; üstte veri kaynağının sürüm geçmişi açılır listesi."
+      },
+      {
+        "key": "dashboard",
+        "caption": "Operasyon panosu: olay dağılımı, bilet durumu ve aktif biletler tek görünümde.",
+        "alt": "CyclOps Dashboard ekranı: toplam ve aktif olay sayacı, kategori dağılımı halka grafiği, bilet istatistikleri ve aktif bilet tablosu."
+      }
+    ],
+    "approval": {
+      "title": "İnsan onayı ve otomasyonun sınırı",
+      "body": "CyclOps'un amacı operasyonu insansızlaştırmak değil, kararın nerede verildiğini netleştirmektir. Otomasyon, kimin neyi onayladığı belli olduğu sürece hızlandırıcıdır.",
+      "boundaries": [
+        "Aksiyon akışları onaya bağlanabilir; onay adımı olmadan tetiklenecek akışlar açıkça seçilir.",
+        "Her aksiyon, tetiklendiği olayın kaydına bağlı kalır; kim veya hangi kural tarafından başlatıldığı izlenebilir.",
+        "Otomasyonun kapsamı kurumla birlikte belirlenir; devreye alma kademelidir."
+      ]
+    },
+    "integrationsTitle": "Entegrasyonlar",
+    "integrationsNote": "Aşağıdaki ürünler CyclOps'un çalıştığı ortamlarda olay kaynağı veya aksiyon hedefi olarak kullanılır. Kapsam ve entegrasyon biçimi her kurumda ayrıca belirlenir.",
+    "technologyRefs": ["zabbix", "datadog", "ansible", "opentext-oo", "smax", "freshservice"],
+    "relatedSolutionRefs": ["tr/aiops-ve-olay-yasam-dongusu", "tr/operasyonel-gorunurluk"],
+    "cta": {
+      "title": "CyclOps'u kendi operasyonunuzda konuşalım",
+      "body": "Mevcut olay akışınızı birlikte inceleyelim; CyclOps'un nerede karşılık bulacağını ve hangi adımla başlanacağını netleştirelim.",
+      "labelKey": "cta.contactUs",
+      "topic": "cyclops"
+    },
+    "seo": {
+      "title": "CyclOps — sinyalden aksiyona",
+      "description": "CyclOps, Duosis'in geliştirdiği olay yaşam döngüsü ürünüdür: farklı araçlardan gelen olayları ortak bağlamda toplar, ilişkilendirir ve onaylı aksiyona bağlar.",
+      "noindex": true
+    }
+  },
+  {
+    "id": "cyclops-en",
+    "locale": "en",
+    "slug": "cyclops",
+    "status": "published",
+    "ownership": "duosis-own-product",
+    "name": "CyclOps",
+    "eyebrow": "A Duosis product",
+    "valueProposition": "CyclOps brings events from separate tools into one lifecycle and connects them to approved action.",
+    "positioning": "It does not replace your monitoring tools. It collects the events they produce into a shared context, correlates them, and moves the place where the decision is made into one view.",
+    "problem": {
+      "title": "Which operational problem does it address?",
+      "body": "As the number of tools producing events grows, what becomes unclear is not the incident itself but where the incident is. One outage turns into three alerts in three tools; which alert belongs to which event, who picks it up and what happens next stays in team memory. CyclOps puts that into a lifecycle: where the event came from, what it affects, which rule correlated it, and what was done afterwards."
+    },
+    "flowTitle": "From signal to action",
+    "flow": [
+      {
+        "key": "signal",
+        "title": "Signal",
+        "body": "Monitoring tools, applications and infrastructure components produce events. CyclOps collects them through its own receivers; it does not take the place of the source tool."
+      },
+      {
+        "key": "context",
+        "title": "Context",
+        "body": "Each event source is recorded together with its version and configuration. When a rule changed, and which version was running at that moment, stays visible."
+      },
+      {
+        "key": "correlate",
+        "title": "Correlate",
+        "body": "Filters and matcher rules gather signals belonging to the same fact into a single event. The rule tree is readable, so why a correlation was made can be inspected."
+      },
+      {
+        "key": "decide",
+        "title": "Decide",
+        "body": "The event is prioritised, assigned to the right team and tracked through its states — open, in progress, resolved — from one place. The Inspector shows the technical detail and the suggested step side by side."
+      },
+      {
+        "key": "act",
+        "title": "Act",
+        "body": "The decision is bound to an action through dispatchers and integrations: opening a ticket, sending a notification, or triggering an approved automation flow. The work done stays on the event record."
+      }
+    ],
+    "scenario": {
+      "title": "Before and after",
+      "beforeTitle": "Without CyclOps",
+      "before": [
+        "One outage becomes separate alerts in separate tools; which ones belong to the same event is worked out by hand.",
+        "Who owns an alert and what stage it is at is tracked in team chats.",
+        "When and why a rule changed is often not recorded at all.",
+        "The action runs in another tool, detached from the event record."
+      ],
+      "afterTitle": "With CyclOps",
+      "after": [
+        "Related signals are gathered into one event; the list grows with the number of events, not the number of tools.",
+        "Prioritisation, assignment and state run in the same screen.",
+        "Rule and datasource versions are recorded; a change can be inspected after the fact.",
+        "The action stays bound to the event: what was done is read from the event's own record."
+      ]
+    },
+    "galleryTitle": "Product experience",
+    "galleryNote": "These are real CyclOps product screens. The data shown belongs to a demo environment; sensitive fields were masked before publication.",
+    "gallery": [
+      {
+        "key": "event-browser",
+        "caption": "Event Browser and Inspector: the event list with severity, priority and state, next to the technical detail of the selected event.",
+        "alt": "CyclOps Event Browser screen: the event list on the left, and on the right the Inspector panel of the selected event with description, root cause and suggested solution fields."
+      },
+      {
+        "key": "matchers",
+        "caption": "Matcher rules and datasource version history: the conditions under which an event matches sit in a readable rule tree.",
+        "alt": "CyclOps Matchers screen: the rule list on the left, and on the right a rule tree of AND/OR conditions; above it the datasource version history dropdown."
+      },
+      {
+        "key": "dashboard",
+        "caption": "Operational dashboard: event distribution, ticket state and active tickets in one view.",
+        "alt": "CyclOps Dashboard screen: total and active event counters, a category distribution donut chart, ticket statistics and the active ticket table."
+      }
+    ],
+    "approval": {
+      "title": "Human approval and the boundary of automation",
+      "body": "The goal of CyclOps is not to take people out of operations but to make it clear where the decision is made. Automation accelerates work as long as it is clear who approved what.",
+      "boundaries": [
+        "Action flows can require approval; flows allowed to run without an approval step are chosen explicitly.",
+        "Every action stays bound to the event that triggered it, so who or which rule started it remains traceable.",
+        "The scope of automation is agreed with the organisation, and rollout is incremental."
+      ]
+    },
+    "integrationsTitle": "Integrations",
+    "integrationsNote": "The products below are used as event sources or action targets in environments where CyclOps runs. Scope and integration shape are defined per engagement.",
+    "technologyRefs": ["zabbix", "datadog", "ansible", "opentext-oo", "smax", "freshservice"],
+    "relatedSolutionRefs": ["en/aiops-and-event-lifecycle", "en/observability-and-apm"],
+    "cta": {
+      "title": "Let us talk about CyclOps in your own operation",
+      "body": "Let us review your current event flow together and agree where CyclOps fits and which step to start with.",
+      "labelKey": "cta.contactUs",
+      "topic": "cyclops"
+    },
+    "seo": {
+      "title": "CyclOps — from signal to action",
+      "description": "CyclOps is the event lifecycle product built by Duosis: it collects events from separate tools into a shared context, correlates them and connects them to approved action.",
+      "noindex": true
+    }
+  }
+]

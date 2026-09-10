@@ -11,7 +11,6 @@ import type { Locale } from "@lib/content/schema";
 const dictionaries = {
   tr: {
     "site.name": "Duosis",
-    "site.tagline": "Kurumsal web sitesi — geliştirme sürümü",
 
     "nav.skipToContent": "Ana içeriğe geç",
     "nav.home": "Ana sayfa",
@@ -20,6 +19,7 @@ const dictionaries = {
     "nav.cyclops": "CyclOps",
     "nav.services": "Hizmetler",
     "nav.about": "Hakkımızda",
+    "nav.technologies": "Teknolojiler",
     "nav.contact": "İletişim",
     "nav.language": "Dil",
     "nav.languageSwitch": "English sayfasına geç",
@@ -40,12 +40,14 @@ const dictionaries = {
     "footer.contact": "İletişim",
     "footer.nav": "Site haritası",
     "footer.rights": "Tüm hakları saklıdır.",
-    "footer.buildNote": "Bu sürüm geliştirme aşamasındadır ve arama motorlarına kapalıdır.",
 
     "cta.exploreSolutions": "Çözümleri inceleyin",
     "cta.solutionDetail": "Çözüm detayına gidin",
     "cta.backToSolutions": "Çözümlere dön",
     "cta.contactUs": "Bizimle iletişime geçin",
+    "cta.talkAboutService": "Bu hizmeti konuşalım",
+    "cta.exploreTechnologies": "Teknoloji atlasını inceleyin",
+    "cta.readInsight": "Yazıyı okuyun",
 
     "solutions.title": "Çözüm alanları",
     "solutions.intro":
@@ -61,17 +63,66 @@ const dictionaries = {
     "solutions.scenario": "Örnek akış",
     "solutions.scenarioResult": "Sonuç",
     "solutions.relatedInsights": "İlgili notlar",
+    "product.realScreen": "Gerçek ürün ekranı",
+    "product.relatedSolutions": "İlgili çözüm alanları",
+    "about.jumpToYear": "Yıla git",
+    "about.journeyLink": "On yılın kaydını görün",
     "solutions.technologies": "Çözüm kapsamında kullandığımız teknolojiler",
     "solutions.empty": "Yayınlanabilir çözüm kaydı bulunmuyor.",
+    "solutions.proofs": "Bu alandaki çalışmalarımızdan",
+
+    "services.title": "Hizmetler",
+    "services.intro":
+      "Çözüm alanlarını hangi çalışma biçimiyle teslim ettiğimiz. Beş hizmet; her biri ne zaman gerektiği, ne kapsadığı ve neyi teslim ettiğiyle tanımlı.",
+    "services.eyebrow": "Çalışma biçimi",
+    "services.whenNeeded": "Ne zaman gerekir?",
+    "services.offer": "Duosis ne sunar?",
+    "services.howWeWork": "Çalışma biçimi",
+    "services.outcomes": "Somut çıktı",
+    "services.relatedSolutions": "İlişkili çözüm alanları",
+    "services.distinction":
+      "Çözüm sayfaları çözülen problemi anlatır; bu sayfa o çözümün hangi çalışma biçimiyle teslim edildiğini anlatır.",
+
+    "technologies.title": "Teknoloji yetenek atlası",
+    "technologies.intro":
+      "Önce yetenek, sonra teknoloji. Her katman bir çözüm alanına ve o alanda çözülen probleme bağlıdır; teknoloji adları katmanın sonunda gelir.",
+    "technologies.eyebrow": "Yetenek katmanları",
+    "technologies.problem": "Çözülen problem",
+    "technologies.relatedSolution": "Çözüm alanı",
+    "technologies.stack": "Bu katmanda çalıştığımız teknolojiler",
+    "technologies.scopeNote":
+      "Bu liste üzerinde çalıştığımız teknolojileri gösterir; satış, temsil veya iş ortaklığı ilişkisi ifade etmez.",
+    "technologies.ownProduct": "Duosis ürünü",
+
+    "regions.title": "Çalıştığımız bölgeler",
+    "regions.intro": "Kurumsal projelerimizi üç bölgede yürütüyoruz.",
+    "regions.eyebrow": "Bölgesel çalışma alanı",
+    "regions.listLabel": "Bölge listesi",
 
     "insights.title": "İçgörüler",
     "insights.intro":
-      "Mühendislik ekibinin operasyon, veri ve mimari üzerine yazdığı kısa teknik notlar.",
+      "Mühendislik ekibinin operasyon, veri ve mimari üzerine yazdığı teknik notlar.",
     "insights.otherLanguage": "İçgörüler şu anda Türkçe olarak yayımlanıyor.",
     "insights.readMore": "Notu okuyun",
     "insights.publishedAt": "Yayın tarihi",
     "insights.series": "Seri",
     "insights.backToIndex": "Tüm içgörüler",
+    "insights.featured": "Öne çıkan",
+    "insights.latest": "Son yazılar",
+    "insights.allSeries": "Seriler",
+    "insights.allTags": "Etiketler",
+    "insights.tags": "Etiketler",
+    "insights.updatedAt": "Güncelleme",
+    "insights.author": "Yazan",
+    "insights.readingTimeUnit": "dk okuma",
+    "insights.sources": "Kaynaklar",
+    "insights.relatedSolutions": "İlgili çözüm alanları",
+    "insights.rss": "RSS beslemesi",
+    "insights.inSeries": "Bu seride",
+    "insights.taggedWith": "Bu etiketle",
+    "insights.seriesLabel": "Seri",
+    "insights.tagLabel": "Etiket",
+    "insights.articleCount": "yazı",
 
     "contact.title": "İletişim",
     "contact.intro":
@@ -91,7 +142,6 @@ const dictionaries = {
   },
   en: {
     "site.name": "Duosis",
-    "site.tagline": "Corporate website — development build",
 
     "nav.skipToContent": "Skip to main content",
     "nav.home": "Home",
@@ -100,6 +150,7 @@ const dictionaries = {
     "nav.cyclops": "CyclOps",
     "nav.services": "Services",
     "nav.about": "About",
+    "nav.technologies": "Technologies",
     "nav.contact": "Contact",
     "nav.language": "Language",
     "nav.languageSwitch": "Switch to the Turkish page",
@@ -120,12 +171,14 @@ const dictionaries = {
     "footer.contact": "Contact",
     "footer.nav": "Site map",
     "footer.rights": "All rights reserved.",
-    "footer.buildNote": "This build is under development and is closed to search engines.",
 
     "cta.exploreSolutions": "Explore the solutions",
     "cta.solutionDetail": "Open solution details",
     "cta.backToSolutions": "Back to solutions",
     "cta.contactUs": "Get in touch",
+    "cta.talkAboutService": "Let us talk about this service",
+    "cta.exploreTechnologies": "Open the technology atlas",
+    "cta.readInsight": "Read the article",
 
     "solutions.title": "Solution areas",
     "solutions.intro":
@@ -141,17 +194,66 @@ const dictionaries = {
     "solutions.scenario": "Example flow",
     "solutions.scenarioResult": "Outcome",
     "solutions.relatedInsights": "Related notes",
+    "product.realScreen": "Real product screen",
+    "product.relatedSolutions": "Related solution areas",
+    "about.jumpToYear": "Jump to year",
+    "about.journeyLink": "See the record of ten years",
     "solutions.technologies": "Technologies we work with in this area",
     "solutions.empty": "No publishable solution record.",
+    "solutions.proofs": "From our work in this area",
+
+    "services.title": "Services",
+    "services.intro":
+      "How we deliver the solution areas. Five services, each defined by when it is needed, what it covers and what it hands over.",
+    "services.eyebrow": "Ways of working",
+    "services.whenNeeded": "When do you need it?",
+    "services.offer": "What Duosis provides",
+    "services.howWeWork": "How we work",
+    "services.outcomes": "What you receive",
+    "services.relatedSolutions": "Related solution areas",
+    "services.distinction":
+      "Solution pages describe the problem being solved; this page describes the way of working that delivers it.",
+
+    "technologies.title": "Technology capability atlas",
+    "technologies.intro":
+      "Capability first, technology second. Each layer maps to a solution area and the problem it solves; technology names come at the end of the layer.",
+    "technologies.eyebrow": "Capability layers",
+    "technologies.problem": "Problem being solved",
+    "technologies.relatedSolution": "Solution area",
+    "technologies.stack": "Technologies we work with in this layer",
+    "technologies.scopeNote":
+      "This list shows the technologies we work with; it does not state a reseller, representation or partnership relationship.",
+    "technologies.ownProduct": "Duosis product",
+
+    "regions.title": "Regions we work in",
+    "regions.intro": "We run our enterprise engagements across three regions.",
+    "regions.eyebrow": "Regional operating area",
+    "regions.listLabel": "Region list",
 
     "insights.title": "Insights",
     "insights.intro":
-      "Short technical notes from the engineering team on operations, data and architecture.",
+      "Technical notes from the engineering team on operations, data and architecture.",
     "insights.otherLanguage": "Insights are currently published in Turkish.",
     "insights.readMore": "Read the note",
     "insights.publishedAt": "Published",
     "insights.series": "Series",
     "insights.backToIndex": "All insights",
+    "insights.featured": "Featured",
+    "insights.latest": "Latest articles",
+    "insights.allSeries": "Series",
+    "insights.allTags": "Tags",
+    "insights.tags": "Tags",
+    "insights.updatedAt": "Updated",
+    "insights.author": "Written by",
+    "insights.readingTimeUnit": "min read",
+    "insights.sources": "Sources",
+    "insights.relatedSolutions": "Related solution areas",
+    "insights.rss": "RSS feed",
+    "insights.inSeries": "In this series",
+    "insights.taggedWith": "Tagged",
+    "insights.seriesLabel": "Series",
+    "insights.tagLabel": "Tag",
+    "insights.articleCount": "articles",
 
     "contact.title": "Contact",
     "contact.intro":
@@ -182,6 +284,9 @@ export const CTA_LABEL_KEYS = [
   "cta.solutionDetail",
   "cta.backToSolutions",
   "cta.contactUs",
+  "cta.talkAboutService",
+  "cta.exploreTechnologies",
+  "cta.readInsight",
 ] as const satisfies readonly TranslationKey[];
 
 export type CtaLabelKey = (typeof CTA_LABEL_KEYS)[number];

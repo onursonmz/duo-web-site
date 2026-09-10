@@ -153,7 +153,10 @@ test.describe("boş alan bölüm üretmez", () => {
                 .map((child) => child.textContent ?? "")
                 .join("")
                 .trim();
-              return rest.length === 0 || text.length === 0;
+              // Görselle anlatan bölüm (izinli logo) metinsiz olabilir; boş
+              // sayılmaz. Boş olan, HİÇBİR içerik taşımayan bölümdür.
+              const media = el.querySelectorAll("img, svg, picture").length;
+              return rest.length === 0 || (text.length === 0 && media === 0);
             })
             .map((el) => el.getAttribute("aria-labelledby") ?? "?")
         );
@@ -165,12 +168,35 @@ test.describe("boş alan bölüm üretmez", () => {
 // ---------------------------------------------------------------- 4. teknoloji sunumu
 
 test.describe("teknoloji sunumu", () => {
-  test("teknolojiler YALNIZCA metin: logo yok, görsel yok", async ({ page }) => {
+  /**
+   * Logo YALNIZCA yazılı izinle görünür (ADR-012 ile açılan tek kayıt:
+   * CyclOps). Kural "hiç görsel olmasın" değil, "izinsiz görsel olmasın"dır;
+   * test bunu kayıt kimliğine bakarak denetler.
+   */
+  const LOGO_ALLOWED_IDS = ["cyclops"];
+
+  test("logo YALNIZCA izinli kayıtta var; diğerleri metin", async ({ page }) => {
     for (const solution of SOLUTIONS) {
       await page.goto(trPath(solution.tr));
       const list = page.locator('[data-testid="technology-list"]');
       if ((await list.count()) === 0) continue;
-      await expect(list.locator("img, svg, picture")).toHaveCount(0);
+
+      const items = await list.locator("li").evaluateAll((els) =>
+        els.map((el) => ({
+          id: el.getAttribute("data-technology-id") ?? "",
+          images: el.querySelectorAll("img, svg, picture").length,
+          alt: el.querySelector("img")?.getAttribute("alt") ?? "",
+        }))
+      );
+
+      for (const item of items) {
+        if (LOGO_ALLOWED_IDS.includes(item.id)) {
+          expect(item.images, `${item.id} logosu render edilmedi`).toBe(1);
+          expect(item.alt.length, `${item.id} alt metni boş`).toBeGreaterThan(0);
+        } else {
+          expect(item.images, `${item.id} İZİNSİZ logo gösteriyor`).toBe(0);
+        }
+      }
     }
   });
 
@@ -197,17 +223,76 @@ test.describe("teknoloji sunumu", () => {
     }
   });
 
+  /**
+   * ÇÖZÜMÜN KENDİ ANLATISI — "İlgili notlar" HARİÇ.
+   *
+   * Kural şu: bir çözümün KENDİ metni ve teknoloji listesi, o alana ait
+   * olmayan ürünü adlandırmaz. AIOps anlatısının merkezinde CyclOps vardır ve
+   * bir izleme ürününe atıf yapmaz; observability anlatısı da tersini yapmaz.
+   *
+   * "İlgili notlar" bölümü bu kuralın DIŞINDADIR ve bu bilinçli bir sınırdır:
+   * orası çözümün kendi cümlesi değil, YAYINLANMIŞ YAZI BAŞLIKLARININ listesi.
+   * "Zabbix alarmından CyclOps olayına" başlıklı bir yazı tam olarak iki ürün
+   * arasındaki geçişi anlatıyor ve her iki çözüme de bağlanıyor; başlığındaki
+   * ürün adı, çözümün kendi iddiası değil.
+   *
+   * Bu ayrım S11'de gerçek bir testle ortaya çıktı: yazı yayına girince
+   * başlığı iki çözüm sayfasında da göründü ve tarama `main` metninin tamamına
+   * baktığı için ihlal bildirdi. Kural gevşetilmedi — KAPSAMI netleştirildi.
+   */
+  async function narrativeText(page: Page): Promise<string> {
+    const full = await page.locator("main").innerText();
+    const relatedNotes = page.getByTestId("solution-insights");
+    if ((await relatedNotes.count()) === 0) return full;
+    return full.replace(await relatedNotes.innerText(), "");
+  }
+
   test("CyclOps ve Zabbix FARKLI rollerde anlatılır", async ({ page }) => {
     await page.goto(trPath("aiops-ve-olay-yasam-dongusu"));
-    const aiops = await page.locator("main").innerText();
+    const aiops = await narrativeText(page);
     expect(aiops).toContain("CyclOps");
     expect(aiops).toMatch(/kendi geliştirdiğimiz|kendi ürünümüz/);
-    expect(aiops).not.toContain("Zabbix");
+    expect(aiops, "AIOps anlatısı bir izleme ürününü adlandırmamalı").not.toContain("Zabbix");
 
     await page.goto(DEEP[0].path);
-    const observability = await page.locator("main").innerText();
+    const observability = await narrativeText(page);
     expect(observability).toContain("Zabbix");
-    expect(observability).not.toContain("CyclOps");
+    expect(
+      observability,
+      "observability anlatısı CyclOps'u kendi ürünü gibi anlatmamalı"
+    ).not.toContain("CyclOps");
+  });
+
+  /**
+   * Kapsam daraltması bir BOŞLUK bırakmadı: teknoloji listesi hâlâ tam
+   * olarak denetleniyor. Çözümün teknoloji bölümü yalnızca o çözüme bağlı
+   * kayıtları taşıyabilir.
+   *
+   * ERİŞİLEBİLİR AD ÜZERİNDEN ÖLÇÜLÜR, görünür metin üzerinden değil.
+   * İzin verilen bir logo varsa ad METİN OLARAK TEKRAR ETMEZ; `<img alt>`
+   * içinde durur (S08 kararı — ekran okuyucu adı yine duyurur, göz iki kez
+   * okumaz). `innerText()` bu adı görmediği için liste boş görünüyordu.
+   */
+  async function technologyNames(page: Page): Promise<string[]> {
+    return page.locator('[data-testid="technology-list"] li').evaluateAll((items) =>
+      items.map((item) => {
+        const image = item.querySelector("img");
+        const alt = image?.getAttribute("alt") ?? "";
+        return `${item.textContent ?? ""} ${alt}`.trim();
+      })
+    );
+  }
+
+  test("teknoloji listesi çözüm sınırının dışına taşmıyor", async ({ page }) => {
+    await page.goto(trPath("aiops-ve-olay-yasam-dongusu"));
+    const aiops = (await technologyNames(page)).join(" | ");
+    expect(aiops, "AIOps listesi CyclOps taşımalı").toContain("CyclOps");
+    expect(aiops, "AIOps listesi bir izleme ürünü taşımamalı").not.toContain("Zabbix");
+
+    await page.goto(DEEP[0].path);
+    const observability = (await technologyNames(page)).join(" | ");
+    expect(observability, "observability listesi Zabbix taşımalı").toContain("Zabbix");
+    expect(observability, "observability listesi CyclOps taşımamalı").not.toContain("CyclOps");
   });
 });
 

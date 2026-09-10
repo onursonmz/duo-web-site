@@ -458,10 +458,11 @@
     "group": "aiops",
     "lifecycle": "active",
     "decisionNeeded": false,
-    "logoPermission": "unknown",
+    "logoPermission": "allowed",
     "licenseModel": "duosis-own-product",
     "source": "brief-only",
     "solutionArea": "aiops-event-lifecycle",
-    "note": "KARAR GEREKCESI: Urun kanit durumu netlesmeden kapsam ve iddia belirlenemez (bkz. C12). DUOSIS KENDI URUNU. Kanit durumu: brief'te 9 kez geciyor (planlama belgesi), kurumsal sunumda 0, canli sitede 0. Brief urun yetenegi kaniti DEGILDIR"
+    "note": "KARAR GEREKCESI: Urun kanit durumu netlesmeden kapsam ve iddia belirlenemez (bkz. C12). DUOSIS KENDI URUNU. Kanit durumu: brief'te 9 kez geciyor (planlama belgesi), kurumsal sunumda 0, canli sitede 0. Brief urun yetenegi kaniti DEGILDIR | S08: urun sunumunun site icin saglanmasi CyclOps wordmark'inin kullanim onayi sayilir (ADR-012). Logo asset'i sunumdaki gercek gorselden kirpildi. Bu karar UCUNCU TARAF logolarini acmaz.",
+    "logoPath": "/brand/cyclops-wordmark.png"
   }
 ]

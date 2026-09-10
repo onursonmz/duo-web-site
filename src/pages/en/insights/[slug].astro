@@ -1,0 +1,53 @@
+---
+/**
+ * İÇGÖRÜ DETAYI (S11 §13).
+ *
+ * `getStaticPaths` public seçiciyi kullanır: taslak ve İLERİ TARİHLİ kayıtlar
+ * için rota HİÇ üretilmez — yalnızca listeden gizlenmez, adresi de yoktur.
+ */
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "@layouts/BaseLayout.astro";
+import InsightDetail from "@components/insights/InsightDetail.astro";
+import { PUBLIC, getEntryAlternates, getInsights } from "@lib/content/selectors";
+import { toInsightView } from "@lib/content/insightView";
+import { insightPath, insightsIndexPath } from "@lib/i18n/routes";
+import { t } from "@lib/i18n/dictionary";
+
+export const getStaticPaths = (async () => {
+  const insights = await getInsights("en", PUBLIC);
+  return insights.map((insight) => ({
+    params: { slug: insight.data.slug },
+    props: { insight },
+  }));
+}) satisfies GetStaticPaths;
+
+const locale = "en" as const;
+const { insight } = Astro.props;
+const view = toInsightView(insight, locale);
+
+const alternates = await getEntryAlternates(
+  "insights",
+  insight.data.translationKey,
+  PUBLIC,
+  insightPath
+);
+
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href;
+---
+
+<BaseLayout
+  locale={locale}
+  title={insight.data.title}
+  description={insight.data.seo.description}
+  alternates={alternates}
+  noindex={insight.data.seo.noindex}
+  ogType="article"
+  wide={true}
+  breadcrumbs={[
+    { label: t(locale, "nav.home"), href: "/en/" },
+    { label: t(locale, "insights.title"), href: insightsIndexPath(locale) },
+    { label: insight.data.title },
+  ]}
+>
+  <InsightDetail locale={locale} insight={insight} view={view} canonical={canonical} />
+</BaseLayout>

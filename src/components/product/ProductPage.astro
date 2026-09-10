@@ -1,0 +1,399 @@
+---
+/**
+ * ÜRÜN SAYFASI ŞABLONU — VERİYLE ÇALIŞIR.
+ *
+ * Tüm metin `src/content/products/products.json` içindedir; şablona cümle
+ * gömülmez. Sunumun pazarlama ifadeleri ("every event", "fully autonomous",
+ * "self-healing", MTTR/SLA iddiaları, müşteri sayısı, Starter Pack, fiyat)
+ * ne şemada ne de burada yer alır.
+ *
+ * MARKA: CyclOps turkuazı YALNIZCA bu sayfanın koyu hero bloğunda yerel bir
+ * vurgu olarak kullanılır (`--product-accent`). Global Duosis paleti
+ * değişmez; token dosyasına dokunulmaz.
+ */
+import type { CollectionEntry } from "astro:content";
+import { t, type TranslationKey } from "@lib/i18n/dictionary";
+import { contactPathForProductTopic, insightPath, solutionPath } from "@lib/i18n/routes";
+import { getTechnologiesForRefs, logoPathIfAllowed, type ViewMode } from "@lib/content/selectors";
+import type { Locale } from "@lib/content/schema";
+import Button from "@components/ui/Button.astro";
+import Section from "@components/ui/Section.astro";
+import LogoMark from "@components/ui/LogoMark.astro";
+import ProductScreens from "@components/product/ProductScreens.astro";
+
+interface Props {
+  locale: Locale;
+  product: CollectionEntry<"products">;
+  mode: ViewMode;
+  solutions: CollectionEntry<"solutions">[];
+  insights: CollectionEntry<"insights">[];
+}
+
+const { locale, product, mode, solutions, insights }: Props = Astro.props;
+const data = product.data;
+
+// Entegrasyonlar TEK envanterden ve merkezi seçiciden gelir: onaylanmamış bir
+// kayıt burada kod değişmeden düşer.
+const integrations = await getTechnologiesForRefs(product, mode);
+
+const ctaHref = contactPathForProductTopic(locale, data.cta.topic);
+---
+
+<Section
+  tone="dark"
+  width="wide"
+  padding="tight"
+  id="product-hero"
+  class="product-hero product-accent-cyclops"
+>
+  <div class="hero">
+    <p class="hero__eyebrow">{data.eyebrow}</p>
+    <!--
+      Wordmark açık zeminli bir asset olduğu için koyu hero'da beyaz bir taşıyıcı
+      içinde durur. Asset DEĞİŞTİRİLMEDİ: renk, oran ve geometri sunumdaki
+      hâliyle aynıdır.
+    -->
+    <span class="hero__wordmark">
+      <LogoMark variant="cyclops" width="8.5rem" label={data.name} />
+    </span>
+    <h1 class="hero__title">{data.valueProposition}</h1>
+    <p class="hero__positioning">{data.positioning}</p>
+
+    <ol class="chain" data-testid="product-flow">
+      {
+        data.flow.map((step, index) => (
+          <li class="chain__step" data-flow-step={step.key}>
+            <span class="chain__index" aria-hidden="true">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <span class="chain__title">{step.title}</span>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="hero__actions">
+      <Button variant="primary" href={ctaHref} data-analytics-event="product-cta">
+        {t(locale, data.cta.labelKey as TranslationKey)}
+      </Button>
+    </div>
+  </div>
+</Section>
+
+<Section tone="light" width="wide" id="product-body">
+  <article class="product" data-testid="product-detail">
+    <section aria-labelledby="problem-heading">
+      <h2 id="problem-heading">{data.problem.title}</h2>
+      <p>{data.problem.body}</p>
+    </section>
+
+    <section aria-labelledby="flow-heading" data-testid="product-flow-detail">
+      <h2 id="flow-heading">{data.flowTitle}</h2>
+      <ol class="flow">
+        {
+          data.flow.map((step, index) => (
+            <li class="flow__item" data-flow-step={step.key}>
+              <span class="flow__index" aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <h3 class="flow__title">{step.title}</h3>
+              <p class="flow__body">{step.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section aria-labelledby="scenario-heading" data-testid="product-scenario">
+      <h2 id="scenario-heading">{data.scenario.title}</h2>
+      <div class="compare">
+        <div class="compare__col">
+          <h3 class="compare__title">{data.scenario.beforeTitle}</h3>
+          <ul class="compare__list">
+            {data.scenario.before.map((line) => <li>{line}</li>)}
+          </ul>
+        </div>
+        <div class="compare__col compare__col--after">
+          <h3 class="compare__title">{data.scenario.afterTitle}</h3>
+          <ul class="compare__list">
+            {data.scenario.after.map((line) => <li>{line}</li>)}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <ProductScreens
+      title={data.galleryTitle}
+      note={data.galleryNote}
+      screens={data.gallery}
+      realScreenLabel={t(locale, "product.realScreen")}
+    />
+
+    <section aria-labelledby="approval-heading" data-testid="product-approval">
+      <h2 id="approval-heading">{data.approval.title}</h2>
+      <p>{data.approval.body}</p>
+      <ul class="bounds">
+        {data.approval.boundaries.map((line) => <li>{line}</li>)}
+      </ul>
+    </section>
+
+    {
+      integrations.length > 0 && (
+        <section aria-labelledby="integrations-heading" data-testid="product-integrations">
+          <h2 id="integrations-heading">{data.integrationsTitle}</h2>
+          <p>{data.integrationsNote}</p>
+          <ul class="tech" data-testid="integration-list">
+            {integrations.map((tech) => {
+              const logo = logoPathIfAllowed(tech.data);
+              return (
+                <li data-technology-id={tech.id}>
+                  {logo !== undefined ? (
+                    <img src={logo} alt={tech.data.name} width="80" height="27" />
+                  ) : (
+                    <span>{tech.data.name}</span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )
+    }
+
+    {
+      solutions.length > 0 && (
+        <section aria-labelledby="related-heading" data-testid="product-related">
+          <h2 id="related-heading">{t(locale, "product.relatedSolutions")}</h2>
+          <ul class="links">
+            {solutions.map((solution) => (
+              <li>
+                <a href={solutionPath(locale, solution.data.slug)}>{solution.data.title}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    {
+      insights.length > 0 && (
+        <section aria-labelledby="insights-heading" data-testid="product-insights">
+          <h2 id="insights-heading">{t(locale, "solutions.relatedInsights")}</h2>
+          <ul class="links">
+            {insights.map((insight) => (
+              <li>
+                <a href={insightPath(locale, insight.data.slug)}>{insight.data.title}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <section aria-labelledby="cta-heading" class="cta">
+      <h2 id="cta-heading">{data.cta.title}</h2>
+      <p>{data.cta.body}</p>
+      <Button variant="primary" href={ctaHref} data-analytics-event="product-cta">
+        {t(locale, data.cta.labelKey as TranslationKey)}
+      </Button>
+    </section>
+  </article>
+</Section>
+
+<style>
+  /*
+   * CyclOps turkuazı `tokens.css` içindeki `.product-accent-cyclops` sınıfından
+   * gelir: ürün yereldir, Duosis paletine karışmaz ve bileşene ham renk
+   * yazılmaz.
+   */
+
+  .hero__eyebrow {
+    margin: 0 0 var(--space-2xs);
+    max-width: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .hero__wordmark {
+    display: inline-block;
+    margin-bottom: var(--space-md);
+    padding: var(--space-2xs) var(--space-xs);
+    border-radius: var(--radius-sm);
+    background: var(--product-plate);
+    line-height: 0;
+  }
+
+  .hero__title {
+    margin: 0;
+    max-width: 26ch;
+    font-size: clamp(2rem, 1.2rem + 2vw, 2.75rem);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .hero__positioning {
+    margin: var(--space-sm) 0 0;
+    max-width: 62ch;
+    font-size: var(--text-lg);
+    color: var(--text-secondary);
+  }
+
+  .hero__actions {
+    margin-top: var(--space-lg);
+  }
+
+  /* Sinyalden aksiyona zinciri: hero'da yalnızca adımların ADI durur. */
+  .chain {
+    display: grid;
+    gap: var(--space-2xs) var(--space-md);
+    margin: var(--space-lg) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 56rem) {
+    .chain {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+
+  .chain__step {
+    padding-top: var(--space-2xs);
+    border-top: var(--border-width-strong) solid var(--border-strong);
+  }
+
+  .chain__step[data-flow-step="act"] {
+    border-top-color: var(--product-accent);
+  }
+
+  .chain__index {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--text-muted);
+  }
+
+  .chain__title {
+    font-size: var(--text-md);
+    font-weight: var(--weight-medium);
+  }
+
+  /* ------------------------------------------------------------ gövde */
+
+  .product > :global(section) {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-md);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .product > :global(section:first-child) {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .product :global(h2) {
+    font-size: var(--text-xl);
+  }
+
+  .flow {
+    display: grid;
+    gap: var(--space-lg);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 56rem) {
+    .flow {
+      grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    }
+  }
+
+  .flow__item {
+    padding-top: var(--space-2xs);
+    border-top: var(--border-width) solid var(--border-strong);
+  }
+
+  .flow__index {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--text-muted);
+  }
+
+  .flow__title {
+    margin: var(--space-3xs) 0 var(--space-2xs);
+    font-size: var(--text-lg);
+  }
+
+  .flow__body {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .compare {
+    display: grid;
+    gap: var(--space-lg);
+  }
+
+  @media (min-width: 52rem) {
+    .compare {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .compare__col {
+    padding-left: var(--space-sm);
+    border-left: var(--border-width-strong) solid var(--border-subtle);
+  }
+
+  .compare__col--after {
+    border-left-color: var(--signal);
+  }
+
+  .compare__title {
+    margin: 0 0 var(--space-2xs);
+    font-size: var(--text-lg);
+  }
+
+  .compare__list,
+  .bounds,
+  .links {
+    margin: 0;
+    padding-left: var(--space-md);
+    color: var(--text-secondary);
+  }
+
+  .compare__list li,
+  .bounds li {
+    padding-block: var(--space-3xs);
+  }
+
+  .links {
+    color: inherit;
+  }
+
+  .tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-sm);
+    margin: var(--space-sm) 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-sm);
+  }
+
+  .tech li {
+    padding: var(--space-3xs) var(--space-2xs);
+    border: var(--border-width) solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+  }
+
+  .cta :global(p) {
+    max-width: 60ch;
+    margin-bottom: var(--space-md);
+  }
+</style>

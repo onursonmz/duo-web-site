@@ -24,7 +24,8 @@
     "quality": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e && pnpm build"
   },
   "dependencies": {
-    "astro": "7.3.1"
+    "astro": "7.3.1",
+    "sharp": "0.35.4"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",

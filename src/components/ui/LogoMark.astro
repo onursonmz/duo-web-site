@@ -10,9 +10,21 @@
  *
  * Header'da okunamayan küçük tagline kullanılmaz: `lockup` yalnızca yeterli
  * genişlikte tercih edilir, dar alanda `wordmark` kullanılır.
+ *
+ * KOYU YÜZEY: `wordmark-mono` dosyası `currentColor` kullanır; harici `<img>`
+ * bunu DEVRALMAZ ve siyah render olur. Koyu yüzeyde `wordmark-inverse`
+ * kullanılır — aynı geometri, dosyaya yazılmış açık dolgu.
  */
 interface Props {
-  variant?: "lockup" | "lockup-dark" | "wordmark" | "wordmark-mono" | "mark" | "mark-mono";
+  variant?:
+    | "lockup"
+    | "lockup-dark"
+    | "wordmark"
+    | "wordmark-mono"
+    | "wordmark-inverse"
+    | "mark"
+    | "mark-mono"
+    | "cyclops";
   /** CSS uzunluğu; SVG en-boy oranını korur. */
   width?: string;
   label?: string;
@@ -26,27 +38,45 @@ const FILE: Record<string, string> = {
   "lockup-dark": "/brand/duosis-logo-dark.svg",
   wordmark: "/brand/duosis-wordmark.svg",
   "wordmark-mono": "/brand/duosis-wordmark-mono.svg",
+  "wordmark-inverse": "/brand/duosis-wordmark-inverse.svg",
   mark: "/brand/duosis-mark.svg",
   "mark-mono": "/brand/duosis-mark-mono.svg",
+  // CyclOps: sunumdaki GERÇEK asset'ten kırpıldı, yeniden çizilmedi.
+  cyclops: "/brand/cyclops-wordmark.png",
 };
 
-// En-boy oranları üretilen SVG viewBox değerlerinden sabitlenir; böylece font
-// veya ağ durumundan bağımsız olarak CLS oluşmaz.
-const RATIO: Record<string, string> = {
-  lockup: "507.789 / 218.851",
-  "lockup-dark": "507.789 / 218.851",
-  wordmark: "507.789 / 149.541",
-  "wordmark-mono": "507.789 / 149.541",
-  mark: "194.137 / 149.446",
-  "mark-mono": "194.137 / 149.446",
+/*
+ * İÇSEL BOYUT VE EN-BOY ORANI — TEK KAYNAK.
+ *
+ * `width`/`height` öznitelikleri ile CSS `aspect-ratio` AYNI tam sayı çiftinden
+ * üretilir. Önceden öznitelikler her varyant için sabit 508x219 idi; farklı
+ * oranlı bir asset (CyclOps wordmark) yanlış kutu ayırıyor ve düzen kayıyordu.
+ * İki değer arasında en küçük fark bile ilk yüklemede kayma ürettiği için
+ * (ölçüldü: ana sayfada 0.009 CLS) oran ayrı bir ondalıklı değerden değil,
+ * bu çiftten hesaplanır.
+ *
+ * Değerler SVG viewBox'larından yuvarlanmıştır; SVG kutuya ölçeklendiği için
+ * ≤%0.3 fark görünür bir bozulma üretmez.
+ */
+const SIZE: Record<string, { width: number; height: number }> = {
+  lockup: { width: 508, height: 219 },
+  "lockup-dark": { width: 508, height: 219 },
+  wordmark: { width: 508, height: 150 },
+  "wordmark-mono": { width: 508, height: 150 },
+  "wordmark-inverse": { width: 508, height: 150 },
+  mark: { width: 194, height: 149 },
+  "mark-mono": { width: 194, height: 149 },
+  cyclops: { width: 108, height: 36 },
 };
+
+const size = SIZE[variant] ?? SIZE.lockup ?? { width: 1, height: 1 };
 ---
 
 <span
   class:list={["logo", className]}
-  style={`--logo-width:${width};--logo-ratio:${RATIO[variant]}`}
+  style={`--logo-width:${width};--logo-ratio:${size.width} / ${size.height}`}
 >
-  <img src={FILE[variant]} alt={label} width="508" height="219" decoding="async" />
+  <img src={FILE[variant]} alt={label} width={size.width} height={size.height} decoding="async" />
 </span>
 
 <style>

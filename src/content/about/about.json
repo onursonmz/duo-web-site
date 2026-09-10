@@ -1,0 +1,182 @@
+[
+  {
+    "id": "about-tr",
+    "locale": "tr",
+    "slug": "hakkimizda",
+    "status": "published",
+    "eyebrow": "2016 → 2026",
+    "title": "İzlemekle başladık, öngörmeye evrildik.",
+    "lead": "Duosis, kurumsal BT operasyonunu tek bir mühendislik disiplininde ele alır: görünürlük, veri, mimari ve otomasyon ayrı ekiplerin işi değil, aynı işin katmanlarıdır.",
+    "purpose": {
+      "title": "Hangi problemi çözmek için varız?",
+      "body": "Kurumsal BT'de en pahalı kayıp genellikle bir arızanın kendisi değil, arızayı anlamak için harcanan zamandır. Sinyal üreten araç sayısı arttıkça bilgi çoğalır ama karar kolaylaşmaz. Biz bu boşlukta çalışıyoruz: dağınık sinyali ortak bir bağlama taşımak, bağlamı karara, kararı da izlenebilir bir aksiyona bağlamak."
+    },
+    "approach": {
+      "title": "Nasıl çalışıyoruz?",
+      "body": "Çalışmaya üründen değil, kurumun mevcut operasyonundan başlarız. Hangi veri nerede üretiliyor, hangi ekip neyi izliyor, hangi karar kimin elinde — bunlar netleşmeden kurulan hiçbir sistem kalıcı olmuyor. Kapsamı birlikte çıkarır, önceliği birlikte belirleriz."
+    },
+    "difference": {
+      "title": "Entegratörden farkımız",
+      "body": "Hazır bir ürünü kurup teslim etmeyi iş tanımı saymıyoruz. Ürünü kurumun gerçek işleyişine uyacak biçimde eviriyoruz; gerektiğinde eksik parçayı kendimiz yazıyoruz. Teknoloji üreticisi ürünleri, açık kaynak bileşenler ve kendi ürünlerimiz aynı mimaride yan yana durabilir — seçim kurumun kısıtlarına göre yapılır, elimizdeki lisansa göre değil."
+    },
+    "ownProduct": {
+      "title": "Kendi ürünümüzü geliştiriyoruz",
+      "body": "Kendi ürünümüzü yazmak, ihtiyaç duyulduğunda çözümü tek bir teknoloji üreticisinin yol haritasına bağımlı kalmadan derinleştirebilmek demektir. CyclOps bu yaklaşımın karşılığıdır: olayları ortak bir yaşam döngüsünde toplar ve onaylı aksiyona bağlar."
+    },
+    "support": {
+      "title": "Devreye alma sonrası",
+      "body": "Devreye alma bir teslim değil, işin ortasıdır. Aynı ekip analizden operasyona kadar çalışır; eğitim, iyileştirme ve yönetilen destek bu sürekliliğin parçasıdır. Devir sonrası çözümün kurum içinde sürdürülebilir kalması, projenin başarı ölçütüdür."
+    },
+    "workModelTitle": "Çalışma modeli",
+    "workModel": [
+      {
+        "key": "analysis",
+        "title": "Analiz",
+        "body": "Mevcut operasyonun, veri kaynaklarının ve mimari bağlamın çıkarılması."
+      },
+      {
+        "key": "design",
+        "title": "Tasarım",
+        "body": "Hedef görünürlük modelinin, entegrasyon mimarisinin ve sahiplik tanımlarının kurulması."
+      },
+      {
+        "key": "delivery",
+        "title": "Uygulama",
+        "body": "Çözümün kurulması, kuruma özgü ihtiyaçlara göre evrilmesi ve devreye alınması."
+      },
+      {
+        "key": "support",
+        "title": "Eğitim ve operasyon desteği",
+        "body": "Kullanım eğitimi, devreye alma sonrası iyileştirme ve yönetilen destek."
+      }
+    ],
+    "teamTitle": "Ekip yapısı",
+    "teamNote": "Ekibi kişilerle değil, bir arada çalışan yetkinliklerle tarif ediyoruz. Bir projede bu dört alan aynı masada durur.",
+    "team": [
+      {
+        "key": "architecture",
+        "title": "Mimari ve danışmanlık",
+        "body": "Mevcut ve hedef mimarinin modellenmesi, kapsam ve önceliklendirme kararlarının kurumla birlikte alınması."
+      },
+      {
+        "key": "platform",
+        "title": "Platform ve veri mühendisliği",
+        "body": "Görünürlük, veri akışı ve veri platformu katmanlarının kurulması ve işletilebilir hâle getirilmesi."
+      },
+      {
+        "key": "automation",
+        "title": "Otomasyon ve ürün geliştirme",
+        "body": "Tekrarlayan işlerin standart akışlara dönüştürülmesi ve hazır ürünün karşılamadığı yerlerde yazılım geliştirilmesi."
+      },
+      {
+        "key": "operations",
+        "title": "Operasyon ve destek",
+        "body": "Devreye alma sonrası izleme, iyileştirme, eğitim ve yönetilen hizmet."
+      }
+    ],
+    "journeyTitle": "On yılın kaydı",
+    "journeyLead": "Aşağıdaki kayıtlar çalışma alanımızın yıllar içinde nasıl genişlediğini anlatır: hangi katman ne zaman işin parçası oldu.",
+    "regionsTitle": "Nerede çalışıyoruz?",
+    "regionsLead": "Kurumsal projelerimizi Türkiye'den yürütüyoruz.",
+    "cta": {
+      "title": "Birlikte bir yol haritası çıkaralım",
+      "body": "Mevcut operasyonunuzu birlikte inceleyelim; nereden başlanacağını ve hangi sırayla ilerleneceğini netleştirelim.",
+      "labelKey": "cta.contactUs"
+    },
+    "seo": {
+      "title": "Hakkımızda",
+      "description": "Duosis, kurumsal BT operasyonunu görünürlük, veri, mimari ve otomasyon katmanlarıyla tek bir mühendislik disiplininde ele alır. 2016'dan bugüne çalışma alanımızın kaydı.",
+      "noindex": true
+    }
+  },
+  {
+    "id": "about-en",
+    "locale": "en",
+    "slug": "about",
+    "status": "published",
+    "eyebrow": "2016 → 2026",
+    "title": "We started by monitoring and grew into forecasting.",
+    "lead": "Duosis treats enterprise IT operations as one engineering discipline: visibility, data, architecture and automation are not separate teams but layers of the same work.",
+    "purpose": {
+      "title": "Which problem do we exist to solve?",
+      "body": "In enterprise IT the most expensive loss is usually not the failure itself but the time spent understanding it. As the number of tools producing signals grows, information multiplies while decisions do not get easier. We work in that gap: moving scattered signals into a shared context, the context into a decision, and the decision into a traceable action."
+    },
+    "approach": {
+      "title": "How do we work?",
+      "body": "We start from the organisation's current operation, not from a product. Where each piece of data is produced, which team watches what, who holds which decision — no system we build outlives those questions being unanswered. We map the scope together and set priorities together."
+    },
+    "difference": {
+      "title": "How we differ from an integrator",
+      "body": "We do not treat installing a packaged product and handing it over as the job. We reshape the product to fit how the organisation actually runs, and where a piece is missing we write it ourselves. Commercial products, open-source components and our own software can sit side by side in one architecture — the choice follows the organisation's constraints, not the licence we happen to hold."
+    },
+    "ownProduct": {
+      "title": "We build our own product",
+      "body": "Writing our own product means we can go deeper when needed without depending on a single technology vendor's roadmap. CyclOps is what that approach produced: it gathers events into one lifecycle and connects them to approved action."
+    },
+    "support": {
+      "title": "After go-live",
+      "body": "Go-live is not a handover; it is the middle of the work. The same team stays from analysis through to operation, and training, improvement and managed support are part of that continuity. The measure of success is whether the solution remains sustainable inside the organisation after handover."
+    },
+    "workModelTitle": "How an engagement runs",
+    "workModel": [
+      {
+        "key": "analysis",
+        "title": "Analysis",
+        "body": "Mapping the current operation, its data sources and architectural context."
+      },
+      {
+        "key": "design",
+        "title": "Design",
+        "body": "Defining the target visibility model, the integration architecture and ownership."
+      },
+      {
+        "key": "delivery",
+        "title": "Delivery",
+        "body": "Building the solution, reshaping it around the organisation and putting it into service."
+      },
+      {
+        "key": "support",
+        "title": "Training and operational support",
+        "body": "Enablement, post go-live improvement and managed support."
+      }
+    ],
+    "teamTitle": "How the team is shaped",
+    "teamNote": "We describe the team through capabilities that work together rather than through individuals. In an engagement these four areas sit at the same table.",
+    "team": [
+      {
+        "key": "architecture",
+        "title": "Architecture and advisory",
+        "body": "Modelling current and target architecture, and taking scope and prioritisation decisions with the organisation."
+      },
+      {
+        "key": "platform",
+        "title": "Platform and data engineering",
+        "body": "Building the visibility, data streaming and data platform layers, and making them operable."
+      },
+      {
+        "key": "automation",
+        "title": "Automation and product development",
+        "body": "Turning repetitive work into standard flows, and writing software where packaged products fall short."
+      },
+      {
+        "key": "operations",
+        "title": "Operations and support",
+        "body": "Monitoring, improvement, enablement and managed service after go-live."
+      }
+    ],
+    "journeyTitle": "A record of ten years",
+    "journeyLead": "The records below describe how our working area widened over the years: which layer became part of the work, and when.",
+    "regionsTitle": "Where we work",
+    "regionsLead": "We run our enterprise engagements from Türkiye.",
+    "cta": {
+      "title": "Let us build a roadmap together",
+      "body": "Let us review your current operation together and agree where to start and in what order to proceed.",
+      "labelKey": "cta.contactUs"
+    },
+    "seo": {
+      "title": "About us",
+      "description": "Duosis treats enterprise IT operations as one engineering discipline across visibility, data, architecture and automation. A record of our working area since 2016.",
+      "noindex": true
+    }
+  }
+]

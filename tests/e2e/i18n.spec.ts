@@ -212,10 +212,17 @@ test.describe("public içerik filtreleri — FAIL-CLOSED", () => {
       "/cozumler/aiops-ve-olay-yasam-dongusu/",
     ]) {
       await page.goto(route);
+      // Ad metin olarak ya da (izinli logo varsa) `alt` metninde durur;
+      // ikisinden biri MUTLAKA vardır ve onaylı listede olmalıdır.
       const names = await page
         .getByTestId("technology-list")
         .locator("li")
-        .evaluateAll((els) => els.map((e) => (e.textContent ?? "").trim()));
+        .evaluateAll((els) =>
+          els.map((el) => {
+            const text = (el.textContent ?? "").trim();
+            return text === "" ? (el.querySelector("img")?.getAttribute("alt") ?? "").trim() : text;
+          })
+        );
 
       for (const name of names) {
         expect(APPROVED_TECHNOLOGY_NAMES, `${route}: onaysız teknoloji "${name}"`).toContain(name);

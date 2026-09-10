@@ -1,0 +1,87 @@
+---
+/**
+ * SERİ / ETİKET GÖRÜNÜMÜ — ORTAK GÖVDE (S11 §11).
+ *
+ * Filtreleme client-side DEĞİL: her seri ve etiket kendi statik rotasına
+ * sahiptir. Bunun üç sonucu var ve üçü de bilinçli:
+ *
+ * 1. Adres PAYLAŞILABİLİR — bir seriyi birine göndermek mümkün.
+ * 2. JS GEREKMEZ — filtre kapalı JavaScript'te de çalışır.
+ * 3. BİLİNMEYEN DEĞER 404 ÜRETİR — `getStaticPaths` yalnızca gerçekten
+ *    içeriği olan değerler için sayfa üretir; uydurma bir seri adı boş bir
+ *    liste değil, "bulunamadı" alır.
+ *
+ * Serbest query parametresiyle filtreleme (`?tag=...`) bilinçli olarak
+ * KULLANILMADI: statik çıktıda sunucu tarafı yoktur, dolayısıyla filtre ancak
+ * istemci JS'iyle uygulanabilirdi ve bilinmeyen bir değer sessizce boş liste
+ * gösterirdi.
+ */
+import type { Locale } from "@lib/content/schema";
+import type { InsightView } from "@lib/content/insightView";
+import { t } from "@lib/i18n/dictionary";
+import { insightsIndexPath, rssPath } from "@lib/i18n/routes";
+import Section from "@components/ui/Section.astro";
+import SectionHeading from "@components/ui/SectionHeading.astro";
+import InsightRow from "@components/insights/InsightRow.astro";
+import Button from "@components/ui/Button.astro";
+
+interface Props {
+  locale: Locale;
+  /** "Seri" veya "Etiket" — hangi eksende filtrelendiği. */
+  kindLabel: string;
+  /** Filtrenin görünen adı: seri etiketi veya `#etiket`. */
+  title: string;
+  views: InsightView[];
+}
+
+const { locale, kindLabel, title, views }: Props = Astro.props;
+---
+
+<Section tone="light" width="wide" id="insight-filter">
+  <SectionHeading eyebrow={kindLabel} as="h1">{title}</SectionHeading>
+
+  <p class="filter__count" data-testid="filter-count">
+    {views.length}
+    {t(locale, "insights.articleCount")}
+  </p>
+
+  <div class="filter__list" data-testid="insight-list">
+    {views.map((view) => <InsightRow locale={locale} view={view} headingLevel="h2" />)}
+  </div>
+
+  <p class="filter__actions">
+    <Button variant="quiet" href={insightsIndexPath(locale)} data-testid="back-to-insights">
+      {t(locale, "insights.backToIndex")}
+    </Button>
+    <a class="filter__feed" href={rssPath(locale)}>{t(locale, "insights.rss")}</a>
+  </p>
+</Section>
+
+<style>
+  .filter__count {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .filter__list {
+    margin-top: var(--space-md);
+    border-bottom: var(--border-width) solid var(--border-subtle);
+  }
+
+  .filter__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-md) var(--space-lg);
+    margin-top: var(--space-lg);
+  }
+
+  .filter__feed {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+</style>

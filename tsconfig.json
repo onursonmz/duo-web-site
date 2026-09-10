@@ -20,7 +20,8 @@
       "@lib/*": ["src/lib/*"],
       "@config/*": ["src/config/*"],
       "@layouts/*": ["src/layouts/*"],
-      "@components/*": ["src/components/*"]
+      "@components/*": ["src/components/*"],
+      "@assets/*": ["src/assets/*"]
     }
   },
   "include": [".astro/types.d.ts", "**/*.ts", "**/*.astro", "**/*.mjs"],

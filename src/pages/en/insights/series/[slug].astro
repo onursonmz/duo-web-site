@@ -1,0 +1,66 @@
+---
+/**
+ * SERİ GÖRÜNÜMÜ (S11 §11).
+ *
+ * Rota YALNIZCA gerçekten yazısı olan seriler için üretilir. Bilinmeyen bir
+ * seri slug'ı statik çıktıda karşılık bulamaz ve 404 döner — boş bir liste
+ * gösterilmez.
+ */
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "@layouts/BaseLayout.astro";
+import InsightFilterBody from "@components/insights/InsightFilterBody.astro";
+import {
+  PUBLIC,
+  getInsightsBySeries,
+  getSeriesAlternates,
+  getSeriesWithCounts,
+} from "@lib/content/selectors";
+import { toInsightViews } from "@lib/content/insightView";
+import { seriesLabel, seriesSlug } from "@lib/content/series";
+import { insightSeriesPath, insightsIndexPath } from "@lib/i18n/routes";
+import { t } from "@lib/i18n/dictionary";
+
+export const getStaticPaths = (async () => {
+  const series = await getSeriesWithCounts("en", PUBLIC);
+  return series.map((entry) => ({
+    params: { slug: seriesSlug(entry.series, "en") },
+    props: { seriesKey: entry.series },
+  }));
+}) satisfies GetStaticPaths;
+
+const locale = "en" as const;
+const { seriesKey } = Astro.props;
+const insights = await getInsightsBySeries(seriesKey, locale, PUBLIC);
+const views = toInsightViews(insights, locale);
+const label = seriesLabel(seriesKey, locale);
+
+/*
+ * Dil karşılığı KOŞULLU: bir seri rotası yalnızca o dilde yazısı varsa
+ * üretilir. Karşı dilde yazı yoksa `/en/...` adresi HİÇ yoktur ve ona link
+ * vermek 404 üretirdi.
+ */
+const alternates = await getSeriesAlternates(seriesKey, PUBLIC, (locale, key) =>
+  insightSeriesPath(locale, seriesSlug(key, locale))
+);
+---
+
+<BaseLayout
+  locale={locale}
+  title={label}
+  description={`${label} — ${t(locale, "insights.intro")}`}
+  alternates={alternates}
+  noindex={true}
+  wide={true}
+  breadcrumbs={[
+    { label: t(locale, "nav.home"), href: "/en/" },
+    { label: t(locale, "insights.title"), href: insightsIndexPath(locale) },
+    { label },
+  ]}
+>
+  <InsightFilterBody
+    locale={locale}
+    kindLabel={t(locale, "insights.seriesLabel")}
+    title={label}
+    views={views}
+  />
+</BaseLayout>

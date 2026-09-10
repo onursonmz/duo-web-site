@@ -14,7 +14,7 @@
  */
 import type { Locale } from "@lib/content/schema";
 import { t } from "@lib/i18n/dictionary";
-import { activeNavItems, brandHref } from "@config/navigation";
+import { activeNavItems, brandHref, secondaryNavItems } from "@config/navigation";
 import LogoMark from "@components/ui/LogoMark.astro";
 
 interface Props {
@@ -23,7 +23,12 @@ interface Props {
 
 const { locale }: Props = Astro.props;
 
-const items = activeNavItems(locale);
+/*
+ * Footer site haritası ana menüyle AYNI kaynaktan beslenir, ayrıca ana menüye
+ * sığmayan ikincil hedefleri (teknoloji atlası) de taşır — footer'ın altı
+ * girdi sınırı yoktur.
+ */
+const items = [...activeNavItems(locale), ...secondaryNavItems(locale)];
 
 /** Derleme zamanından üretilir; elle güncellenmesi gereken sabit yıl yoktur. */
 const year = new Date().getFullYear();
@@ -38,7 +43,12 @@ const telHref = (phone: string): string => `tel:${phone.replace(/[^\d+]/g, "")}`
   <div class="site-footer__inner">
     <div class="site-footer__brand">
       <a href={brandHref(locale)} aria-label={t(locale, "nav.goToBrandHome")}>
-        <LogoMark variant="wordmark-mono" width="9rem" label="Duosis" class="site-footer__logo" />
+        <LogoMark
+          variant="wordmark-inverse"
+          width="9rem"
+          label="Duosis"
+          class="site-footer__logo"
+        />
       </a>
       <p class="site-footer__value">{t(locale, "footer.value")}</p>
     </div>
@@ -85,7 +95,6 @@ const telHref = (phone: string): string => `tel:${phone.replace(/[^\d+]/g, "")}`
     <p class="site-footer__legal">
       © {year} Duosis. {t(locale, "footer.rights")}
     </p>
-    <p class="site-footer__note">{t(locale, "footer.buildNote")}</p>
   </div>
 </footer>
 
@@ -164,8 +173,7 @@ const telHref = (phone: string): string => `tel:${phone.replace(/[^\d+]/g, "")}`
     border-top: var(--border-width) solid var(--border-subtle);
   }
 
-  .site-footer__legal,
-  .site-footer__note {
+  .site-footer__legal {
     margin: 0;
     max-width: none;
     font-size: var(--text-xs);

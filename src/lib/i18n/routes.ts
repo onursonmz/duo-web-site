@@ -11,11 +11,51 @@ import { DEFAULT_LOCALE, LOCALES, type Locale } from "@lib/content/schema";
 export { DEFAULT_LOCALE, LOCALES };
 export type { Locale };
 
-/** Locale başına segment adları. Rota haritası `03_CONTENT_AND_ROUTE_MAP.md` §2. */
+/**
+ * Locale başına segment adları. Rota haritası `03_CONTENT_AND_ROUTE_MAP.md` §2.
+ *
+ * `series` ve `tag` içgörü filtrelerinin ALT segmentleridir: filtreleme serbest
+ * query parametresiyle değil, paylaşılabilir ve statik olarak üretilmiş bir
+ * yolla yapılır (S11 §11). Böylece filtre JS olmadan da çalışır ve bilinmeyen
+ * bir değer 404 üretir.
+ */
 const SEGMENTS = {
-  tr: { solutions: "cozumler", insights: "icgoruler", contact: "iletisim" },
-  en: { solutions: "solutions", insights: "insights", contact: "contact" },
-} as const satisfies Record<Locale, { solutions: string; insights: string; contact: string }>;
+  tr: {
+    solutions: "cozumler",
+    insights: "icgoruler",
+    contact: "iletisim",
+    cyclops: "cyclops",
+    about: "hakkimizda",
+    services: "hizmetler",
+    technologies: "teknolojiler",
+    series: "seri",
+    tag: "etiket",
+  },
+  en: {
+    solutions: "solutions",
+    insights: "insights",
+    contact: "contact",
+    cyclops: "cyclops",
+    about: "about",
+    services: "services",
+    technologies: "technologies",
+    series: "series",
+    tag: "tag",
+  },
+} as const satisfies Record<
+  Locale,
+  {
+    solutions: string;
+    insights: string;
+    contact: string;
+    cyclops: string;
+    about: string;
+    services: string;
+    technologies: string;
+    series: string;
+    tag: string;
+  }
+>;
 
 export function isLocale(value: string): value is Locale {
   return (LOCALES as readonly string[]).includes(value);
@@ -69,6 +109,36 @@ export function insightPath(locale: Locale, slug: string): string {
   return localizedPath(locale, SEGMENTS[locale].insights, slug);
 }
 
+/** Hizmetler landing yolu: /hizmetler/ veya /en/services/ */
+export function servicesIndexPath(locale: Locale): string {
+  return localizedPath(locale, SEGMENTS[locale].services);
+}
+
+/** Teknolojiler landing yolu: /teknolojiler/ veya /en/technologies/ */
+export function technologiesIndexPath(locale: Locale): string {
+  return localizedPath(locale, SEGMENTS[locale].technologies);
+}
+
+/** İçgörü seri yolu: /icgoruler/seri/<slug>/ veya /en/insights/series/<slug>/ */
+export function insightSeriesPath(locale: Locale, slug: string): string {
+  return localizedPath(locale, SEGMENTS[locale].insights, SEGMENTS[locale].series, slug);
+}
+
+/** İçgörü etiket yolu: /icgoruler/etiket/<slug>/ veya /en/insights/tag/<slug>/ */
+export function insightTagPath(locale: Locale, slug: string): string {
+  return localizedPath(locale, SEGMENTS[locale].insights, SEGMENTS[locale].tag, slug);
+}
+
+/**
+ * RSS besleme yolu: /rss.xml veya /en/rss.xml
+ *
+ * Dosya uzantısı taşıdığı için `localizedPath` sondaki eğik çizgi kuralına
+ * SOKULMAZ; besleme bir dizin değil, tek bir kaynaktır.
+ */
+export function rssPath(locale: Locale): string {
+  return `${localePrefix(locale)}/rss.xml`;
+}
+
 /** İletişim yolu: /iletisim/ veya /en/contact/ */
 export function contactPath(locale: Locale): string {
   return localizedPath(locale, SEGMENTS[locale].contact);
@@ -89,6 +159,39 @@ export function contactPathForTopic(
 ): string {
   const base = contactPath(locale);
   return allowed.includes(topic) ? `${base}?topic=${encodeURIComponent(topic)}` : base;
+}
+
+/** CyclOps ürün sayfası: /cyclops/ veya /en/cyclops/ */
+export function cyclopsPath(locale: Locale): string {
+  return localizedPath(locale, SEGMENTS[locale].cyclops);
+}
+
+/** Hakkımızda yolu: /hakkimizda/ veya /en/about/ */
+export function aboutPath(locale: Locale): string {
+  return localizedPath(locale, SEGMENTS[locale].about);
+}
+
+/** Zaman çizelgesi çapası; ana sayfadan derin bağlantı buraya gider. */
+export const JOURNEY_ANCHOR = { tr: "yolculuk", en: "journey" } as const;
+
+/** /hakkimizda/#yolculuk veya /en/about/#journey */
+export function journeyPath(locale: Locale): string {
+  return `${aboutPath(locale)}#${JOURNEY_ANCHOR[locale]}`;
+}
+
+/**
+ * ÜRÜN CTA KONULARI — KAPALI KÜME.
+ *
+ * Çözüm slug'larından AYRI tutulur: ürün sayfası kendi konusunu taşır ve
+ * buraya yazılmayan hiçbir değer parametre olamaz. Serbest query kabul
+ * edilmez.
+ */
+export const PRODUCT_TOPICS = ["cyclops"] as const;
+export type ProductTopic = (typeof PRODUCT_TOPICS)[number];
+
+/** Ürün sayfasının iletişim CTA'sı; konu allowlist dışındaysa parametre eklenmez. */
+export function contactPathForProductTopic(locale: Locale, topic: string): string {
+  return contactPathForTopic(locale, topic, PRODUCT_TOPICS);
 }
 
 /** Ana sayfa yolu: / veya /en/ */

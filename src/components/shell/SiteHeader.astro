@@ -13,7 +13,7 @@
  */
 import type { Locale } from "@lib/content/schema";
 import { t } from "@lib/i18n/dictionary";
-import { activeNavItems, brandHref, isCurrentPage } from "@config/navigation";
+import { activeNavItems, brandHref, isCurrentPage, secondaryNavItems } from "@config/navigation";
 import { getSolutions } from "@lib/content/selectors";
 import { PUBLIC } from "@lib/content/selectors";
 import { solutionPath } from "@lib/i18n/routes";
@@ -29,6 +29,11 @@ interface Props {
 const { locale, pathname, alternates = {} }: Props = Astro.props;
 
 const items = activeNavItems(locale);
+/*
+ * Teknoloji atlası ana menüde DEĞİL (en fazla altı girdi kuralı): çözüm
+ * ekosisteminin bir alt görünümü olarak mega menünün altında durur.
+ */
+const secondary = secondaryNavItems(locale);
 const solutions = await getSolutions(locale, PUBLIC);
 const solutionLinks = solutions.map((entry) => ({
   href: solutionPath(locale, entry.data.slug),
@@ -90,6 +95,15 @@ const solutionLinks = solutions.map((entry) => ({
                           </li>
                         ))}
                       </ul>
+                      {secondary.length > 0 && (
+                        <p class="mega__secondary">
+                          {secondary.map((entry) => (
+                            <a class="mega__secondary-link" href={entry.href}>
+                              {t(locale, entry.item.labelKey)}
+                            </a>
+                          ))}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </span>
@@ -164,6 +178,14 @@ const solutionLinks = solutions.map((entry) => ({
               <li>
                 <a class="mobile-menu__sublink" href={s.href}>
                   {s.title}
+                </a>
+              </li>
+            ))}
+            {/* Teknoloji atlası: ana menüde değil, ekosistemin alt görünümü. */}
+            {secondary.map((entry) => (
+              <li>
+                <a class="mobile-menu__sublink" href={entry.href}>
+                  {t(locale, entry.item.labelKey)}
                 </a>
               </li>
             ))}
@@ -290,6 +312,27 @@ const solutionLinks = solutions.map((entry) => ({
     max-width: var(--container-max);
     margin-inline: auto;
     padding: var(--space-lg) var(--container-gutter);
+  }
+
+  /*
+   * Mega menünün alt satırı: çözüm listesinden ince bir çizgiyle ayrılır ve
+   * daha sakin tipografi taşır — bir çözüm alanıyla aynı ağırlıkta görünmez.
+   */
+  .mega__secondary {
+    margin: var(--space-md) 0 0;
+    padding-top: var(--space-sm);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .mega__secondary-link {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+  }
+
+  .mega__secondary-link + .mega__secondary-link {
+    margin-left: var(--space-md);
   }
 
   .mega__eyebrow {

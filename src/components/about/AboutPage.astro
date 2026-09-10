@@ -1,0 +1,259 @@
+---
+/**
+ * HAKKIMIZDA ŞABLONU — VERİYLE ÇALIŞIR.
+ *
+ * Tüm metin `src/content/about/about.json` içindedir. Zaman çizelgesi
+ * `milestones`, bölge anlatısı `regions` koleksiyonundan gelir; ikisi de
+ * doğrulama süzgecinden geçer.
+ *
+ * KİŞİSEL VERİ YOK: ekip anlatısı rol ve yetkinlik düzeyindedir; ad, unvan,
+ * fotoğraf veya profil bağlantısı ne şemada ne burada bulunur.
+ */
+import type { CollectionEntry } from "astro:content";
+import { t, type TranslationKey } from "@lib/i18n/dictionary";
+import { contactPath } from "@lib/i18n/routes";
+import type { Locale } from "@lib/content/schema";
+import Button from "@components/ui/Button.astro";
+import Section from "@components/ui/Section.astro";
+import JourneyTimeline from "@components/about/JourneyTimeline.astro";
+
+interface Props {
+  locale: Locale;
+  about: CollectionEntry<"about">;
+  milestones: CollectionEntry<"milestones">[];
+  regions: CollectionEntry<"regions">[];
+  /** Zaman çizelgesi bölümünün çapası: `yolculuk` / `journey`. */
+  journeyAnchor: string;
+}
+
+const { locale, about, milestones, regions, journeyAnchor }: Props = Astro.props;
+const data = about.data;
+---
+
+<Section tone="dark" width="wide" padding="tight" id="about-hero">
+  <div class="intro">
+    <p class="intro__eyebrow">{data.eyebrow}</p>
+    <h1 class="intro__title">{data.title}</h1>
+    <p class="intro__lead">{data.lead}</p>
+  </div>
+</Section>
+
+<Section tone="light" width="wide" id="about-body">
+  <article class="about" data-testid="about-detail">
+    <section aria-labelledby="purpose-heading">
+      <h2 id="purpose-heading">{data.purpose.title}</h2>
+      <p>{data.purpose.body}</p>
+    </section>
+
+    <section aria-labelledby="approach-heading">
+      <h2 id="approach-heading">{data.approach.title}</h2>
+      <p>{data.approach.body}</p>
+    </section>
+
+    <section aria-labelledby="difference-heading">
+      <h2 id="difference-heading">{data.difference.title}</h2>
+      <p>{data.difference.body}</p>
+    </section>
+
+    <section aria-labelledby="own-product-heading">
+      <h2 id="own-product-heading">{data.ownProduct.title}</h2>
+      <p>{data.ownProduct.body}</p>
+    </section>
+
+    <section aria-labelledby="work-model-heading" data-testid="about-work-model">
+      <h2 id="work-model-heading">{data.workModelTitle}</h2>
+      <ol class="steps">
+        {
+          data.workModel.map((step, index) => (
+            <li class="steps__item" data-step={step.key}>
+              <span class="steps__index" aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <h3 class="steps__title">{step.title}</h3>
+              <p class="steps__body">{step.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section aria-labelledby="support-heading">
+      <h2 id="support-heading">{data.support.title}</h2>
+      <p>{data.support.body}</p>
+    </section>
+
+    <section aria-labelledby="team-heading" data-testid="about-team">
+      <h2 id="team-heading">{data.teamTitle}</h2>
+      <p>{data.teamNote}</p>
+      <ul class="roles">
+        {
+          data.team.map((role) => (
+            <li class="roles__item" data-role={role.key}>
+              <h3 class="roles__title">{role.title}</h3>
+              <p class="roles__body">{role.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <JourneyTimeline
+      locale={locale}
+      milestones={milestones}
+      sectionId={journeyAnchor}
+      title={data.journeyTitle}
+      lead={data.journeyLead}
+      jumpLabel={t(locale, "about.jumpToYear")}
+    />
+
+    {
+      regions.length > 0 && (
+        <section aria-labelledby="regions-heading" data-testid="about-regions">
+          <h2 id="regions-heading">{data.regionsTitle}</h2>
+          <p>{data.regionsLead}</p>
+          <ul class="regions">
+            {regions.map((region) => (
+              <li>
+                <h3 class="regions__name">{region.data.name}</h3>
+                <p class="regions__summary">{region.data.summary}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <section aria-labelledby="about-cta-heading" class="cta">
+      <h2 id="about-cta-heading">{data.cta.title}</h2>
+      <p>{data.cta.body}</p>
+      <Button variant="primary" href={contactPath(locale)} data-analytics-event="about-cta">
+        {t(locale, data.cta.labelKey as TranslationKey)}
+      </Button>
+    </section>
+  </article>
+</Section>
+
+<style>
+  .intro__eyebrow {
+    margin: 0 0 var(--space-2xs);
+    max-width: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    color: var(--text-secondary);
+  }
+
+  .intro__title {
+    margin: 0;
+    max-width: 24ch;
+    font-size: clamp(2.25rem, 1.4rem + 2.4vw, 3rem);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .intro__lead {
+    margin: var(--space-sm) 0 0;
+    max-width: 62ch;
+    font-size: var(--text-lg);
+    color: var(--text-secondary);
+  }
+
+  .about > :global(section) {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-md);
+    border-top: var(--border-width) solid var(--border-subtle);
+  }
+
+  .about > :global(section:first-child) {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .about :global(h2) {
+    font-size: var(--text-xl);
+  }
+
+  .about > :global(section) > p {
+    max-width: 68ch;
+  }
+
+  /* ------------------------------------------------------- çalışma modeli */
+
+  .steps,
+  .roles {
+    display: grid;
+    gap: var(--space-lg);
+    margin: var(--space-md) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 56rem) {
+    .steps {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .roles {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .steps__item {
+    padding-top: var(--space-2xs);
+    border-top: var(--border-width-strong) solid var(--border-strong);
+  }
+
+  .steps__item[data-step="support"] {
+    border-top-color: var(--signal);
+  }
+
+  .steps__index {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--text-muted);
+  }
+
+  .steps__title,
+  .roles__title {
+    margin: var(--space-3xs) 0 var(--space-2xs);
+    font-size: var(--text-lg);
+  }
+
+  .steps__body,
+  .roles__body,
+  .regions__summary {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .roles__item {
+    padding-left: var(--space-sm);
+    border-left: var(--border-width-strong) solid var(--border-subtle);
+  }
+
+  /* ------------------------------------------------------- bölgeler */
+
+  .regions {
+    display: grid;
+    gap: var(--space-md) var(--space-lg);
+    margin: var(--space-md) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 52rem) {
+    .regions {
+      grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    }
+  }
+
+  .regions__name {
+    margin: 0 0 var(--space-3xs);
+    font-size: var(--text-md);
+  }
+
+  .cta :global(p) {
+    margin-bottom: var(--space-md);
+  }
+</style>

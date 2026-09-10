@@ -22,7 +22,7 @@ approach: >-
 benefits:
   - Problems become visible before they reach users
   - Root cause analysis runs within a single context
-  - Cross-team escalation and blame between teams decrease
+  - Escalation between teams and the argument over whose side is at fault decrease
   - Capacity and performance decisions rest on measurement
 capabilities:
   - Infrastructure, virtualisation and network monitoring

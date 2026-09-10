@@ -1,6 +1,15 @@
 import type { Locale } from "@lib/content/schema";
 import type { TranslationKey } from "@lib/i18n/dictionary";
-import { contactPath, homePath, insightsIndexPath, solutionsIndexPath } from "@lib/i18n/routes";
+import {
+  aboutPath,
+  contactPath,
+  cyclopsPath,
+  homePath,
+  insightsIndexPath,
+  servicesIndexPath,
+  solutionsIndexPath,
+  technologiesIndexPath,
+} from "@lib/i18n/routes";
 
 /**
  * NAVİGASYON YAPILANDIRMASI — TEK KAYNAK.
@@ -10,8 +19,8 @@ import { contactPath, homePath, insightsIndexPath, solutionsIndexPath } from "@l
  *
  * FAIL-CLOSED KURAL: yalnızca `status: "active"` girdiler RENDER EDİLİR.
  * `status: "planned"` girdiler gelecekteki sprintleri belgeler ama çıktıya
- * girmez — böylece henüz var olmayan `/iletisim/`, `/hakkimizda/`, `/cyclops/`
- * gibi adreslere kırık veya placeholder link üretilmez.
+ * girmez — böylece henüz var olmayan adreslere kırık veya
+ * placeholder link üretilmez.
  * `tests/unit/navigation.test.ts` bunu denetler.
  *
  * Rota haritası: `03_CONTENT_AND_ROUTE_MAP.md` §1 — en fazla ALTI ana giriş.
@@ -32,8 +41,15 @@ export interface NavItem {
 }
 
 /**
- * Ana menü. Sıra `03_CONTENT_AND_ROUTE_MAP.md` §1 ile aynıdır; henüz rotası
- * olmayanlar `planned` olarak durur.
+ * Ana menü. Sıra `03_CONTENT_AND_ROUTE_MAP.md` §1 ile aynıdır.
+ *
+ * S08-S11 ENTEGRASYONU SONRASI: altı girdinin TAMAMI aktif ve sözleşmedeki
+ * sırada — Çözümler, CyclOps, Hizmetler, İçgörüler, Hakkımızda, İletişim.
+ * `planned` girdi kalmadı; `MAX_PRIMARY_ITEMS` sınırı tam dolu.
+ *
+ * TEKNOLOJİ ATLASI BURAYA EKLENMEZ: yedinci ana giriş üretmek sözleşmeyi
+ * bozardı. Atlas, çözüm ekosisteminin alt görünümü olarak `SECONDARY_NAV`
+ * üzerinden mega menüde, mobil alt listede ve footer'da yer alır.
  */
 export const PRIMARY_NAV: readonly NavItem[] = [
   {
@@ -43,20 +59,59 @@ export const PRIMARY_NAV: readonly NavItem[] = [
     panel: "solutions",
   },
   {
+    labelKey: "nav.cyclops",
+    href: (locale) => cyclopsPath(locale),
+    status: "active",
+  },
+  {
+    labelKey: "nav.services",
+    href: (locale) => servicesIndexPath(locale),
+    status: "active",
+  },
+  {
     labelKey: "nav.insights",
     href: (locale) => insightsIndexPath(locale),
     status: "active",
   },
-  // --- Aşağıdakiler HENÜZ RENDER EDİLMEZ: rotaları yok. ---
-  { labelKey: "nav.cyclops", href: () => null, status: "planned", plannedIn: "S08" },
-  { labelKey: "nav.services", href: () => null, status: "planned", plannedIn: "S09" },
-  { labelKey: "nav.about", href: () => null, status: "planned", plannedIn: "S10" },
+  {
+    labelKey: "nav.about",
+    href: (locale) => aboutPath(locale),
+    status: "active",
+  },
   {
     labelKey: "nav.contact",
     href: (locale) => contactPath(locale),
     status: "active",
   },
 ] as const;
+
+/**
+ * İKİNCİL GEZİNME — ANA MENÜDE DEĞİL.
+ *
+ * Teknoloji atlası bilinçli olarak YEDİNCİ ANA GİRDİ YAPILMADI: ana menü
+ * sözleşme gereği en fazla altı girdi taşır ve teknoloji, çözüm ekosisteminin
+ * bir alt görünümüdür — kendi başına bir üst seviye hedef değil. Atlasa çözüm
+ * mega menüsünden, hizmetler sayfasından ve footer'dan ulaşılır.
+ */
+export const SECONDARY_NAV: readonly NavItem[] = [
+  {
+    labelKey: "nav.technologies",
+    href: (locale) => technologiesIndexPath(locale),
+    status: "active",
+  },
+] as const;
+
+/** İkincil gezinme girdileri; ana menü ile AYNI fail-closed kuralına tabidir. */
+export function secondaryNavItems(locale: Locale): { item: NavItem; href: string }[] {
+  const out: { item: NavItem; href: string }[] = [];
+  for (const item of SECONDARY_NAV) {
+    if (item.status !== "active") continue;
+    const href = item.href(locale);
+    if (href === null || href === "") continue;
+    out.push({ item, href });
+  }
+  return out;
+}
 
 /** Sözleşme sınırı: en fazla altı ana giriş. */
 export const MAX_PRIMARY_ITEMS = 6;

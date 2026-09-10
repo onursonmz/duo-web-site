@@ -62,6 +62,66 @@ test.describe("JavaScript kapalı", () => {
     await expect(page.getByTestId("lang-link-tr")).toBeVisible();
   });
 
+  test("hizmetler sayfası JavaScript olmadan tam okunabilir", async ({ page }) => {
+    await page.goto("/hizmetler/");
+
+    await expect(page.locator("h1")).toBeVisible();
+    // Beş hizmetin tamamı düz HTML olarak gelir.
+    await expect(page.locator("[data-service]")).toHaveCount(5);
+
+    const main = (await page.locator("#main-content").innerText()).trim();
+    expect(main.length).toBeGreaterThan(500);
+  });
+
+  test("teknoloji atlası JavaScript olmadan tam okunabilir", async ({ page }) => {
+    await page.goto("/teknolojiler/");
+
+    await expect(page.locator("h1")).toBeVisible();
+    // 21 onaylı teknoloji metin olarak görünür; hiçbiri JS ile üretilmiyor.
+    await expect(page.locator("[data-technology]")).toHaveCount(21);
+    await expect(page.locator("[data-layer]")).not.toHaveCount(0);
+  });
+
+  test("bölgesel bölüm JavaScript olmadan sıralı liste olarak okunuyor", async ({ page }) => {
+    await page.goto("/hizmetler/");
+
+    const regions = page.getByTestId("regional-presence");
+    await expect(regions).toBeVisible();
+    await expect(regions.locator("li")).toHaveCount(3);
+  });
+
+  test("içgörüler landing JavaScript olmadan çalışıyor", async ({ page }) => {
+    await page.goto("/icgoruler/");
+
+    await expect(page.locator("h1")).toBeVisible();
+    await expect(page.getByTestId("insight-featured")).toBeVisible();
+    // Seri ve etiket filtreleri düz <a>: JS gerektirmez.
+    await expect(page.getByTestId("series-index").locator("a")).not.toHaveCount(0);
+    await expect(page.getByTestId("tag-index").locator("a")).not.toHaveCount(0);
+    await expect(page.getByTestId("rss-link")).toBeVisible();
+  });
+
+  test("uzun yazı JavaScript olmadan tam okunabilir", async ({ page }) => {
+    await page.goto("/icgoruler/toplu-isten-olay-tabanli-veri-akisina-gecis/");
+
+    await expect(page.locator("h1")).toHaveCount(1);
+    const main = (await page.locator("#main-content").innerText()).trim();
+    // Uzun yazının gövdesi tamamen sunucuda üretilir.
+    expect(main.length).toBeGreaterThan(3000);
+
+    // Tablo, kaynaklar ve etiketler JS olmadan da yerinde.
+    await expect(page.locator(".article__body table")).not.toHaveCount(0);
+    await expect(page.getByTestId("insight-sources")).toBeVisible();
+    await expect(page.locator("[data-tag]")).not.toHaveCount(0);
+  });
+
+  test("seri filtresi JavaScript olmadan çalışıyor", async ({ page }) => {
+    // Filtre bir ROTA olduğu için JS'e bağlı değil.
+    await page.goto("/icgoruler/seri/data-ve-ai/");
+    await expect(page.locator("h1")).toBeVisible();
+    await expect(page.locator('[data-testid="insight-list"] [data-slug]')).not.toHaveCount(0);
+  });
+
   test("404 sayfası JavaScript olmadan da içerik gösterir", async ({ page }) => {
     await page.goto("/bulunmayan-bir-sayfa/");
 
@@ -126,5 +186,57 @@ test.describe("JavaScript kapalı", () => {
     await expect(footer).toBeVisible();
     await expect(footer.locator('a[href^="mailto:"]')).toHaveCount(1);
     await expect(footer.locator('a[href^="tel:"]')).not.toHaveCount(0);
+  });
+});
+
+/**
+ * CYCLOPS ÜRÜN SAYFASI — JS KAPALIYKEN (S08).
+ *
+ * Ürün hikâyesi, ekran görselleri ve CTA JavaScript'e bağlı değildir.
+ */
+test.describe("JavaScript kapalı — CyclOps", () => {
+  test("ürün hikâyesi ve ekranlar JS olmadan görünüyor", async ({ page }) => {
+    await page.goto("/cyclops/");
+
+    await expect(page.locator("h1")).toBeVisible();
+    await expect(page.locator(".hero__wordmark img")).toBeVisible();
+    await expect(page.getByTestId("product-flow").locator("li")).toHaveCount(5);
+    await expect(page.getByTestId("product-screens")).toBeVisible();
+
+    // Görseller `loading="lazy"` olsa bile JS'siz tarayıcıda işaretlenmiş olarak durur.
+    await expect(page.getByTestId("product-screen")).toHaveCount(3);
+    await expect(page.getByTestId("product-screen").first()).toBeVisible();
+  });
+
+  test("JS KAPALIYKEN CTA gerçek bir bağlantı", async ({ page }) => {
+    await page.goto("/cyclops/");
+    const cta = page.locator('[data-analytics-event="product-cta"]').first();
+    await expect(cta).toBeVisible();
+    await expect(cta).toHaveAttribute("href", "/iletisim/?topic=cyclops");
+  });
+});
+
+/**
+ * HAKKIMIZDA ZAMAN ÇİZELGESİ — JS KAPALIYKEN (S09).
+ *
+ * Derin bağlantı gerçek bir çapadır: tarayıcı JavaScript olmadan da doğru
+ * başlığa gider.
+ */
+test.describe("JavaScript kapalı — 10. yıl", () => {
+  test("derin bağlantı JS olmadan doğru yıla gidiyor", async ({ page }) => {
+    await page.goto("/hakkimizda/#yil-2021");
+
+    const target = page.locator("#yil-2021");
+    await expect(target).toHaveText("2021");
+    await expect(target).toBeInViewport();
+  });
+
+  test("yıl navigasyonu JS olmadan gerçek bağlantı", async ({ page }) => {
+    await page.goto("/hakkimizda/");
+    const links = page.locator(".journey__jump a");
+    await expect(links).toHaveCount(6);
+    await links.last().click();
+    await expect(page).toHaveURL(/#yil-2026$/);
+    await expect(page.locator("#yil-2026")).toBeInViewport();
   });
 });

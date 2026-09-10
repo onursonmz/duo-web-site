@@ -231,6 +231,9 @@ describe("içerik grafiği — TÜM referans alanları build'de doğrulanıyor",
         "solutionRefs:",
         "  - tr/bu-cozum-yok",
         "verificationStatus: pending",
+        // `source` S09'da ZORUNLU oldu. Fixture'a geçerli bir değer yazılır ki
+        // test yine REFERANS doğrulamasını ölçsün, eksik alan hatasını değil.
+        "source: test fixture",
         "---",
         "",
       ].join("\n")
@@ -251,7 +254,7 @@ describe("içerik grafiği — TÜM referans alanları build'de doğrulanıyor",
         "status: draft",
         "title: Geçici",
         "excerpt: Test",
-        "series: Test",
+        "series: architecture-notes",
         "authorRef: bu-yazar-yok",
         "seo:",
         "  title: Test",
@@ -266,6 +269,80 @@ describe("içerik grafiği — TÜM referans alanları build'de doğrulanıyor",
     expect(output).toMatch(/Bozuk içerik referansı|bu-yazar-yok/i);
   });
 
+  it("İLERİ TARİHLİ yayın public çıktıda ROTA ÜRETMİYOR", () => {
+    /*
+     * Yalnızca listeden gizlenmesi yeterli değil: adresi de olmamalı.
+     * `getStaticPaths` public seçiciyi kullandığı için ileri tarihli bir
+     * kayıt hiç sayfa üretmez.
+     */
+    writeFixture(
+      "src/content/insights/tr/__gelecek-tarihli.md",
+      [
+        "---",
+        "translationKey: gelecek-tarihli-not",
+        "locale: tr",
+        "slug: gelecek-tarihli-not",
+        "status: published",
+        "title: Gelecek tarihli not",
+        "excerpt: Test",
+        "series: architecture-notes",
+        "authorRef: duosis-muhendislik-ekibi",
+        "publishedAt: 2099-01-01",
+        "seo:",
+        "  title: Test",
+        "  description: Test",
+        "  noindex: true",
+        "---",
+        "",
+        "Gövde.",
+        "",
+      ].join("\n")
+    );
+
+    // Build BAŞARILI olmalı: kayıt geçerli, yalnızca henüz yayında değil.
+    expect(runBuild(), "geçerli ileri tarihli kayıt build'i kırmamalı").toBeNull();
+
+    const route = join(ROOT, "dist", "icgoruler", "gelecek-tarihli-not", "index.html");
+    expect(existsSync(route), "ileri tarihli kayıt için rota üretilmemeliydi").toBe(false);
+
+    // RSS'e de girmemeli.
+    const feed = readFileSync(join(ROOT, "dist", "rss.xml"), "utf8");
+    expect(feed.includes("gelecek-tarihli-not"), "ileri tarihli kayıt RSS'te").toBe(false);
+  });
+
+  it("TASLAK yayın public çıktıda ROTA ÜRETMİYOR", () => {
+    writeFixture(
+      "src/content/insights/tr/__taslak-not.md",
+      [
+        "---",
+        "translationKey: taslak-not",
+        "locale: tr",
+        "slug: taslak-not",
+        "status: draft",
+        "title: Taslak not",
+        "excerpt: Test",
+        "series: architecture-notes",
+        "authorRef: duosis-muhendislik-ekibi",
+        "seo:",
+        "  title: Test",
+        "  description: Test",
+        "  noindex: true",
+        "---",
+        "",
+        "Gövde.",
+        "",
+      ].join("\n")
+    );
+
+    expect(runBuild(), "geçerli taslak kayıt build'i kırmamalı").toBeNull();
+
+    const route = join(ROOT, "dist", "icgoruler", "taslak-not", "index.html");
+    expect(existsSync(route), "taslak kayıt için rota üretilmemeliydi").toBe(false);
+
+    const feed = readFileSync(join(ROOT, "dist", "rss.xml"), "utf8");
+    expect(feed.includes("taslak-not"), "taslak kayıt RSS'te").toBe(false);
+  });
+
   it("BOZUK insight -> related solution reddediliyor", () => {
     writeFixture(
       "src/content/insights/tr/__bozuk-related.md",
@@ -277,8 +354,8 @@ describe("içerik grafiği — TÜM referans alanları build'de doğrulanıyor",
         "status: draft",
         "title: Geçici",
         "excerpt: Test",
-        "series: Test",
-        "authorRef: duosis-ekibi",
+        "series: architecture-notes",
+        "authorRef: duosis-muhendislik-ekibi",
         "relatedSolutionRefs:",
         "  - tr/bu-cozum-da-yok",
         "seo:",

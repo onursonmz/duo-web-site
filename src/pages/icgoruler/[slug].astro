@@ -1,11 +1,17 @@
 ---
+/**
+ * İÇGÖRÜ DETAYI (S11 §13).
+ *
+ * `getStaticPaths` public seçiciyi kullanır: taslak ve İLERİ TARİHLİ kayıtlar
+ * için rota HİÇ üretilmez — yalnızca listeden gizlenmez, adresi de yoktur.
+ */
 import type { GetStaticPaths } from "astro";
-import { render } from "astro:content";
 import BaseLayout from "@layouts/BaseLayout.astro";
-import { PUBLIC, getInsights } from "@lib/content/selectors";
-import { insightsIndexPath } from "@lib/i18n/routes";
+import InsightDetail from "@components/insights/InsightDetail.astro";
+import { PUBLIC, getEntryAlternates, getInsights } from "@lib/content/selectors";
+import { toInsightView } from "@lib/content/insightView";
+import { insightPath, insightsIndexPath } from "@lib/i18n/routes";
 import { t } from "@lib/i18n/dictionary";
-import Button from "@components/ui/Button.astro";
 
 export const getStaticPaths = (async () => {
   const insights = await getInsights("tr", PUBLIC);
@@ -17,63 +23,31 @@ export const getStaticPaths = (async () => {
 
 const locale = "tr" as const;
 const { insight } = Astro.props;
-const { Content } = await render(insight);
+const view = toInsightView(insight, locale);
+
+const alternates = await getEntryAlternates(
+  "insights",
+  insight.data.translationKey,
+  PUBLIC,
+  insightPath
+);
+
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href;
 ---
 
 <BaseLayout
   locale={locale}
   title={insight.data.title}
   description={insight.data.seo.description}
+  alternates={alternates}
   noindex={insight.data.seo.noindex}
   ogType="article"
+  wide={true}
   breadcrumbs={[
     { label: t(locale, "nav.home"), href: "/" },
     { label: t(locale, "insights.title"), href: insightsIndexPath(locale) },
     { label: insight.data.title },
   ]}
 >
-  <article class="insight">
-    <p class="insight__meta">
-      {insight.data.series}
-      {
-        insight.data.publishedAt !== undefined && (
-          <>
-            {" · "}
-            <time datetime={insight.data.publishedAt.toISOString().slice(0, 10)}>
-              {insight.data.publishedAt.toISOString().slice(0, 10)}
-            </time>
-          </>
-        )
-      }
-    </p>
-    <h1>{insight.data.title}</h1>
-    <p class="insight__excerpt">{insight.data.excerpt}</p>
-    <div class="insight__body"><Content /></div>
-    <p>
-      <Button variant="quiet" href={insightsIndexPath(locale)}>
-        {t(locale, "insights.backToIndex")}
-      </Button>
-    </p>
-  </article>
+  <InsightDetail locale={locale} insight={insight} view={view} canonical={canonical} />
 </BaseLayout>
-
-<style>
-  .insight__meta {
-    margin: 0 0 var(--space-2xs);
-    font-family: var(--font-mono);
-    font-size: var(--text-2xs);
-    letter-spacing: var(--tracking-wide);
-    text-transform: uppercase;
-    color: var(--text-secondary);
-  }
-
-  .insight__excerpt {
-    font-size: var(--text-lg);
-    color: var(--text-secondary);
-  }
-
-  .insight__body :global(h2) {
-    margin-top: var(--space-lg);
-    font-size: var(--text-xl);
-  }
-</style>

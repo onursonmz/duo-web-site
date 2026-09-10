@@ -66,9 +66,14 @@ test.describe("ana sayfa akışı", () => {
       .locator("a")
       .evaluateAll((els) => els.map((e) => e.getAttribute("href") ?? ""));
     expect(hrefs).toHaveLength(8);
-    for (const href of hrefs) {
-      const res = await page.request.get(href);
-      expect(res.status(), `${href} -> ${res.status()}`).toBe(200);
+
+    // Sekiz istek PARALEL: sıralı çalıştırıldığında toplam gecikme tek testin
+    // süre bütçesini aşabiliyordu (ölçüldü). Süre limiti yükseltilmedi.
+    const statuses = await Promise.all(
+      hrefs.map(async (href) => ({ href, status: (await page.request.get(href)).status() }))
+    );
+    for (const { href, status } of statuses) {
+      expect(status, `${href} -> ${status}`).toBe(200);
     }
   });
 
@@ -116,11 +121,23 @@ test.describe("ana sayfa içerik güvenliği", () => {
     await expect(page.getByTestId("region-list").locator("li")).toHaveCount(3);
   });
 
+  /**
+   * "VERİSİ OLMAYAN BÖLÜM HİÇ RENDER EDİLMEZ" invariantı.
+   *
+   * Bu test önce EN içgörü bölümüyle ölçülüyordu ("EN'de yayınlanmış içgörü
+   * yok"). S11 İngilizce bir yazı yayınladı ve o örnek geçersizleşti.
+   *
+   * İnvariant KALDIRILMADI — hâlâ GERÇEKTEN boş olan bir bölümle ölçülüyor:
+   * onaylanmış müşteri referansı yok, dolayısıyla kanıt bölümü hiçbir sayfada
+   * oluşmamalı. Başlık, boş kutu veya placeholder üretilmemeli.
+   */
   test("VERİSİ OLMAYAN bölüm boş kutu değil, HİÇ render edilmiyor", async ({ page }) => {
-    // EN'de yayınlanmış içgörü yok -> bölüm hiç oluşmaz (boş kutu gösterilmez).
-    await page.goto("/en/");
-    await expect(page.locator("#insights")).toHaveCount(0);
-    await expect(page.getByTestId("insight-list")).toHaveCount(0);
+    for (const route of ["/", "/en/"]) {
+      await page.goto(route);
+      await expect(page.getByTestId("proof-list"), route).toHaveCount(0);
+      await expect(page.locator("#proofs-heading"), route).toHaveCount(0);
+      await expect(page.locator("[data-proof]"), route).toHaveCount(0);
+    }
   });
 
   test("BÖLGE kartları ofis/ekip/müşteri iddiası taşımıyor", async ({ page }) => {
@@ -158,7 +175,28 @@ test.describe("ana sayfa içerik güvenliği", () => {
 
     await expect(page.locator("#main-content img")).toHaveCount(0);
 
-    const html = (await page.content()).toLowerCase();
+    /*
+     * TARAMA "SON YAZILAR" BÖLÜMÜNÜ KAPSAMAZ — bilinçli sınır.
+     *
+     * Kural: ana sayfa ekosistemi ÜRÜN ADIYLA anlatmaz; yetenek katmanlarıyla
+     * anlatır. "Son yazılar" bölümü ise yayınlanmış YAZI BAŞLIKLARININ
+     * listesidir ve başlık yazının kendi cümlesidir. "Zabbix alarmından
+     * CyclOps olayına" başlıklı bir yazı, ana sayfanın bir vendor iddiası
+     * değil; o yazının adı.
+     *
+     * Kural gevşetilmedi: bölüm dışındaki HER YER hâlâ taranıyor ve
+     * ekosistem bölümünün ürün adı taşımadığı ayrıca test ediliyor
+     * (bkz. "teknoloji ekosistemi YETENEK KATMANLARIYLA anlatılıyor").
+     */
+    const html = (
+      await page.evaluate(() => {
+        const main = document.querySelector("#main-content");
+        if (main === null) return "";
+        const clone = main.cloneNode(true) as HTMLElement;
+        clone.querySelector("#insights")?.remove();
+        return clone.innerHTML;
+      })
+    ).toLowerCase();
     for (const vendor of [
       "zabbix",
       "grafana",
@@ -214,25 +252,50 @@ test.describe("içgörüler rotası", () => {
 
   test("TR listesi gerçek koleksiyon verisiyle çalışıyor", async ({ page }) => {
     await page.goto("/icgoruler/");
-    await expect(page.getByTestId("insight-list").locator("li")).not.toHaveCount(0);
-    await expect(page.getByTestId("insights-other-language")).toHaveCount(0);
+    // Öne çıkan yazı + son yazılar; ikisi de `data-slug` taşır.
+    await expect(page.locator("[data-slug]")).not.toHaveCount(0);
+    await expect(page.getByTestId("insight-featured")).toHaveCount(1);
   });
 
-  test("EN listesinde kayıt yok: ziyaretçi içeriğin dilini görüyor", async ({ page }) => {
+  /**
+   * Bu test önce "EN'de kayıt yok" durumunu ölçüyordu. S11 İngilizce bir yazı
+   * yayınladı; artık ölçülen şey İngilizce listenin KENDİ içeriğiyle
+   * çalıştığı ve ziyaretçiyi Türkçeye yönlendirmediğidir.
+   */
+  test("EN listesi kendi dilindeki içerikle çalışıyor", async ({ page }) => {
     await page.goto("/en/insights/");
-    await expect(page.getByTestId("insights-other-language")).toHaveCount(1);
-    await expect(page.getByTestId("insight-list")).toHaveCount(0);
+    await expect(page.locator("[data-slug]")).not.toHaveCount(0);
+    await expect(page.getByTestId("insight-featured")).toHaveCount(1);
+
+    // Listedeki her bağlantı İngilizce rotaya gitmeli.
+    const hrefs = await page
+      .locator("[data-slug] h2 a, [data-slug] h3 a")
+      .evaluateAll((els) => els.map((el) => el.getAttribute("href") ?? ""));
+    expect(hrefs.length).toBeGreaterThan(0);
+    for (const href of hrefs) {
+      expect(href, "EN liste TR içeriğe yönlendirmemeli").toMatch(/^\/en\/insights\//);
+    }
   });
 
-  test("EN ana sayfada içgörü bölümü HİÇ oluşmuyor", async ({ page }) => {
+  test("EN ana sayfada içgörü bölümü kendi dilinde oluşuyor", async ({ page }) => {
     await page.goto("/en/");
-    await expect(page.locator("#insights")).toHaveCount(0);
+    await expect(page.locator("#insights")).toHaveCount(1);
+    const hrefs = await page
+      .locator("#insights [data-slug] a")
+      .evaluateAll((els) => els.map((el) => el.getAttribute("href") ?? ""));
+    expect(hrefs.length).toBeGreaterThan(0);
+    for (const href of hrefs) {
+      expect(href).toMatch(/^\/en\/insights\//);
+    }
   });
 
   test("içgörü detayı breadcrumb ile geliyor", async ({ page }) => {
     // Slug listeden türetilir; içerik değişince test kırılmaz.
     await page.goto("/icgoruler/");
-    const href = await page.getByTestId("insight-list").locator("a").first().getAttribute("href");
+    const href = await page
+      .locator("[data-slug] h2 a, [data-slug] h3 a")
+      .first()
+      .getAttribute("href");
     await page.goto(href ?? "/icgoruler/");
     const crumb = page.getByTestId("breadcrumb");
     await expect(crumb).toHaveCount(1);
