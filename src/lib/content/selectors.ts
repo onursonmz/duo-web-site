@@ -5,6 +5,7 @@ import type {
   Locale,
   TechnologyLifecycle,
 } from "@lib/content/schema";
+import { LOCALES } from "@lib/content/schema";
 import { CAPABILITY_ATLAS, layerForGroup } from "@lib/content/capabilities";
 
 /**
@@ -554,4 +555,43 @@ export async function getCustomerProofsForSolution(
   if (allowed.size === 0) return [];
   const proofs = await getCustomerProofs(locale, mode);
   return proofs.filter((e) => allowed.has(e.id));
+}
+
+/**
+ * SERİ VE ETİKET İÇİN DİL KARŞILIĞI.
+ *
+ * Bir seri/etiket rotası YALNIZCA o dilde içeriği varsa üretilir. Dolayısıyla
+ * dil karşılığı da koşulludur: İngilizce'de o seride yazı yoksa `/en/...`
+ * adresi HİÇ yoktur ve ona link vermek 404 üretir.
+ *
+ * Bu, `getSolutionAlternates` ile aynı sözleşmedir: karşılığı olmayan dil
+ * sonuçta BULUNMAZ. Dil değiştirici bunu "bu dilde yayınlanmadı" olarak
+ * gösterir, ziyaretçiyi var olmayan bir adrese göndermez.
+ */
+export async function getSeriesAlternates(
+  series: InsightSeries,
+  mode: ViewMode,
+  buildPath: (locale: Locale, series: InsightSeries) => string,
+  now: Date = new Date()
+): Promise<Partial<Record<Locale, string>>> {
+  const result: Partial<Record<Locale, string>> = {};
+  for (const locale of LOCALES) {
+    const entries = await getInsightsBySeries(series, locale, mode, now);
+    if (entries.length > 0) result[locale] = buildPath(locale, series);
+  }
+  return result;
+}
+
+export async function getTagAlternates(
+  tag: string,
+  mode: ViewMode,
+  buildPath: (locale: Locale, tag: string) => string,
+  now: Date = new Date()
+): Promise<Partial<Record<Locale, string>>> {
+  const result: Partial<Record<Locale, string>> = {};
+  for (const locale of LOCALES) {
+    const entries = await getInsightsByTag(tag, locale, mode, now);
+    if (entries.length > 0) result[locale] = buildPath(locale, tag);
+  }
+  return result;
 }

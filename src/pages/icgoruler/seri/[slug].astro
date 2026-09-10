@@ -9,7 +9,12 @@
 import type { GetStaticPaths } from "astro";
 import BaseLayout from "@layouts/BaseLayout.astro";
 import InsightFilterBody from "@components/insights/InsightFilterBody.astro";
-import { PUBLIC, getInsightsBySeries, getSeriesWithCounts } from "@lib/content/selectors";
+import {
+  PUBLIC,
+  getInsightsBySeries,
+  getSeriesAlternates,
+  getSeriesWithCounts,
+} from "@lib/content/selectors";
 import { toInsightViews } from "@lib/content/insightView";
 import { seriesLabel, seriesSlug } from "@lib/content/series";
 import { insightSeriesPath, insightsIndexPath } from "@lib/i18n/routes";
@@ -29,10 +34,14 @@ const insights = await getInsightsBySeries(seriesKey, locale, PUBLIC);
 const views = toInsightViews(insights, locale);
 const label = seriesLabel(seriesKey, locale);
 
-const alternates = {
-  tr: insightSeriesPath("tr", seriesSlug(seriesKey, "tr")),
-  en: insightSeriesPath("en", seriesSlug(seriesKey, "en")),
-};
+/*
+ * Dil karşılığı KOŞULLU: bir seri rotası yalnızca o dilde yazısı varsa
+ * üretilir. Karşı dilde yazı yoksa `/en/...` adresi HİÇ yoktur ve ona link
+ * vermek 404 üretirdi.
+ */
+const alternates = await getSeriesAlternates(seriesKey, PUBLIC, (locale, key) =>
+  insightSeriesPath(locale, seriesSlug(key, locale))
+);
 ---
 
 <BaseLayout

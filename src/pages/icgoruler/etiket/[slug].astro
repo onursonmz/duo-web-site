@@ -8,7 +8,12 @@
 import type { GetStaticPaths } from "astro";
 import BaseLayout from "@layouts/BaseLayout.astro";
 import InsightFilterBody from "@components/insights/InsightFilterBody.astro";
-import { PUBLIC, getInsightsByTag, getTagsWithCounts } from "@lib/content/selectors";
+import {
+  PUBLIC,
+  getInsightsByTag,
+  getTagAlternates,
+  getTagsWithCounts,
+} from "@lib/content/selectors";
 import { toInsightViews } from "@lib/content/insightView";
 import { insightTagPath, insightsIndexPath } from "@lib/i18n/routes";
 import { t } from "@lib/i18n/dictionary";
@@ -29,9 +34,11 @@ const title = `#${tag}`;
 
 /*
  * Etiket slug'ı dile göre DEĞİŞMEZ (kayıtlarda ASCII kebab-case olarak
- * tutulur), bu yüzden iki dilin karşılığı aynı slug'tır.
+ * tutulur), fakat KARŞILIĞI OLMAYABİLİR: bir etiket yalnızca Türkçe
+ * yazılarda kullanılıyorsa `/en/insights/tag/<slug>/` rotası üretilmez.
+ * Karşılık yalnızca o dilde gerçekten yazı varsa döner.
  */
-const alternates = { tr: insightTagPath("tr", tag), en: insightTagPath("en", tag) };
+const alternates = await getTagAlternates(tag, PUBLIC, insightTagPath);
 ---
 
 <BaseLayout

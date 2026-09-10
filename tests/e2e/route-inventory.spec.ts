@@ -47,8 +47,16 @@ test.describe("rota envanteri", () => {
   test("envanter build çıktısıyla BİREBİR örtüşüyor", () => {
     const built = builtRoutes();
 
-    // Dahili önizlemeler ve hata sayfası envanterin dışındadır.
-    const internal = new Set(INTERNAL_ROUTES.map((r) => r.replace(/404\.html$/, "")));
+    /*
+     * Dahili önizlemeler envanterin dışındadır.
+     *
+     * `/404.html` burada FİLTRELENMEZ: `builtRoutes()` yalnızca `index.html`
+     * dosyalarını topluyor, dolayısıyla hata sayfası zaten listeye girmiyor.
+     * Onu ayrıca elemeye çalışmak, yolu "/" hâline getirip ANA SAYFAYI
+     * envanter karşılaştırmasından düşürüyordu — testi sessizce zayıflatan
+     * bir hataydı.
+     */
+    const internal = new Set(INTERNAL_ROUTES.filter((r) => r.endsWith("/")));
     const publicBuilt = built.filter((route) => !internal.has(route));
 
     const expected = [...PUBLIC_PAGE_ROUTES].sort();
