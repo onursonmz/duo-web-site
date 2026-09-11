@@ -19,7 +19,7 @@ interface Props {
 const { eyebrow, as: Tag = "h2", lead, align = "start", id }: Props = Astro.props;
 ---
 
-<header class:list={["heading", `heading--${align}`]}>
+<header class:list={["heading", `heading--${align}`, Tag === "h1" && "heading--page"]}>
   {eyebrow && <p class="heading__eyebrow">{eyebrow}</p>}
   <Tag class="heading__title" id={id}><slot /></Tag>
   {lead && <p class="heading__lead">{lead}</p>}
@@ -29,6 +29,54 @@ const { eyebrow, as: Tag = "h2", lead, align = "start", id }: Props = Astro.prop
   .heading {
     margin-bottom: var(--space-lg);
     max-width: 46rem;
+  }
+
+  /*
+   * SAYFA GİRİŞİ (`as="h1"`).
+   *
+   * Alt sayfalar boş beyaz bir sayfanın tepesinde başlıyordu. Bu blok aynı
+   * evrene ait bir giriş kurar ama ana hero'yu TAKLİT ETMEZ: ekstra JavaScript,
+   * animasyon veya asset yoktur; yalnızca ortak bileşenin CSS'i.
+   *
+   * Katmanlar: üstte ince hat, solda cyan ray, arkada ÇOK düşük opaklıklı
+   * teknik ızgara, eyebrow ucunda tek bir action vurgusu.
+   */
+  .heading--page {
+    --heading-grid: color-mix(in srgb, var(--border-subtle) 38%, transparent);
+
+    position: relative;
+    margin-bottom: var(--space-2xl);
+    padding-block: var(--space-xl) var(--space-lg);
+    padding-inline-start: var(--space-lg);
+    max-width: 54rem;
+    border-top: var(--border-width) solid var(--border-subtle);
+    background-image:
+      repeating-linear-gradient(to right, var(--heading-grid) 0 1px, transparent 1px 4.5rem),
+      repeating-linear-gradient(to bottom, var(--heading-grid) 0 1px, transparent 1px 4.5rem);
+    background-position: left top;
+  }
+
+  /* Sol ray: sinyal rengi, aşağı doğru söner. */
+  .heading--page::before {
+    content: "";
+    position: absolute;
+    inset-block: 0 var(--space-md);
+    inset-inline-start: 0;
+    width: 2px;
+    background: linear-gradient(
+      to bottom,
+      var(--signal),
+      color-mix(in srgb, var(--signal) 0%, transparent)
+    );
+  }
+
+  .heading--page.heading--center {
+    padding-inline-start: 0;
+    background-image: none;
+  }
+
+  .heading--page.heading--center::before {
+    content: none;
   }
 
   .heading--center {
@@ -44,6 +92,22 @@ const { eyebrow, as: Tag = "h2", lead, align = "start", id }: Props = Astro.prop
     letter-spacing: var(--tracking-wide);
     text-transform: uppercase;
     color: var(--text-secondary);
+  }
+
+  .heading--page .heading__eyebrow {
+    margin-bottom: var(--space-sm);
+    color: var(--text-primary);
+  }
+
+  /* Tek action vurgusu — sayfada bir noktada, küçük ve keskin. */
+  .heading--page .heading__eyebrow::after {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-left: var(--space-2xs);
+    vertical-align: middle;
+    background: var(--action);
   }
 
   /* İnce sinyal çizgisi: eyebrow'u başlıktan ayırır, dekoratiftir. */
@@ -63,6 +127,21 @@ const { eyebrow, as: Tag = "h2", lead, align = "start", id }: Props = Astro.prop
 
   .heading__title {
     margin: 0;
+  }
+
+  /* Sayfa girişinde başlık BÜYÜK ve sıkı; negatif alan başlığın işi. */
+  .heading--page .heading__title {
+    max-width: 20ch;
+    font-size: clamp(2rem, 1.15rem + 2.2vw, 3rem);
+    font-weight: var(--weight-semibold);
+    line-height: 1.06;
+    letter-spacing: -0.024em;
+    text-wrap: balance;
+  }
+
+  .heading--page .heading__lead {
+    margin-top: var(--space-md);
+    max-width: 44ch;
   }
 
   .heading__lead {

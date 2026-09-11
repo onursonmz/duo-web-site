@@ -64,7 +64,17 @@ const solutionLinks = solutions.map((entry) => ({
       href={brandHref(locale)}
       aria-label={t(locale, "nav.goToBrandHome")}
     >
-      <LogoMark variant="wordmark" width="8.5rem" label="Duosis" />
+      {
+        /*
+        KOYU ÜSTE BİNEN BAŞLIKTA AÇIK WORDMARK.
+
+        `wordmark` dosyası dolguyu #252a2e olarak YAZAR; koyu sahnenin üstünde
+        siyaha yakın kalıp okunmuyordu. `wordmark-inverse` AYNI geometriyi açık
+        dolguyla taşır (bkz. LogoMark.astro). Logo yeniden üretilmedi, yalnızca
+        doğru varyant seçildi.
+      */
+      }
+      <LogoMark variant={overlay ? "wordmark-inverse" : "wordmark"} width="8.5rem" label="Duosis" />
     </a>
 
     <nav class="site-nav" aria-label={t(locale, "nav.primary")} data-testid="primary-nav">
