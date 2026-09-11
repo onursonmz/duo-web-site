@@ -415,6 +415,46 @@ konularak karşılaştırılabilir.
 
 ---
 
+## 10b. Uzak CI ve teslim paketi
+
+| Koşu                                                                              | HEAD      | Sonuç     |
+| --------------------------------------------------------------------------------- | --------- | --------- |
+| [34550949727](https://github.com/onursonmz/duo-web-site/actions/runs/34550949727) | `ecb841e` | **yeşil** |
+
+CI yerelle **tam aynı** komutu koşar (`pnpm quality`) ve S15'ten itibaren
+üç tarayıcı motorunu da kurar (Chromium, Firefox, WebKit).
+
+### Yerel kapı sonuçları (final HEAD)
+
+| Kapı                | Sonuç                   |
+| ------------------- | ----------------------- |
+| `pnpm format:check` | exit 0                  |
+| `pnpm lint`         | exit 0                  |
+| `pnpm typecheck`    | exit 0                  |
+| `pnpm test` (birim) | exit 0                  |
+| `pnpm build`        | exit 0                  |
+| `pnpm seo:report`   | exit 0                  |
+| `pnpm audit --prod` | exit 0                  |
+| `pnpm test:e2e`     | **exit 0 — 1 131 test** |
+
+Her komutun gerçek çıkış kodu kaydedildi; log içinde kelime araması yapılarak
+"başarılı" sayılan bir adım yok.
+
+### Paket
+
+| Dosya                              | İçerik                                                     |
+| ---------------------------------- | ---------------------------------------------------------- |
+| `duosis-web-S14-S15-review.bundle` | kendi kendine yeten git bundle (`main` + sprint dalı)      |
+| `duosis-web-S14-S15-evidence.zip`  | rapor, dokümanlar, 33 ekran, 2 video, Lighthouse raporları |
+| `PACKAGES-S14-S15.sha256`          | SHA-256 manifesti                                          |
+
+Paketleyici üç doğrulamayı da gerçekten çalıştırır: bundle `git bundle verify`
+sonrası **gerçekten klonlanır** ve HEAD'i karşılaştırılır; ZIP `testzip()` ile
+denetlenir; arşivdeki her yol mutlak yol / sürücü harfi / `..` / symlink
+taramasından geçer.
+
+---
+
 ## 11. Teslim dosyaları
 
 | Dosya                                            | İçerik                                                |
