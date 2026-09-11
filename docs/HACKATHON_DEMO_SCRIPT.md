@@ -38,8 +38,8 @@ duruyor — okumak için animasyonun bitmesini beklemek gerekmiyor.
 1. Dört **kaynak** — farklı izleme ve iş sistemleri.
 2. **Sinyal** kutuları — ham olay.
 3. Yolların **tek çekirdekte birleşmesi** — bağlam.
-4. **Bakır eşkenar dörtgen** — karar noktası. *"Bakır rengi sitede yalnızca
-   kararın ve insan müdahalesinin olduğu yerde kullanılıyor."*
+4. **Bakır eşkenar dörtgen** — karar noktası. _"Bakır rengi sitede yalnızca
+   kararın ve insan müdahalesinin olduğu yerde kullanılıyor."_
 5. **Aksiyon** çerçevesi — onaylı sonuç.
 
 Yollar üzerinde akan cyan darbeler sistemin çalıştığını gösterir.
@@ -66,12 +66,12 @@ izinsiz hiçbir logo yok, partnerlik iddiası yok.
 
 **Canlı gösterim:** sekmeleri sırayla seç, sahnenin değiştiğine dikkat çek.
 
-| Ürün | Sahne davranışı |
-| --- | --- |
-| CyclOps | dört kaynak tek çekirdekte **birleşir** |
-| Hermes | dağınık kayıtlar bağlamda **düzenlenir** |
+| Ürün     | Sahne davranışı                                                              |
+| -------- | ---------------------------------------------------------------------------- |
+| CyclOps  | dört kaynak tek çekirdekte **birleşir**                                      |
+| Hermes   | dağınık kayıtlar bağlamda **düzenlenir**                                     |
 | LogiSlot | talep kurallardan geçip uygun slota **yerleşir** (çıkış bakır: bu bir karar) |
-| RAVSKALD | soru araçlara iner, cevap **kanıtıyla** döner (kesikli çizgi) |
+| RAVSKALD | soru araçlara iner, cevap **kanıtıyla** döner (kesikli çizgi)                |
 
 **Klavye ile de göster:** sekmelerde ok tuşları çalışıyor. Otomatik dönen
 carousel yok — sahne yalnızca kullanıcı isterse değişir.
