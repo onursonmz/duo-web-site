@@ -1,8 +1,9 @@
 # ADR-014 — Signature Experience: eski minimalist bütçenin değiştirilmesi
 
-**Durum:** Accepted — 1. bölüm S15-R1'de YENİDEN AÇILDI ve yeniden karara bağlandı
-**Tarih:** 2026-09-11 (S15) · revizyon 2026-09-11 (S15-R1)
-**Sprint:** S15, S15-R1
+**Durum:** Accepted — 1. bölüm S15-R1'de bir kez, S15-R2'de bir kez daha YENİDEN AÇILDI;
+yürürlükteki render kararı **S15-R2** bölümündedir
+**Tarih:** 2026-09-11 (S15) · revizyon 2026-09-11 (S15-R1) · revizyon 2026-09-11 (S15-R2)
+**Sprint:** S15, S15-R1, S15-R2
 
 ## Numara hakkında bir not
 
@@ -236,3 +237,151 @@ düşürerek yapılmaz; maske ve konum kullanılır.
 `VISUAL_POLISH_BACKLOG.md` maddeleri değişmedi: "ağır WebGL yok" hâlâ geçerli
 ve hâlâ ölçülmüş bir tercih. Eklenen tek şey, bu tercihin artık **derinlikli
 bir sahne üzerinde** sınanmış olması.
+
+---
+
+# S15-R2 revizyonu — render kararı ikinci kez açıldı ve DEĞİŞTİ
+
+**Durum:** 1. madde (render yöntemi) YENİDEN AÇILDI ve **yeni bir karara**
+bağlandı. Yukarıdaki S15 ve S15-R1 bölümleri **tarihsel kayıt** olarak durur;
+yürürlükte olan karar budur.
+
+## İnceleme sonucu
+
+S15-R1 checkpoint'i görsel kabulden GEÇMEDİ. İncelemenin tespiti teknik
+değil, görseldi:
+
+- ekranda algılanan gerçek bir derinlik yok,
+- kamera neredeyse sabit; hareket eden şey yalnızca çizgiler,
+- bir sahne başka bir sahneye DÖNÜŞMÜYOR; "bölüm geçişi" dediğimiz şey
+  çizgi/V biçimli bir ayraçtan ibaret,
+- sonuç düzenli fakat jenerik.
+
+İnceleme ayrıca yöntemi de kayda geçirdi: **kabul kriteri ortaya çıkan
+görüntüdür**, kullanılan tekniğin yeterliliğini anlatan gerekçe değil.
+
+## S15-R1 kararı NEDEN yanlıştı
+
+S15-R1'deki gerekçe şuydu: "WebGL'in ekleyeceği tek fark shader/parçacık
+sınıfı efektlerdir; bunlar zaten yasak, o hâlde WebGL yalnızca maliyet ekler."
+
+Bu akıl yürütme iki şeyi birbirine karıştırıyor:
+
+1. **Efekt** (parçacık yağmuru, gradient küre) ile **mekân** (gerçek perspektif
+   kamera, gerçek Z mesafesi, birbirini örten hacimli gövdeler). Yasak olan
+   birincisiydi; eksik olan ikincisi.
+2. **Kodda derinlik** ile **ekranda derinlik**. `translateZ` + telafi ölçeği
+   katmanları net ekran ölçeğinde 1.0'da tutar — yani tam olarak derinliğin
+   GÖRÜNMEMESİNİ sağlar. Parallax yalnızca işaretçi hareket ederken belirir;
+   duran bir ekran görüntüsünde hiçbir izi kalmaz. Bu yüzden "CSS 3B" kodda
+   doğrulanabiliyor ama 1440x900 bir karede doğrulanamıyordu.
+
+Kısacası: S15-R1'in dayanağı ölçüm değil, çıkarımdı. Ölçüm (kare ve video)
+tersini söyledi.
+
+## Yeni karar — 1. maddenin yerine geçer
+
+**Masaüstü ana deneyimde gerçek WebGL kullanılıyor: Three.js r182,
+`src/lib/scene/universe.ts`.**
+
+Kapsam ve sınırlar:
+
+- **Geometri koddan üretilir.** Hazır sahne (Spline), stok 3B model veya başka
+  bir siteden alınmış asset YOKTUR. Sahnedeki her gövde ikosahedron, torus,
+  tüp (`TubeGeometry`) ve ızgara ilkellerinden türetilir.
+- **Renkler tasarım sisteminden OKUNUR.** `readTokens()` koyu temalı bir DOM
+  öğesinden `--surface-sunken`, `--signal`, `--decision`, `--action`,
+  `--border-subtle`, `--surface-inverse`, `--text-inverse` değerlerini alır;
+  dosyada marka rengi sabitlenmez (yalnızca okunamazsa devreye giren yedek).
+- **PBR materyali İTHAL EDİLMEZ.** Yalnızca `MeshBasicMaterial`,
+  `LineBasicMaterial` ve elle yazılmış üç küçük `ShaderMaterial` kullanılır
+  (fresnel kenar, akış tüpü, ışık düzlemi). Paket bütçesi bunun üzerine
+  kuruludur; `MeshStandardMaterial` tek başına shader yığınını ikiye katlıyor.
+- **Kritik içerik tuvalin İÇİNE yazılmaz.** H1, açıklama ve iki CTA ilk
+  HTML'dedir, animasyonsuzdur ve tuvalden bağımsız okunur. Tuval
+  `aria-hidden`.
+
+## Ölçülen maliyet
+
+| Kalem                                | Ölçülen | Tavan (S15-R2 §9) |
+| ------------------------------------ | ------- | ----------------- |
+| Sahne yığını (`universe.*.js`), gzip | ~134 KB | —                 |
+| Ana sayfa TOPLAM istemci JS, gzip    | ~136 KB | 220 KB            |
+| Harici runtime isteği                | 0       | 0                 |
+| Renderer DPR tavanı                  | 1.5     | 1.5               |
+
+Ölçüm `tests/e2e/hero.spec.ts` içinde otomatiktir: sayfanın indirdiği her
+`.js` yanıtı `dist/` içinden okunup `gzipSync` ile sıkıştırılır ve satır içi
+modüllerle toplanır. Elle yazılmış bir sayı değildir.
+
+Eski 120 KB tavanı S15-R2 talimatıyla 220 KB'ye çıkarıldı; bu bir gevşetme
+değil, gerçekçi bir sınır. Ölçülen değer yeni tavanın da epey altında.
+
+## Üç çizim kipi — tek düzen
+
+Track yüksekliği her kipte AYNIDIR; sahne açıldığında hiçbir şey yer
+değiştirmez (CLS ölçülüyor, bkz. hero testleri):
+
+| Kip      | Ne zaman                                         | Ne görünür                            |
+| -------- | ------------------------------------------------ | ------------------------------------- |
+| `poster` | WebGL yok · JS yok · `save-data` · context kaybı | statik SVG son kompozisyon            |
+| `live`   | normal masaüstü ve mobil                         | WebGL sahnesi, kamera ve akış çalışır |
+| `static` | `prefers-reduced-motion: reduce`                 | WebGL'in TEK karesi; kamera durur     |
+
+`live` dışındaki kiplerde yolculuk bandı da kısalır: kamera durduğunda uzun
+bir scroll bandının anlamı kalmaz.
+
+## Pil, GPU ve scroll
+
+- `requestAnimationFrame` döngüsü sekme gizliyken (`visibilitychange`) ve
+  sahne viewport dışındayken (`IntersectionObserver`) DURUR.
+- `devicePixelRatio` 1.5 ile sınırlıdır.
+- Dar ekranda (`< 860px`) segment sayıları düşer, paket sayısı azalır, kamera
+  kompozisyonu ortalanır — evren KALDIRILMAZ, küçültülür.
+- `webglcontextlost` yakalanır, döngü durur ve sahne postere döner.
+- **Scroll'a EL SÜRÜLMEZ.** Sahne kodunda `wheel`, `touchmove` veya
+  `mousewheel` dinleyicisi yoktur; yapışkanlık tamamen CSS'tir ve scroll
+  konumu yalnızca OKUNUR. Bu, `addEventListener` sarmalanarak ölçülüyor.
+
+## S15-R2'de ölçülen üç üretim hatası
+
+Üçü de "kodda doğru görünen ama ekranda yanlış olan" sınıfından; üçü de
+tahminle değil, ekran görüntüsü alınıp DOM ölçülerek bulundu.
+
+1. **Düzleşen raylar p = 1'de tamamen kayboluyordu.** Akış tüplerinin köşeleri
+   vertex shader'da (`aFlat` + `uFlat`) taşınıyor; üç.js ise budamayı
+   geometrinin BAŞLANGIÇ sınır küresiyle yapıyor. Kamera çekirdekten geçtikten
+   sonra o küre kameranın arkasında kalıyor ve mesh tamamen budanıyordu.
+   Çözüm: morph uygulanan meshlerde `frustumCulled = false`.
+
+2. **Okunurluk örtüsü sahnenin üstüne AÇIK GRİ boyuyordu.** `.universe__scrim`
+   `color-mix(... var(--surface-sunken) ...)` kullanıyor; `theme-dark` sınıfı
+   yalnızca hero bölümündeyken örtü `:root` açık temasından okuyordu. Koyu
+   sahne sisli bir açık griye dönüyordu. Çözüm: tema bağlamı kapsayıcıya
+   taşındı; atlas bölümü kendi `theme-light` sınıfıyla bağlamı geri alıyor.
+
+3. **Geçişin ORTASINDA hiçbir metin rengi kazanamıyor.** Zemin koyudan açığa
+   giderken ortada gri oluyor; açık metin de koyu metin de aynı anda düşük
+   kontrastta kalıyor. Bu bir RENK sorunu değil, ZAMANLAMA sorunudur. Çözüm:
+   son yolculuk adımı ekrandan çıkmadan tema geçişi BAŞLAMAZ (devir bandı bu
+   iş için vardır), ayrıca adım metni `--u-theme` ile ters yönde döner.
+
+**Kural olarak kayda geçiyor:** zemin rengi animasyonla değişiyorsa, o
+aralıkta ekranda okunması gereken metin BULUNMAMALIDIR.
+
+## Değerlendirilip seçilmeyenler (S15-R2)
+
+| Seçenek                          | Neden seçilmedi                                                                |
+| -------------------------------- | ------------------------------------------------------------------------------ |
+| CSS 3B katmanlı SVG (S15-R1)     | Ekranda derinlik üretmiyor; ölçüldü ve reddedildi.                             |
+| Hazır sahne servisi (Spline vb.) | Harici runtime isteği ve üçüncü taraf asset; talimatta açıkça yasak.           |
+| OGL / kendi WebGL sarmalayıcımız | ~40 KB tasarruf; buna karşılık tüp geometrisi, eğri örnekleme ve materyal      |
+|                                  | altyapısını elle yazmak gerekiyor. Bütçe zaten tavanın çok altında.            |
+| `MeshStandardMaterial` + ışıklar | Shader yığınını büyütüyor; istenen görünüm zaten fresnel kenar + katkılı akış. |
+
+## Backlog üzerindeki etki
+
+`VISUAL_POLISH_BACKLOG.md` içindeki "ağır WebGL yok" maddesi **geçersizdir**.
+Yerine geçen kural: WebGL kullanılır, ancak (a) dinamik yüklenir, (b) kritik
+metni bloklamaz, (c) ölçülen bir gzip tavanı altında kalır, (d) her
+başarısızlık biçiminde statik bir son kompozisyona düşer.
