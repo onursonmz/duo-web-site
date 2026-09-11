@@ -434,6 +434,17 @@ export const homepageSchema = z
           .strict()
       )
       .length(5),
+    /**
+     * HERO SİNYAL ETİKETLERİ (S15-R1).
+     *
+     * Operasyon evreninde soldan giren telemetri türleri. Sahne DEKORATİFTİR;
+     * bu etiketlerin taşıdığı bilgi `heroStages[1].body` içinde zaten METİN
+     * olarak vardır ("Metrik, log, event ve trace…"). Bu yüzden sahnedeki
+     * kopyaları `aria-hidden` kalır ve bilgi yalnızca görselle taşınmaz.
+     *
+     * Kısa tutulur: sahnede tek satır etikettir, cümle değildir.
+     */
+    heroSignals: z.array(z.string().min(1).max(16)).length(5),
     /** Güven bölümü: yalnızca NİTEL anlatı; sayı alanı yoktur. */
     trust: sectionCopySchema.extend({ points: z.array(namedPointSchema).min(1) }).strict(),
     solutions: sectionCopySchema,

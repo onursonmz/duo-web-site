@@ -18,6 +18,7 @@ import BaseLayout from "@layouts/BaseLayout.astro";
 import Section from "@components/ui/Section.astro";
 import SectionHeading from "@components/ui/SectionHeading.astro";
 import SignatureHero from "@components/home/SignatureHero.astro";
+import SectionBridge from "@components/home/SectionBridge.astro";
 import TrustSection from "@components/home/TrustSection.astro";
 import SolutionAtlas from "@components/home/SolutionAtlas.astro";
 import CyclopsTeaser from "@components/home/CyclopsTeaser.astro";
@@ -66,32 +67,45 @@ const alternates = { tr: homePath("tr"), en: homePath("en") };
   noindex={page.seo.noindex}
   wide={true}
 >
-  <Section tone="dark" width="wide" padding="tight" id="hero">
-    <SignatureHero hero={page.hero} stages={page.heroStages} />
+  {
+    /*
+    HERO — kenardan kenara imza sahnesi.
+    `bleed` + `padding="none"`: ekranı dolduran kompozisyon 76rem kapsayıcıya
+    hapsedilemez, dikey ritmi bileşenin kendisi kurar.
+  */
+  }
+  <Section tone="dark" width="bleed" padding="none" id="hero">
+    <SignatureHero hero={page.hero} stages={page.heroStages} signals={page.heroSignals} />
   </Section>
+
+  <SectionBridge variant="flow-out" />
 
   <Section tone="light" width="wide" id="trust">
     <TrustSection trust={page.trust} />
   </Section>
 
+  <SectionBridge variant="seam" tone="light" />
+
   <Section tone="light" width="wide" id="solutions">
     <SolutionAtlas locale={locale} copy={page.solutions} solutions={solutions} />
   </Section>
+
+  <SectionBridge variant="aperture" />
 
   <Section tone="dark" width="wide" id="cyclops">
     <CyclopsTeaser cyclops={page.cyclops} />
   </Section>
 
+  <SectionBridge variant="flow-out" />
+
   <Section tone="light" width="wide" id="intelligence">
     <IntelligenceLayer intelligence={page.intelligence} />
   </Section>
 
+  <SectionBridge variant="seam" tone="light" />
+
   <Section tone="light" width="wide" id="method">
     <MethodSection method={page.method} />
-  </Section>
-
-  <Section tone="dark" width="wide" id="decade">
-    <DecadeSection locale="en" decade={page.decade} milestones={milestones} />
   </Section>
 
   {
@@ -102,25 +116,40 @@ const alternates = { tr: homePath("tr"), en: homePath("en") };
   }
   {
     regions.length > 0 && (
-      <Section tone="light" width="wide" id="regional">
-        <SectionHeading eyebrow={page.regional.eyebrow} as="h2" lead={page.regional.lead}>
-          {page.regional.title}
-        </SectionHeading>
-        <ul class="regions" data-testid="region-list">
-          {regions.map((region) => (
-            <li>
-              <span class="regions__name">{region.data.name}</span>
-              <span class="regions__summary">{region.data.summary}</span>
-            </li>
-          ))}
-        </ul>
-      </Section>
+      <>
+        <SectionBridge variant="seam" tone="light" />
+        <Section tone="light" width="wide" id="regional">
+          <SectionHeading eyebrow={page.regional.eyebrow} as="h2" lead={page.regional.lead}>
+            {page.regional.title}
+          </SectionHeading>
+          <ul class="regions" data-testid="region-list">
+            {regions.map((region) => (
+              <li>
+                <span class="regions__name">{region.data.name}</span>
+                <span class="regions__summary">{region.data.summary}</span>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      </>
     )
   }
 
-  <Section tone="light" width="wide" id="technology">
+  {
+    /*
+    TEKNOLOJİ KATMANLARI — S15-R1'de KOYU yüzeye alındı.
+    Gerekçe: art arda altı açık bölüm sayfayı düzleştiriyordu; teknoloji
+    atlası anlatının "altyapı" katmanı olduğu için koyu grafit zemine
+    oturması ritmi de anlamı da düzeltiyor.
+  */
+  }
+  <SectionBridge variant="aperture" />
+
+  <Section tone="dark" width="wide" id="technology">
     <TechnologyLayers technology={page.technology} />
   </Section>
+
+  <SectionBridge variant="flow-out" />
 
   {/* GÜNCEL İÇGÖRÜLER — yayınlanmış kayıt yoksa bölüm hiç oluşturulmaz. */}
   {
@@ -142,6 +171,22 @@ const alternates = { tr: homePath("tr"), en: homePath("en") };
       </Section>
     )
   }
+
+  {
+    /*
+    ON YILLIK YOLCULUK — sayfanın SONUNDA.
+    S15-R1: bölüm, "10. yıl anlatısı → iletişim finali" geçişini kurabilmek
+    için yukarıdan buraya alındı. Anlatı sırası da bunu istiyor: ne yaptığımız
+    → nasıl → on yıldır kim olduğumuz → konuşalım.
+  */
+  }
+  <SectionBridge variant="aperture" />
+
+  <Section tone="dark" width="wide" id="decade">
+    <DecadeSection locale="en" decade={page.decade} milestones={milestones} />
+  </Section>
+
+  <SectionBridge variant="converge" tone="dark" />
 
   <Section tone="dark" width="wide" id="roadmap">
     <RoadmapCta roadmap={page.roadmap} />

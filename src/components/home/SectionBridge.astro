@@ -1,0 +1,428 @@
+---
+/**
+ * BÖLÜM GEÇİŞİ — SIGNATURE TRANSITION (S15-R1).
+ *
+ * Codex incelemesi: "Sert şekilde art arda dizilmiş beyaz/siyah dikdörtgen
+ * bölümler kaldırılmalı." Bu bileşen iki bölümün ARASINDA durur ve sınırı
+ * düz bir yatay çizgi olmaktan çıkarır: yüzey bir geometriyle diğerine
+ * geçer, hero'nun ağ geometrisi sayfa boyunca AKMAYA devam eder.
+ *
+ * GÖRSEL DİL — DAĞITIM BARASI.
+ *
+ * Bant çok geniş ve alçaktır; bu orana serbest eğriler değil MANİFOLD
+ * geometrisi yakışır: dik inen kısa hatlar, yatay bir toplama/dağıtım barası
+ * ve tek bir omurga. Aynı dil her geçişte yönü değişerek tekrarlanır, böylece
+ * sayfa tek bir sistem gibi okunur.
+ *
+ * DÖRT VARYANT
+ *   flow-out  hero → çözüm atlası (koyu → açık): omurga hero ÇEKİRDEĞİNİN
+ *             ekseninden iner, sayfanın ortak eksenine devreder ve bir
+ *             dağıtım barasıyla sekiz çözüm satırına açılır.
+ *   aperture  açık → koyu: sekiz hat bir toplama barasında birleşir ve koyu
+ *             katmana açılan bir aralıktan içeri girer.
+ *   converge  10. yıl → iletişim finali (koyu → koyu): on yılın çentikleri
+ *             BUGÜN'ü işaretleyen tek bakır noktada toplanır ve CTA'ya iner.
+ *   seam      AYNI yüzeydeki iki bölüm arasında: yüzey değişmez, omurga
+ *             kesintisiz devam eder. Noktalama işaretidir, geçiş değil.
+ *
+ * KURALLAR
+ * - Tamamen dekoratiftir (`aria-hidden`): hiçbir bilgi yalnızca burada durmaz.
+ * - Yalnızca `stroke-dashoffset`, `opacity`, `clip-path` ve `transform`
+ *   animasyonu; düzen özelliği yazılmaz, bu yüzden CLS üretmez.
+ * - Scroll'a bağlı açılış `animation-timeline: view()` iledir: JS yok,
+ *   scroll hijacking yok. Destek yoksa geçiş SON hâlinde durur.
+ * - `preserveAspectRatio="none"` ile genişliğe uyar; çizgi kalınlığı
+ *   `vector-effect="non-scaling-stroke"` sayesinde bozulmaz.
+ */
+interface Props {
+  variant: "flow-out" | "aperture" | "converge" | "seam";
+  /**
+   * Yüzey teması — yalnızca `converge` ve `seam` için anlamlıdır: bu iki
+   * varyant yüzey DEĞİŞTİRMEZ, komşularının yüzeyinde durur. `flow-out` ve
+   * `aperture` varış yüzeyini kendisi bilir.
+   */
+  tone?: "light" | "dark";
+}
+
+const { variant, tone = "light" }: Props = Astro.props;
+
+/** Dağıtım barasının yatay sınırları. */
+const BUS_START = 224;
+const BUS_END = 1376;
+
+/** Sayfanın ortak omurga ekseni. */
+const AXIS = 800;
+
+/** Hero çekirdeğinin ekseni — `SignatureHero` içindeki `CORE.x` ile aynı. */
+const HERO_CORE_X = 1120;
+
+/** Sekiz çözüm alanına karşılık gelen dallar. */
+const BRANCH = Array.from(
+  { length: 8 },
+  (_, index) => BUS_START + index * ((BUS_END - BUS_START) / 7)
+);
+
+/** On yıllık rayın çentikleri; sayısı zaman çizelgesinin ritmini taşır. */
+const TICKS = Array.from(
+  { length: 11 },
+  (_, index) => BUS_START + index * ((BUS_END - BUS_START) / 10)
+);
+
+/**
+ * Yüzey bağlamı geçişin YÖNÜNE göre seçilir: blok VARIŞ yüzeyinin temasını
+ * taşır, içindeki dolgu ise KALKIŞ yüzeyini boyar. `--surface-inverse` her
+ * temada karşı yüzeyin zeminidir, bu yüzden iki yön tek token ile çözülür.
+ */
+const THEME =
+  variant === "flow-out" ? "theme-light" : variant === "aperture" ? "theme-dark" : `theme-${tone}`;
+---
+
+<div class:list={["bridge", `bridge--${variant}`, THEME]} aria-hidden="true" data-bridge={variant}>
+  {
+    variant === "flow-out" && (
+      <svg
+        class="bridge__svg"
+        viewBox="0 0 1600 240"
+        preserveAspectRatio="none"
+        focusable="false"
+        role="presentation"
+      >
+        {/* Kalkış yüzeyi bir kama olarak iner: düz yatay sınır yok. */}
+        <path class="bridge__surface" d="M0 0 H1600 V78 L800 164 L0 78 Z" />
+        <path class="bridge__edge" d="M0 78 L800 164 L1600 78" />
+
+        {/*
+          Omurga hero ÇEKİRDEĞİNİN ekseninden girer ve sayfanın ortak
+          eksenine devreder: hero geometrisi bir sonraki katmana elden ele
+          geçer.
+        */}
+        <path
+          class="bridge__spine"
+          d={`M${HERO_CORE_X} 0 C ${HERO_CORE_X} 92, ${AXIS} 96, ${AXIS} 164`}
+        />
+        <path
+          class="bridge__pulse"
+          d={`M${HERO_CORE_X} 0 C ${HERO_CORE_X} 92, ${AXIS} 96, ${AXIS} 164`}
+        />
+        <circle class="bridge__node" cx={AXIS} cy="164" r="6" />
+
+        {/* Dağıtım barası: tek omurga sekiz çözüm satırına açılır. */}
+        <path class="bridge__drop" d={`M${AXIS} 164 V196`} />
+        <path class="bridge__bus" d={`M${BUS_START} 196 H${BUS_END}`} />
+        <g class="bridge__branches">
+          {BRANCH.map((x, index) => (
+            <path class={`bridge__branch bridge__branch--${index}`} d={`M${x} 196 V240`} />
+          ))}
+        </g>
+      </svg>
+    )
+  }
+
+  {
+    variant === "aperture" && (
+      <svg
+        class="bridge__svg"
+        viewBox="0 0 1600 240"
+        preserveAspectRatio="none"
+        focusable="false"
+        role="presentation"
+      >
+        {/* Koyu katman açık yüzeye bir aralık açar; hatlar oradan içeri girer. */}
+        <path class="bridge__surface" d="M0 0 H1600 V132 L884 132 L800 54 L716 132 L0 132 Z" />
+        <path class="bridge__edge" d="M0 132 H716 L800 54 L884 132 H1600" />
+
+        {/* Toplama barası: sekiz hat tek demette birleşir. */}
+        <g class="bridge__branches">
+          {BRANCH.map((x, index) => (
+            <path class={`bridge__branch bridge__branch--${index}`} d={`M${x} 0 V32`} />
+          ))}
+        </g>
+        <path class="bridge__bus" d={`M${BUS_START} 32 H${BUS_END}`} />
+        <circle class="bridge__node" cx={AXIS} cy="32" r="6" />
+        <path class="bridge__spine" d={`M${AXIS} 32 V240`} />
+        <path class="bridge__pulse" d={`M${AXIS} 32 V240`} />
+      </svg>
+    )
+  }
+
+  {
+    variant === "converge" && (
+      <svg
+        class="bridge__svg"
+        viewBox="0 0 1600 240"
+        preserveAspectRatio="none"
+        focusable="false"
+        role="presentation"
+      >
+        {/* On yılın çentikleri tek baraya iner. */}
+        <g class="bridge__branches">
+          {TICKS.map((x, index) => (
+            <path class={`bridge__branch bridge__branch--${index}`} d={`M${x} 0 V112`} />
+          ))}
+        </g>
+        <path class="bridge__bus" d={`M${BUS_START} 112 H${BUS_END}`} />
+
+        {/* BUGÜN — bakır. On yılın bittiği ve konuşmanın başladığı nokta. */}
+        <circle class="bridge__today" cx={AXIS} cy="112" r="10" />
+        <path class="bridge__spine bridge__spine--decision" d={`M${AXIS} 112 V240`} />
+        <path class="bridge__pulse bridge__pulse--decision" d={`M${AXIS} 112 V240`} />
+      </svg>
+    )
+  }
+
+  {
+    variant === "seam" && (
+      <svg
+        class="bridge__svg"
+        viewBox="0 0 1600 120"
+        preserveAspectRatio="none"
+        focusable="false"
+        role="presentation"
+      >
+        {/* Yüzey değişmez: yalnızca omurga ve ölçü çizgisi devam eder. */}
+        <path class="bridge__rule" d={`M0 60 H${AXIS - 92}`} />
+        <path class="bridge__rule" d={`M${AXIS + 92} 60 H1600`} />
+        <path class="bridge__spine bridge__spine--seam" d={`M${AXIS} 0 V120`} />
+        <circle class="bridge__node" cx={AXIS} cy="60" r="4.5" />
+      </svg>
+    )
+  }
+</div>
+
+<style>
+  .bridge {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: clamp(5rem, 11vw, 10rem);
+    overflow: hidden;
+    /* Varış yüzeyi burada boyanır; kalkış yüzeyini `bridge__surface` taşır. */
+    background: var(--surface-canvas);
+  }
+
+  /*
+   * SEAM bir geçiş değil noktalama işaretidir: yüzey aynı kalır, yalnızca
+   * omurga devam eder. Bu yüzden çok daha alçaktır.
+   */
+  .bridge--seam {
+    height: clamp(2.75rem, 4vw, 3.75rem);
+  }
+
+  .bridge__svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .bridge__surface {
+    fill: var(--surface-inverse);
+  }
+
+  .bridge__edge {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+    opacity: 0.5;
+  }
+
+  .bridge__spine,
+  .bridge__drop {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .bridge__bus {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+    opacity: 0.75;
+  }
+
+  .bridge__branch {
+    fill: none;
+    stroke: var(--border-strong);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .bridge__rule {
+    fill: none;
+    stroke: var(--border-subtle);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .bridge__node {
+    fill: var(--signal);
+  }
+
+  .bridge__today {
+    fill: var(--decision);
+  }
+
+  .bridge__spine--decision {
+    stroke: var(--decision);
+  }
+
+  .bridge__spine--seam {
+    opacity: 0.55;
+  }
+
+  /* ---------------------------------------------------------- hareket */
+
+  /*
+   * AÇILIŞ scroll konumuna bağlıdır ama scroll'u ELE GEÇİRMEZ: sayfa doğal
+   * akışında kalır, yalnızca çizim ilerler.
+   */
+  .bridge__spine,
+  .bridge__drop,
+  .bridge__branch,
+  .bridge__bus,
+  .bridge__edge {
+    stroke-dasharray: 1700;
+    stroke-dashoffset: 1700;
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .bridge__spine,
+      .bridge__edge {
+        animation: bridge-draw linear both;
+        animation-timeline: var(--scroll-timeline);
+        animation-range: entry 0% entry 60%;
+      }
+
+      .bridge__bus,
+      .bridge__drop {
+        animation: bridge-draw linear both;
+        animation-timeline: var(--scroll-timeline);
+        animation-range: entry 20% entry 80%;
+      }
+
+      .bridge__branch {
+        animation: bridge-draw linear both;
+        animation-timeline: var(--scroll-timeline);
+        animation-range: entry 40% entry 100%;
+      }
+
+      .bridge__node,
+      .bridge__today {
+        animation: bridge-pop linear both;
+        animation-timeline: var(--scroll-timeline);
+        animation-range: entry 45% entry 85%;
+      }
+
+      /* Yüzey bir maskeyle açılır: yalnız opacity ile belirmez. */
+      .bridge__surface {
+        animation: bridge-surface linear both;
+        animation-timeline: var(--scroll-timeline);
+        animation-range: entry 0% entry 55%;
+      }
+    }
+  }
+
+  /*
+   * Destek yoksa geçiş SON hâlindedir: çizgiler tam, yüzey yerinde. Yarım bir
+   * görüntü kalmaz.
+   */
+  @supports not (animation-timeline: view()) {
+    .bridge__spine,
+    .bridge__drop,
+    .bridge__branch,
+    .bridge__bus,
+    .bridge__edge {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes bridge-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes bridge-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.2);
+      transform-origin: center;
+      transform-box: fill-box;
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+      transform-origin: center;
+      transform-box: fill-box;
+    }
+  }
+
+  @keyframes bridge-surface {
+    from {
+      clip-path: inset(0 0 100% 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  /* Omurgadaki tek darbe: geçişin yönünü okutur. */
+  .bridge__pulse {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 30 400;
+    opacity: 0;
+    animation: bridge-flow 4s linear infinite;
+  }
+
+  .bridge__pulse--decision {
+    stroke: var(--decision);
+  }
+
+  @keyframes bridge-flow {
+    0% {
+      stroke-dashoffset: 430;
+      opacity: 0;
+    }
+    12% {
+      opacity: 0.9;
+    }
+    80% {
+      opacity: 0.9;
+    }
+    100% {
+      stroke-dashoffset: 0;
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bridge__spine,
+    .bridge__drop,
+    .bridge__branch,
+    .bridge__bus,
+    .bridge__edge {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
+
+    .bridge__surface,
+    .bridge__node,
+    .bridge__today {
+      animation: none;
+      clip-path: none;
+      opacity: 1;
+      transform: none;
+    }
+
+    .bridge__pulse {
+      display: none;
+    }
+  }
+</style>

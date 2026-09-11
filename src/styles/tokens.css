@@ -111,6 +111,21 @@
   --motion-base: 240ms;
   --motion-slow: 360ms;
   --motion-ease: cubic-bezier(0.2, 0, 0.2, 1);
+
+  /*
+   * SCROLL TABANLI AÇILIŞ ZAMAN ÇİZELGESİ — DEĞİŞKEN ÜZERİNDEN OKUNUR.
+   *
+   * ÖLÇÜLMÜŞ HATA (S15-R1): `animation-timeline: view()` doğrudan yazıldığında
+   * CSS küçültücü onu `animation` kısayoluna BİRLEŞTİRİYOR ve
+   * `animation: linear both ad view()` üretiyordu. Tarayıcı bu kısayolu
+   * GEÇERSİZ sayıp kuralın tamamını düşürüyor; sonuçta üretim derlemesinde
+   * `animation-name` "none" oluyor ve scroll açılışları HİÇ çalışmıyordu
+   * (geliştirme sunucusunda çalıştığı için fark edilmemişti).
+   *
+   * Değeri bir custom property'den okumak birleştirmeyi imkânsız kılar.
+   * Regresyonu `tests/e2e/motion-system.spec.ts` ölçer.
+   */
+  --scroll-timeline: view();
 }
 
 /*

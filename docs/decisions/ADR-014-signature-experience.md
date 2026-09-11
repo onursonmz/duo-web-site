@@ -1,8 +1,8 @@
 # ADR-014 — Signature Experience: eski minimalist bütçenin değiştirilmesi
 
-**Durum:** Accepted
-**Tarih:** 2026-09-11
-**Sprint:** S15
+**Durum:** Accepted — 1. bölüm S15-R1'de YENİDEN AÇILDI ve yeniden karara bağlandı
+**Tarih:** 2026-09-11 (S15) · revizyon 2026-09-11 (S15-R1)
+**Sprint:** S15, S15-R1
 
 ## Numara hakkında bir not
 
@@ -131,3 +131,108 @@ durumda bile okunur.
 **Olumsuz / kabul edilen risk:** SVG topolojisi karmaşıklaştıkça DOM düğüm
 sayısı büyür. Bu, bütçe tablosundaki ilk yük ve etkileşim hedefleriyle
 sınırlanır; aşılırsa ADR yeniden değerlendirilir — sessizce esnetilmez.
+
+---
+
+# S15-R1 revizyonu — render kararının yeniden açılması
+
+Codex incelemesi (CHANGES REQUESTED) bu ADR'nin **1. maddesini** açıkça
+yeniden açtırdı:
+
+> "ADR-014'teki 'WebGL/Canvas gerekmez' sonucu yeniden OPEN yapılmalı. Amaç
+> mutlaka WebGL kullanmak değildir; amaç hedeflenen görsel sonucu elde
+> etmektir."
+
+Karar yeniden açıldı, yeni bir spike yapıldı ve aşağıdaki sonuca bağlandı.
+
+## Neden ilk karar yetersizdi
+
+İlk spike doğru soruyu sormamıştı. "Topolojisi değişen bir şema WebGL'siz
+çizilebilir mi?" diye soruldu; cevap evetti ve iş orada bitti. Oysa istenen şey
+bir şema değil, **derinliği olan bir sahne**ydi: ölçek, perspektif, blur,
+katman ve kontrollü kamera hareketi. S15 hero'su bu yüzden "ince bir alt çizgi
+şeması" olarak kaldı.
+
+## S15-R1 spike'ı
+
+Üç yol denendi:
+
+| Yol                                                 | Sonuç                                                                                                                                                                                               |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Tek düzlemde SVG (S15'in yaptığı)**               | Derinlik hissi YOK. Ölçek ve blur elle taklit edilse bile katmanlar birlikte hareket etmediği için parallax kurulamıyor. **Yetersiz — asıl eleştirinin kaynağı bu.**                                |
+| **CSS 3B katmanlar (`perspective` + `translateZ`)** | Beş katman gerçek bir 3B uzayda duruyor; kamera döndüğünde katmanlar DERİNLİĞİNE göre farklı hızda kayıyor. Blur, opaklık ve ölçek doğal olarak derinlikten geliyor. **Hedeflenen sonucu veriyor.** |
+| **WebGL / Canvas (three.js, ogl veya el yazımı)**   | Aynı görsel sonucu verir, ek olarak shader ve parçacık imkânı sunar — ama ikisi de tasarım sınırlarında YASAK. Karşılığında runtime, GPU döngüsü, context kaybı ve ayrı fallback yolu getirir.      |
+
+## Yeni karar (1. maddenin yerine geçer)
+
+**CSS 3B katmanlı SVG kullanılıyor; WebGL/Canvas yine kullanılmıyor.** Bu,
+S15'teki cevabın tekrarı değil: S15'teki uygulama da değişti. Hero artık tek
+düzlem değil, `perspective: 1400px` altında beş ayrı derinlikte duran bir
+katman yığınıdır.
+
+Kararın ölçülen dayanağı:
+
+- İstenen etkilerin tamamı (ölçek, perspektif, blur, katman, kamera) CSS 3B
+  ile elde edildi — kanıt: `evidence/s15-r1/` içindeki hero videosu.
+- WebGL'in ekleyeceği tek fark shader/parçacık sınıfı efektlerdir; bunlar
+  talimatın **tasarım sınırları** bölümünde açıkça yasaklanmıştır ("rastgele
+  parçacık alanı, mor gradient küre, cyberpunk oyun arayüzü yok").
+- Bu yüzden WebGL, ulaşılamayan bir görsel kalite açmıyor; yalnızca maliyet
+  ekliyor. "Kütüphane kullanmış olmak" için seçilmedi.
+
+## Kabul edilen yeni maliyet: hero kamerası ~1 KB JS
+
+S15'te hero'nun **sıfır** ek istemci JS'i vardı ve bu bir test güvencesiydi.
+Kontrollü kamera hareketi bunu değiştirdi:
+
+- Kamera yalnızca iki CSS değişkeni (`--px`, `--py`) yazar.
+- Kapanma koşulları: `prefers-reduced-motion`, kaba işaretçi (dokunmatik),
+  `save-data`, sekme gizli ve viewport dışı.
+- `wheel` / `touchmove` / `mousewheel` dinleyicisi **yoktur**; bu artık
+  `tests/e2e/hero.spec.ts` içinde `addEventListener` sarmalanarak ÖLÇÜLÜYOR.
+- JS hiç çalışmazsa sahne nötr duruşta kalır; kompozisyon ve bilgi kaybı yok.
+
+Ana sayfa istemci JS bütçesi (≤ 120 KB gzip) bundan etkilenmiyor; ölçüm final
+raporda yer alacak.
+
+## Ölçüm koşulu netleştirmesi (S15 raporundaki açık madde)
+
+S15 teslim raporunda "ADR-014, `LCP < 2.5 s` hedefinin hangi ölçüm koşulu için
+geçerli olduğunu yazmıyor" diye bir eksik kaydedilmişti. Kapatılıyor:
+
+| Hedef                    | Geçerli olduğu koşul                                                                                |
+| ------------------------ | --------------------------------------------------------------------------------------------------- |
+| **LCP < 2.5 s**          | Lighthouse `simulate` + `mobile` kısıtlaması (Moto G Power profili, 4x CPU, Slow 4G), soğuk yükleme |
+| **CLS < 0.05**           | Aynı koşul; ayrıca kısıtlamasız masaüstünde de ölçülür                                              |
+| **< 200 ms etkileşim**   | Laboratuvar ölçümü (TBT üzerinden), gerçek kullanıcı alan verisi DEĞİL                              |
+| **İstemci JS tavanları** | Üretim derlemesinde gzip'lenmiş boyut                                                               |
+
+## S15-R1'de ölçülen iki üretim hatası
+
+Bu revizyonun kayda değer iki bulgusu var; ikisi de "çalışıyor sanılan ama
+çalışmayan" sınıfından:
+
+1. **Scroll tabanlı açılışlar üretim derlemesinde HİÇ çalışmıyordu.** CSS
+   küçültücü `animation` kısayolu ile `animation-timeline: view()` bildirimini
+   birleştiriyor; oluşan `animation: linear both ad view()` kısayolu tarayıcıda
+   GEÇERSİZ olduğu için kuralın tamamı düşüyordu (`animation-name: none`).
+   Geliştirme sunucusunda CSS küçültülmediği için sorun görünmüyordu. Çözüm:
+   zaman çizelgesi `var(--scroll-timeline)` üzerinden okunuyor. Regresyon
+   `tests/e2e/motion-system.spec.ts` ile hem üretilen CSS'te hem tarayıcıda
+   denetleniyor.
+
+2. **Açılış animasyonu metnin kontrastını düşürüyordu.** 10. yıl durakları
+   `opacity: 0.35` ile başlıyordu; animasyon gerçekten bağlandıktan sonra
+   henüz görünmemiş duraklar axe tarafından GERÇEK kontrast ihlali olarak
+   raporlandı (2.99:1). Açılış maske (`clip-path`) tabanlına çevrildi. Bu
+   ayrıca talimattaki "bölümler yalnız opacity ile görünmemeli" kuralını
+   karşılıyor.
+
+**Kural olarak kayda geçiyor:** metin taşıyan bir öğenin açılışı opaklık
+düşürerek yapılmaz; maske ve konum kullanılır.
+
+## Backlog üzerindeki etki
+
+`VISUAL_POLISH_BACKLOG.md` maddeleri değişmedi: "ağır WebGL yok" hâlâ geçerli
+ve hâlâ ölçülmüş bir tercih. Eklenen tek şey, bu tercihin artık **derinlikli
+bir sahne üzerinde** sınanmış olması.

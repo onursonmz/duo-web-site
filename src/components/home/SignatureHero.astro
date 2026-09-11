@@ -1,35 +1,51 @@
 ---
 /**
- * COMMAND ATLAS — İMZA HERO (S06).
+ * DUOSIS OPERATIONAL UNIVERSE — İMZA HERO (S15-R1).
  *
- * Anlatı: kaynak → sinyal → bağlam → AI → aksiyon. Bu, dekoratif bir parçacık
- * animasyonu değil, Duosis'in çalışma modelinin görsel karşılığıdır.
+ * S15'teki ince alt-çizgi şeması yeterli bulunmadı (Codex incelemesi). Hero
+ * artık ekranı dolduran, katmanlı ve derinliği olan TEK bir kompozisyondur:
+ * dağınık altyapı sinyalleri sisten çıkar, Duosis çekirdeğinde bağlam kazanır,
+ * bakır karar noktasından geçer ve onaylı aksiyona bağlanır; aksiyon geri
+ * besleme hattıyla yeniden sinyale döner.
+ *
+ * SANAT YÖNÜ
+ * - Koyu grafit zemin, mimari ızgara, cyan YALNIZCA sinyal ve veri akışı,
+ *   bakır YALNIZCA karar ve insan müdahalesi.
+ * - Rastgele parçacık alanı, gradient küre, sahte terminal YOK. Sahnedeki her
+ *   hareketli öğe TANIMLI bir yol üzerinde ilerleyen bir sinyaldir.
  *
  * MİMARİ KARARLAR
  *
- * 1. SIFIR EK CLIENT JS. Intro CSS animasyonu, vurgu ise `:has()` seçicisiyle
- *    çözülür. Talimattaki "küçük vanilla TypeScript" bütçesi (≤8 KB gzip)
- *    kullanılmadı; JS eklemek için bir gerekçe çıkmadı.
+ * 1. METİN ÖNCE. H1, açıklama ve iki CTA normal akışta durur ve HİÇBİR
+ *    animasyonu yoktur. Sahne yüklenmese, JS kapalı olsa veya hareket
+ *    kapatılmış olsa da ilk karede okunur. LCP öğesi H1'dir.
  *
- * 2. TOOLTIP YOK. Aşama açıklamaları KALICI METİNDİR: hover, pointer, touch ve
- *    klavye aynı bilgiyi görür. Viewport dışına taşacak bir katman bulunmaz.
+ * 2. DERİNLİK CSS 3B İLE KURULUR. Beş katman tek bir `perspective` alanında
+ *    farklı `translateZ` değerleriyle durur ve telafi ölçeğiyle ekranda 1:1
+ *    büyüklükte kalır; hepsi AYNI 1600x900 sahne koordinatını kullanır, bu
+ *    yüzden birebir hizalanır. Derinlik farkı kamera döndüğünde parallax,
+ *    duruşta ise `blur` ve opaklık olarak görünür.
+ *    WebGL/Canvas DEĞERLENDİRİLDİ ve kullanılmadı — gerekçe ve ölçüm
+ *    `docs/decisions/ADR-014-signature-experience.md` içindedir.
  *
- * 3. SVG DEKORATİFTİR (`aria-hidden`). Anlamın tamamı listede durur; SVG
- *    yalnızca aşamalar arasındaki bağı çizer. JS kapalıyken de son
- *    kompozisyonda görünür.
+ * 3. KAMERA ~1 KB. Yalnızca işaretçi konumunu iki CSS değişkenine yazar.
+ *    Hareket azaltma, kaba işaretçi (dokunmatik), `save-data` ve viewport
+ *    dışında HİÇ çalışmaz. Scroll'a EL SÜRMEZ (wheel/touchmove dinleyicisi
+ *    yoktur): scroll hijacking imkânsızdır.
  *
- * 4. CLS = 0. SVG sabit `viewBox` ve `aspect-ratio` taşır; animasyon yalnızca
- *    `transform` ve `opacity` kullanır, düzen özelliği değiştirmez.
+ * 4. CLS = 0. Sahne `position: absolute` bir katmandır; akıştaki hiçbir
+ *    öğenin yerini değiştirmez. Animasyonlar yalnızca `transform`, `opacity`,
+ *    `clip-path` ve `stroke-dashoffset` yazar.
  *
- * 5. Mobilde geniş topoloji gizlenir; liste CSS ile dikey bir sinyal rayına
- *    dönüşür. İkinci bir SVG yüklenmez.
+ * 5. SVG'YE METİN GÖMÜLMEZ. Sinyal etiketleri HTML'dir ve `aria-hidden`
+ *    kalır: taşıdıkları bilgi aşama metinlerinde ZATEN yazılıdır.
  *
- * 6. İLK EKRAN KOMPOZİSYONU (S08 takibi). Beş aşamanın İSİMLERİ 1440x900 ve
- *    1366x768'de ilk viewport içinde kalır. Bunun için masaüstünde H1 ölçeği
- *    sınırlanır, atlas boşlukları daraltılır ve SVG daha alçak bir viewBox
- *    kullanır. Düğüm x konumları beş sütunlu ızgaranın merkezlerine
- *    (120/360/600/840/1080) OTURTULDU: her aşama başlığı tam olarak kendi
- *    düğümünün altında durur. SVG'ye metin GÖMÜLMEZ; etiketler HTML'dir.
+ * 6. MOBİLDE BAŞKA BİR KOMPOZİSYON. Yatay akış portre ekranda kırpılıyor;
+ *    dar ekran için önce ayrı bir dikey SVG denendi ve ÖLÇÜLDÜ: metnin
+ *    arkasına düşüp okunurluğu bozuyordu. Bunun yerine mobilde sahne
+ *    geometrisi AŞAMA RAYININ KENDİSİNE taşındı — sinyal omurgası rayın
+ *    solundan iner, karar bakır, aksiyon kare düğümdür. Arka planda yalnızca
+ *    CSS ızgarası ve tek bir ışık kalır. Ek SVG, istek veya JS yoktur.
  */
 import type { CollectionEntry } from "astro:content";
 import Button from "@components/ui/Button.astro";
@@ -37,13 +53,288 @@ import Button from "@components/ui/Button.astro";
 interface Props {
   hero: CollectionEntry<"homepage">["data"]["hero"];
   stages: CollectionEntry<"homepage">["data"]["heroStages"];
+  signals: CollectionEntry<"homepage">["data"]["heroSignals"];
 }
 
-const { hero, stages }: Props = Astro.props;
+const { hero, stages, signals }: Props = Astro.props;
+
+/* ================================================ katman derinlik sistemi */
+
+/** Ortak sahne koordinatı. HER katman bu sistemde yazılır. */
+const W = 1600;
+const H = 900;
+
+/** CSS'teki `perspective` ile AYNI değer olmak zorundadır. */
+const PERSPECTIVE = 1400;
+
+/** `translateZ` sonrası katmanı ekrana geri oturtan telafi ölçeği. */
+const scaleFor = (z: number): number => (PERSPECTIVE - z) / PERSPECTIVE;
+
+/*
+ * TÜM KATMANLAR AYNI viewBox'I KULLANIR — ve bu ölçülmüş bir düzeltmedir.
+ *
+ * İlk denemede her katmana derinliğinden türetilmiş bir "telafi viewBox'ı"
+ * verilmişti. Ölçüm bunun YANLIŞ olduğunu gösterdi: `translateZ(z) scale(s)`
+ * çifti katmanı ekranda zaten 1:1 büyüklükte tutuyor, dolayısıyla içindeki SVG
+ * de tam olarak sahne alanını kaplıyor. viewBox'ı ayrıca daraltmak içeriği
+ * büyütüyor ve katmanlar birbirinden KAYIYORDU: akış yolları çekirdeğin 32 px
+ * içine giriyor, etiketler portlardan 24 px şaşıyordu
+ * (`tests/e2e/hero.spec.ts` yakaladı).
+ *
+ * Ortak viewBox ile bir sahne koordinatının ekrandaki yeri her katmanda
+ * aynıdır: merkez + (v - vbMerkez) * max(genişlik/1600, yükseklik/900).
+ * Etiket konumları da aynı formülü kullanır.
+ */
+
+const Z = { grid: -880, field: -320, flow: -140, core: 60, near: 320 };
+
+const layerStyle = (z: number): string => `--z:${z}px;--s:${scaleFor(z).toFixed(4)}`;
+
+/* ================================================ geniş sahne geometrisi */
+
+/**
+ * SİNYALİN SİSTEN ÇIKTIĞI YER.
+ *
+ * Kaynaklar sol kenarda değil: sol üçte bir metnin alanıdır ve orada kalan
+ * geometri hem okunmaz hem kontrastı bozar. Sinyaller metin bloğunun hemen
+ * sağında, ETİKETLİ portlardan görünür hâle gelir; öncesi bilinçli olarak
+ * sistedir (uzak alan katmanı).
+ */
+const PORT_X = 880;
+const SOURCE_Y = [180, 273, 366, 459, 552];
+
+const CORE = { x: 1150, y: 366, r: 96 };
+const DECISION = { x: 1320, half: 44 };
+const ACTION = { x: 1468, half: 48 };
+
+const flowPath = (y: number): string =>
+  `M${PORT_X} ${y} C ${PORT_X + 96} ${y}, ${CORE.x - 168} ${CORE.y}, ${CORE.x - CORE.r} ${CORE.y}`;
+
+/** Sisten gelen kısa giriş: sinyalin bir geçmişi olduğunu söyler. */
+const upstream = (y: number): string => `M${PORT_X - 56} ${y} H${PORT_X}`;
+
+/** Çekirdek çevresindeki ölçü çentikleri: enstrüman hissi, süs değil. */
+const TICKS = Array.from({ length: 24 }, (_, index) => {
+  const angle = (index * Math.PI * 2) / 24;
+  const major = index % 6 === 0;
+  const inner = CORE.r - (major ? 20 : 11);
+  return {
+    x1: Number((CORE.x + Math.cos(angle) * inner).toFixed(1)),
+    y1: Number((CORE.y + Math.sin(angle) * inner).toFixed(1)),
+    x2: Number((CORE.x + Math.cos(angle) * CORE.r).toFixed(1)),
+    y2: Number((CORE.y + Math.sin(angle) * CORE.r).toFixed(1)),
+    major,
+  };
+});
+
+/**
+ * UZAK ALAN — sabit liste, rastgele değil.
+ * Henüz bağlanmamış sistemler: metin havuzunun üstünde ve altında kalır ki
+ * okunabilirliği bozmasın.
+ */
+const FIELD = [
+  { x: 200, y: 112, w: 92 },
+  { x: 352, y: 168, w: 64 },
+  { x: 236, y: 690, w: 84 },
+  { x: 404, y: 748, w: 66 },
+  { x: 1206, y: 126, w: 78 },
+  { x: 1338, y: 198, w: 56 },
+  { x: 1224, y: 566, w: 74 },
+  { x: 1350, y: 640, w: 58 },
+];
+
+/**
+ * GERİ BESLEME: aksiyonun sonucu ölçülüp çekirdeğe geri döner — döngü kapanır.
+ * Alttan dolanır; üstten dönseydi sinyal etiketlerinin üzerinden geçerdi.
+ */
+const FEEDBACK = `M${ACTION.x} ${CORE.y + ACTION.half} V524 Q${ACTION.x} 560 ${ACTION.x - 40} 560 H${CORE.x + 40} Q${CORE.x} 560 ${CORE.x} 524 V${CORE.y + CORE.r}`;
+
+const GRID_X = Array.from({ length: 15 }, (_, index) => (index + 1) * 100);
+const GRID_Y = Array.from({ length: 8 }, (_, index) => (index + 1) * 100);
 ---
 
 <div class="hero" id="top">
-  <div class="hero__intro">
+  {/* ---------------------------------------------------- sahne katmanları */}
+  <div class="hero__stage" aria-hidden="true" data-hero-stage data-testid="hero-atlas">
+    <div class="univ__camera">
+      <div class="univ">
+        {/* 1 — mimari ızgara: en uzak katman, sahnenin durduğu yapı. */}
+        <div class="univ__layer univ__layer--grid" style={layerStyle(Z.grid)}>
+          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" focusable="false">
+            {GRID_X.map((x) => <line class="u-grid" x1={x} y1="0" x2={x} y2={H} />)}
+            {GRID_Y.map((y) => <line class="u-grid" x1="0" y1={y} x2={W} y2={y} />)}
+            <line class="u-grid u-grid--major" x1={CORE.x} y1="0" x2={CORE.x} y2={H}></line>
+            <line class="u-grid u-grid--major" x1="0" y1={CORE.y} x2={W} y2={CORE.y}></line>
+          </svg>
+        </div>
+
+        {/* 2 — uzak alan: henüz bağlanmamış kaynaklar, bulanık ve sessiz. */}
+        <div class="univ__layer univ__layer--field" style={layerStyle(Z.field)}>
+          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" focusable="false">
+            {
+              FIELD.map((chip) => (
+                <g class="u-chip">
+                  <rect x={chip.x} y={chip.y} width={chip.w} height="22" rx="2" />
+                  <line
+                    x1={chip.x + chip.w}
+                    y1={chip.y + 11}
+                    x2={chip.x + chip.w + 36}
+                    y2={chip.y + 11}
+                  />
+                </g>
+              ))
+            }
+          </svg>
+        </div>
+
+        {/* Işık: çekirdeğin arkasındaki tek kaynak. Küre değil, aydınlatma. */}
+        <div class="univ__glow"></div>
+
+        {/* 3 — akış: sisten çıkan sinyal, çekirdeğe giden yollar, geri besleme. */}
+        <div class="univ__layer univ__layer--flow" style={layerStyle(Z.flow)}>
+          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" focusable="false">
+            <g class="u-upstream">
+              {SOURCE_Y.map((y) => <path class="u-up" d={upstream(y)} />)}
+            </g>
+            <g class="u-flow">
+              {SOURCE_Y.map((y, i) => <path class={`u-path u-path--${i}`} d={flowPath(y)} />)}
+            </g>
+            <g class="u-pulses">
+              {SOURCE_Y.map((y, i) => <path class={`u-pulse u-pulse--${i}`} d={flowPath(y)} />)}
+            </g>
+            <g class="u-ports">
+              {
+                SOURCE_Y.map((y, i) => (
+                  <g class={`u-source u-source--${i}`}>
+                    <circle class="u-port" cx={PORT_X} cy={y} r="5.5" />
+                    <circle class="u-port-ring" cx={PORT_X} cy={y} r="12" />
+                  </g>
+                ))
+              }
+            </g>
+            <path class="u-feedback" d={FEEDBACK}></path>
+            <path class="u-feedback-pulse" d={FEEDBACK}></path>
+          </svg>
+        </div>
+
+        {/* 4 — çekirdek, karar ve aksiyon: en keskin, en yakın katman. */}
+        <div class="univ__layer univ__layer--core" style={layerStyle(Z.core)}>
+          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" focusable="false">
+            <g class="u-core">
+              <circle class="u-core__halo" cx={CORE.x} cy={CORE.y} r={CORE.r + 24}></circle>
+              <circle class="u-core__ring" cx={CORE.x} cy={CORE.y} r={CORE.r}></circle>
+              <g class="u-core__ticks">
+                {
+                  TICKS.map((tick) => (
+                    <line
+                      class={tick.major ? "u-tick u-tick--major" : "u-tick"}
+                      x1={tick.x1}
+                      y1={tick.y1}
+                      x2={tick.x2}
+                      y2={tick.y2}
+                    />
+                  ))
+                }
+              </g>
+              <rect
+                class="u-core__plate"
+                x={CORE.x - 58}
+                y={CORE.y - 58}
+                width="116"
+                height="116"
+                rx="4"
+                transform={`rotate(45 ${CORE.x} ${CORE.y})`}></rect>
+              <rect
+                class="u-core__inner"
+                x={CORE.x - 29}
+                y={CORE.y - 29}
+                width="58"
+                height="58"
+                rx="2"></rect>
+              <line class="u-core__axis" x1={CORE.x - 140} y1={CORE.y} x2={CORE.x + 140} y2={CORE.y}
+              ></line>
+              <circle class="u-core__dot" cx={CORE.x} cy={CORE.y} r="8"></circle>
+            </g>
+
+            <path class="u-out" d={`M${CORE.x + CORE.r} ${CORE.y} H${DECISION.x - DECISION.half}`}
+            ></path>
+            <path
+              class="u-out-pulse"
+              d={`M${CORE.x + CORE.r} ${CORE.y} H${DECISION.x - DECISION.half}`}></path>
+
+            {/* KARAR — bakır. Akışın içindeki DURAK: insan onayı buradadır. */}
+            <g class="u-decision">
+              <rect
+                x={DECISION.x - 33}
+                y={CORE.y - 33}
+                width="66"
+                height="66"
+                rx="3"
+                transform={`rotate(45 ${DECISION.x} ${CORE.y})`}></rect>
+              <circle cx={DECISION.x} cy={CORE.y} r="6.5"></circle>
+            </g>
+
+            <path
+              class="u-act"
+              d={`M${DECISION.x + DECISION.half} ${CORE.y} H${ACTION.x - ACTION.half}`}></path>
+
+            {/* AKSİYON — kapalı çerçeve: akış burada bir sonuca bağlanır. */}
+            <g class="u-action">
+              <rect
+                x={ACTION.x - ACTION.half}
+                y={CORE.y - ACTION.half}
+                width={ACTION.half * 2}
+                height={ACTION.half * 2}
+                rx="4"></rect>
+              <path class="u-action__check" d={`M${ACTION.x - 24} ${CORE.y + 2} l16 18 l30 -38`}
+              ></path>
+            </g>
+          </svg>
+        </div>
+
+        {/* 5 — yakın plan: hızlı parallax taşıyan ön katman, bilinçli bulanık. */}
+        <div class="univ__layer univ__layer--near" style={layerStyle(Z.near)}>
+          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" focusable="false">
+            <line class="u-rail" x1="-200" y1="-120" x2="700" y2="1020"></line>
+            <line class="u-rail" x1="1020" y1="1020" x2="1900" y2="-120"></line>
+            {
+              [190, 470, 740].map((y) => (
+                <g class="u-near-ticks">
+                  <line x1="1500" y1={y} x2="1620" y2={y} />
+                  <line x1="1540" y1={y + 22} x2="1620" y2={y + 22} />
+                </g>
+              ))
+            }
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="univ__veil"></div>
+
+    {
+      /*
+      SİNYAL ETİKETLERİ — HTML, SVG'ye gömülü DEĞİL ve ÖRTÜNÜN ÜSTÜNDE.
+      Örtünün altında kaldıklarında okunmuyorlardı; ayrıca burada parallax
+      almadıkları için keskin kalıyorlar.
+    */
+    }
+    <ul class="univ__labels">
+      {
+        signals.map((label, index) => (
+          <li
+            class="univ__label"
+            style={`--row:${index};--dx:${((PORT_X - 56 - W / 2) / 16).toFixed(4)};--dy:${(((SOURCE_Y[index] ?? 0) - H / 2) / 16).toFixed(4)}`}
+          >
+            {label}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  {/* ---------------------------------------------------- metin: ilk karede */}
+  <div class="hero__copy">
     <p class="hero__eyebrow">{hero.eyebrow}</p>
     <h1 class="hero__title">{hero.title}</h1>
     <p class="hero__lead">{hero.lead}</p>
@@ -53,115 +344,127 @@ const { hero, stages }: Props = Astro.props;
     </div>
   </div>
 
-  <div class="atlas" data-testid="hero-atlas">
-    <!--
-      Topoloji: dört sinyal kaynağı bağlama, bağlam AI'a, AI aksiyona akar.
-      Dekoratiftir; okunabilir karşılığı aşağıdaki listedir.
-    -->
-    <svg
-      class="atlas__svg"
-      viewBox="0 0 1200 140"
-      role="presentation"
-      aria-hidden="true"
-      focusable="false"
-      data-atlas
-    >
-      {/* Katman ızgarası: harita bir yüzeyin üstünde durur, boşlukta değil. */}
-      <g class="atlas__grid">
-        {
-          [240, 480, 720, 960].map((x) => (
-            <line class="atlas__gridline" x1={x} y1="8" x2={x} y2="132" />
-          ))
-        }
-      </g>
-
-      <g class="atlas__links">
-        {/* Kaynak → sinyal */}
-        {
-          [24, 56, 88, 120].map((y, i) => (
-            <path class={`atlas__link atlas__link--s${i}`} d={`M129 ${y} H342`} />
-          ))
-        }
-        {/* Sinyal → bağlam: dört yol tek çekirdekte toplanır. */}
-        {
-          [24, 56, 88, 120].map((y, i) => (
-            <path
-              class={`atlas__link atlas__link--c${i}`}
-              d={`M378 ${y} C470 ${y} 486 72 578 72`}
-            />
-          ))
-        }
-        {/* Bağlam → karar */}
-        <path class="atlas__link atlas__link--ai" d="M622 72 H816"></path>
-        {/* Karar → aksiyon */}
-        <path class="atlas__link atlas__link--act" d="M864 72 H1060"></path>
-      </g>
-
-      {
-        /*
-        AKAN SİNYAL.
-        Yolların üstünde ilerleyen kısa parçalar; harita "yaşıyor" hissini
-        veren tek hareketli öğedir. `stroke-dashoffset` animasyonu yalnızca
-        boyama özelliklerini değiştirir, düzeni ETKİLEMEZ (CLS 0).
-      */
-      }
-      <g class="atlas__pulses">
-        {
-          [24, 56, 88, 120].map((y, i) => (
-            <path class={`atlas__pulse atlas__pulse--${i}`} d={`M129 ${y} H342`} />
-          ))
-        }
-        <path class="atlas__pulse atlas__pulse--hub" d="M622 72 H816"></path>
-      </g>
-
-      <g class="atlas__nodes">
-        {[24, 56, 88, 120].map((y) => <circle class="atlas__source" cx="120" cy={y} r="7" />)}
-        {
-          [24, 56, 88, 120].map((y) => (
-            <rect class="atlas__signal" x="344" y={y - 8} width="32" height="16" rx="2" />
-          ))
-        }
-        {/* Bağlam çekirdeği: iç halka ilişkiyi, dış halka kapsamı gösterir. */}
-        <circle class="atlas__hub" cx="600" cy="72" r="22"></circle>
-        <circle class="atlas__hub-inner" cx="600" cy="72" r="9"></circle>
-
-        {
-          /*
-          KARAR NOKTASI — BAKIR.
-          Sanat yönü gereği bakır YALNIZCA karar ve insan müdahalesi anlarında
-          kullanılır. Eşkenar dörtgen, akışın içinde bir DURAK olduğunu söyler.
-        */
-        }
-        <g class="atlas__decision">
-          <rect x="822" y="54" width="36" height="36" rx="3" transform="rotate(45 840 72)"></rect>
-          <circle cx="840" cy="72" r="5"></circle>
-        </g>
-
-        {/* Aksiyon: kapalı çerçeve — akış burada bir sonuca bağlanır. */}
-        <rect class="atlas__action" x="1060" y="52" width="40" height="40" rx="3"></rect>
-        <path class="atlas__check" d="M1070 73 l7 7 l14 -16"></path>
-      </g>
-    </svg>
-
-    <ol class="atlas__stages" data-testid="hero-stages">
-      {
-        stages.map((stage, index) => (
-          <li class="stage" data-stage={stage.key}>
-            <span class="stage__index" aria-hidden="true">
-              {String(index + 1).padStart(2, "0")}
-            </span>
-            <h2 class="stage__title">{stage.title}</h2>
-            <p class="stage__body">{stage.body}</p>
-          </li>
-        ))
-      }
-    </ol>
-  </div>
+  {/* ---------------------------------------------------- beş aşama rayı */}
+  <ol class="hero__rail" data-testid="hero-stages">
+    {
+      stages.map((stage, index) => (
+        <li class="stage" data-stage={stage.key}>
+          <span class="stage__index" aria-hidden="true">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <h2 class="stage__title">{stage.title}</h2>
+          <p class="stage__body">{stage.body}</p>
+        </li>
+      ))
+    }
+  </ol>
 </div>
 
-<style>
-  /* ---------------------------------------------------------------- düzen */
+<script>
+  /*
+   * KAMERA — kontrollü parallax.
+   *
+   * Yalnızca iki CSS değişkeni yazar; düzen okuması `pointermove` başına bir
+   * kez yapılır ve yazma `requestAnimationFrame` içine alınır. Kapanma
+   * koşulları: hareket azaltma, kaba işaretçi (dokunmatik), `save-data` ve
+   * viewport dışı. SCROLL'A DOKUNMAZ — wheel/touchmove dinleyicisi yoktur.
+   */
+  const stage = document.querySelector<HTMLElement>("[data-hero-stage]");
+  const hero = stage?.parentElement ?? null;
 
+  if (stage !== null && hero !== null) {
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+    const coarse = matchMedia("(pointer: coarse)");
+    const saveData =
+      (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData ===
+      true;
+
+    let frame = 0;
+    let x = 0;
+    let y = 0;
+    let inView = true;
+
+    const write = (): void => {
+      frame = 0;
+      stage.style.setProperty("--px", x.toFixed(3));
+      stage.style.setProperty("--py", y.toFixed(3));
+    };
+
+    const schedule = (): void => {
+      if (frame === 0) frame = requestAnimationFrame(write);
+    };
+
+    const rest = (): void => {
+      x = 0;
+      y = 0;
+      schedule();
+    };
+
+    const blocked = (): boolean => reduce.matches || coarse.matches || saveData || !inView;
+
+    hero.addEventListener(
+      "pointermove",
+      (event) => {
+        if (blocked()) return;
+        const rect = stage.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+        x = Math.max(-1, Math.min(1, ((event.clientX - rect.left) / rect.width) * 2 - 1));
+        y = Math.max(-1, Math.min(1, ((event.clientY - rect.top) / rect.height) * 2 - 1));
+        schedule();
+      },
+      { passive: true }
+    );
+
+    hero.addEventListener("pointerleave", rest, { passive: true });
+    reduce.addEventListener("change", rest);
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) rest();
+    });
+
+    // Hero ekrandan çıkınca kamera durur: arka planda iş yapılmaz.
+    new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        inView = entry.isIntersecting;
+        if (!inView) rest();
+      }
+    }).observe(stage);
+  }
+</script>
+
+<style>
+  /* ================================================================ düzen */
+
+  .hero {
+    position: relative;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    min-height: 84svh;
+    isolation: isolate;
+    overflow: clip;
+  }
+
+  @media (min-width: 60rem) {
+    .hero {
+      min-height: min(88svh, 56rem);
+    }
+  }
+
+  .hero__copy {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding: var(--space-xl) var(--container-gutter) var(--space-md);
+    align-self: center;
+  }
+
+  /*
+   * METİN HİÇBİR ANİMASYON TAŞIMAZ.
+   * Talimat: "H1 ve CTA ilk HTML'de sabit, hemen okunabilir ve etkileşimden
+   * bağımsız kalsın." Bu yüzden burada intro yok — LCP öğesi ilk karede son
+   * hâlindedir.
+   */
   .hero__eyebrow {
     margin: 0 0 var(--space-sm);
     max-width: none;
@@ -169,45 +472,28 @@ const { hero, stages }: Props = Astro.props;
     font-size: var(--text-2xs);
     letter-spacing: var(--tracking-wide);
     text-transform: uppercase;
-    color: var(--text-secondary);
-  }
-
-  .hero__title {
-    margin: 0;
-    max-width: 20ch;
-    font-size: var(--text-3xl);
-    letter-spacing: var(--tracking-tight);
-  }
-
-  .hero__lead {
-    margin: var(--space-md) 0 0;
-    max-width: 44ch;
-    font-size: var(--text-lg);
-    color: var(--text-secondary);
+    color: var(--signal);
   }
 
   /*
-   * İLK EKRAN BÜTÇESİ.
-   *
-   * Masaüstünde H1 üst sınırı 3.75rem yerine 3rem'dir: iki satırda ~115px
-   * yer kaplar ve beş aşama başlığı 1366x768'de bile ilk viewport içinde
-   * kalır. Mobilde ölçek değişmez.
+   * ÖLÇÜ SINIRI KOMPOZİSYON KARARIDIR.
+   * Metin bloğu sahnenin sinyal portlarına (x = %46.75) DEĞMEMELİ: değerse
+   * hem kompozisyon çakışır hem metnin altındaki kontrast garantisi bozulur.
    */
-  @media (min-width: 60rem) {
-    .hero__title {
-      font-size: clamp(2.5rem, 1.2rem + 2.2vw, 3rem);
-      max-width: 22ch;
-    }
+  .hero__title {
+    margin: 0;
+    max-width: 13ch;
+    font-size: clamp(2.25rem, 0.8rem + 3vw, 3.25rem);
+    line-height: 1.03;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
 
-    /* Daha geniş ölçü = daha az satır = ilk ekranda daha fazla yer. */
-    .hero__lead {
-      margin-top: var(--space-sm);
-      max-width: 68ch;
-    }
-
-    .hero__actions {
-      margin-top: var(--space-sm);
-    }
+  .hero__lead {
+    margin: var(--space-sm) 0 0;
+    max-width: 38ch;
+    font-size: var(--text-lg);
+    color: var(--text-secondary);
   }
 
   .hero__actions {
@@ -217,180 +503,499 @@ const { hero, stages }: Props = Astro.props;
     margin-top: var(--space-md);
   }
 
-  .atlas {
-    margin-top: var(--space-xl);
-    padding-top: var(--space-md);
-    border-top: var(--border-width) solid var(--border-subtle);
+  /* ================================================================ sahne */
+
+  .hero__stage {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    /* CSS'teki bu değer, bileşen başındaki `PERSPECTIVE` ile AYNI olmalıdır. */
+    perspective: 1400px;
+    /*
+     * Perspektif merkezi TAM ORTADADIR. Kaydırılırsa katmanların `translateZ`
+     * telafi ölçeği artık birbirini götürmez ve katmanlar yatayda kayar
+     * (%62'de ~16 px ölçüldü).
+     */
+    perspective-origin: 50% 50%;
+    /* Etiket hizalaması bu container ölçülerine dayanır (aşağıya bakınız). */
+    container-type: size;
+    container-name: herostage;
+    /*
+     * Kamera değişkenleri BURADA tanımlıdır. JS onları yazar; yazmazsa (ya da
+     * hiç çalışmazsa) sahne bu nötr duruşta kalır. Tanımın CSS'te durması
+     * ayrıca token denetiminin (`tests/unit/tokens.test.ts`) bu iki adı
+     * "tanımsız referans" saymasını engeller.
+     */
+    --px: 0;
+    --py: 0;
   }
 
-  @media (min-width: 60rem) {
-    .atlas {
-      margin-top: var(--space-sm);
-      padding-top: var(--space-2xs);
-    }
+  .univ__camera,
+  .univ {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
   }
 
-  /* ---------------------------------------------------------------- SVG */
+  /*
+   * KAMERA DÖNÜŞÜ.
+   * `--px` / `--py` [-1, 1] aralığında; yazılmadığında 0'dır, yani JS
+   * çalışmasa da sahne doğru duruşta kalır.
+   */
+  .univ {
+    transform: rotateY(calc(var(--px, 0) * 2.4deg)) rotateX(calc(var(--py, 0) * -1.6deg));
+    transition: transform 520ms var(--motion-ease);
+  }
 
-  .atlas__svg {
-    display: none;
+  /* Derinlik ve telafi ölçeği bileşenden gelir; viewBox ile SENKRONDUR. */
+  .univ__layer {
+    position: absolute;
+    inset: 0;
+    transform: translateZ(var(--z)) scale(var(--s));
+  }
+
+  .univ__layer svg {
+    position: absolute;
+    inset: 0;
     width: 100%;
-    height: auto;
-    aspect-ratio: 1200 / 140; /* CLS = 0 */
-    overflow: visible;
+    height: 100%;
+  }
+
+  .univ__layer--grid {
+    filter: blur(2.2px);
+    opacity: 0.9;
+  }
+
+  .univ__layer--field {
+    filter: blur(1.4px);
+    opacity: 0.75;
+  }
+
+  .univ__layer--near {
+    filter: blur(3px);
+    opacity: 0.4;
+  }
+
+  .univ__glow {
+    position: absolute;
+    inset: 0;
+    transform: translateZ(-320px) scale(1.2286);
+    background: radial-gradient(34rem 28rem at 64% 48%, var(--signal-surface) 0%, transparent 68%);
+    opacity: 0.9;
+  }
+
+  /*
+   * ÖRTÜ — okunabilirlik garantisi, dekorasyon değil.
+   *
+   * Metnin durduğu bölge ELİPTİK bir havuzla tam zemine iner; sahne bu
+   * havuzun dışında (üst/alt köşeler ve sağ taraf) görünür kalır. Alt kenar
+   * rayın altına, üst kenar header'a bağlanır.
+   */
+  .univ__veil {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        97deg,
+        var(--surface-canvas) 0%,
+        var(--surface-canvas) 42%,
+        color-mix(in srgb, var(--surface-canvas) 55%, transparent) 48%,
+        transparent 55%
+      ),
+      linear-gradient(
+        to bottom,
+        var(--surface-canvas) 0%,
+        transparent 12%,
+        transparent 62%,
+        var(--surface-canvas) 96%
+      );
+  }
+
+  /* ---------------------------------------------------------- sahne çizgileri */
+
+  .u-grid {
+    stroke: var(--border-subtle);
+    stroke-width: 1;
+  }
+
+  .u-grid--major {
+    stroke: var(--border-strong);
+    opacity: 0.45;
+  }
+
+  .u-chip rect {
+    fill: none;
+    stroke: var(--border-strong);
+    stroke-width: 1.5;
+  }
+
+  .u-chip line {
+    stroke: var(--border-strong);
+    stroke-width: 1.5;
+  }
+
+  .u-up {
+    fill: none;
+    stroke: var(--border-strong);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 7;
+    opacity: 0.7;
+  }
+
+  .u-port {
+    fill: var(--signal);
+  }
+
+  .u-port-ring {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 1.5;
+    opacity: 0.45;
+  }
+
+  /*
+   * Akış yolları CYAN'dır ama düşük opaklıkta: sinyal olduklarını söyler,
+   * çekirdeğin önüne geçmez.
+   */
+  .u-path {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 1.5;
+    opacity: 0.5;
+  }
+
+  /*
+   * GERİ BESLEME görünür olmak zorundadır: anlatının "döngü kapanır"
+   * kısmını taşıyan tek çizgi budur. Kesikli ve sönük, ama okunur.
+   */
+  .u-feedback {
+    fill: none;
+    stroke: var(--border-strong);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 9;
+    opacity: 0.65;
+  }
+
+  .u-core__halo {
+    fill: var(--signal-surface);
+  }
+
+  .u-core__ring {
+    fill: none;
+    stroke: var(--border-strong);
+    stroke-width: 1.5;
+  }
+
+  .u-tick {
+    stroke: var(--text-muted);
+    stroke-width: 1.5;
+  }
+
+  .u-tick--major {
+    stroke: var(--signal);
+    stroke-width: 2;
+  }
+
+  .u-core__plate {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 2;
+    opacity: 0.9;
+  }
+
+  .u-core__inner {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 1.5;
+    opacity: 0.55;
+  }
+
+  .u-core__axis {
+    stroke: var(--signal);
+    stroke-width: 1;
+    opacity: 0.35;
+  }
+
+  .u-core__dot {
+    fill: var(--signal);
+  }
+
+  .u-out,
+  .u-act {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 2;
+  }
+
+  .u-act {
+    stroke: var(--action);
+  }
+
+  .u-decision rect {
+    fill: var(--surface-canvas);
+    stroke: var(--decision);
+    stroke-width: 2.5;
+  }
+
+  .u-decision circle {
+    fill: var(--decision);
+  }
+
+  .u-action rect {
+    fill: none;
+    stroke: var(--action);
+    stroke-width: 2;
+  }
+
+  .u-action__check {
+    fill: none;
+    stroke: var(--action);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .u-rail {
+    stroke: var(--border-strong);
+    stroke-width: 1.5;
+  }
+
+  .u-near-ticks line {
+    stroke: var(--signal);
+    stroke-width: 2;
+  }
+
+  /* ---------------------------------------------------------- sinyal etiketleri */
+
+  .univ__labels {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: none;
   }
 
   @media (min-width: 60rem) {
-    .atlas__svg {
+    .univ__labels {
       display: block;
     }
   }
 
-  .atlas__link {
-    fill: none;
-    stroke: var(--border-strong);
-    stroke-width: 1.5;
-    /* Intro: çizgiler soldan sağa çizilir. */
-    stroke-dasharray: 260;
-    stroke-dashoffset: 260;
-    animation: atlas-draw 900ms var(--motion-ease) forwards;
+  /*
+   * ETİKET HİZALAMASI — ÖLÇÜLMÜŞ SORUN VE ÇÖZÜMÜ.
+   *
+   * Sahne SVG'leri `preserveAspectRatio="xMidYMid slice"` kullanır; bu yüzden
+   * bir sahne koordinatının ekrandaki yeri `vb / 900 * yükseklik` DEĞİLDİR —
+   * kırpma payı kadar kayar. İlk denemede etiketler portlardan ~30 px yukarıda
+   * duruyordu; `tests/e2e/hero.spec.ts` bunu yakaladı.
+   *
+   * `slice` MERKEZİ korur; ekran konumu şudur:
+   *     merkez + (vb - vbMerkez) * ölçek,  ölçek = max(genişlik/1600, yükseklik/900)
+   * Container sorgu birimleriyle bu formül CSS'te TAM yazılabilir: sahne geniş
+   * oranlıysa ölçek genişlikten (`cqw`), dar oranlıysa yükseklikten (`cqh`)
+   * gelir. `--dx` / `--dy` bileşende bu formüle göre üretilir; geometri
+   * değişirse etiket de birlikte taşınır.
+   */
+  .univ__label {
+    position: absolute;
+    left: calc(50% + var(--dx) * 1cqw);
+    top: calc(50% + var(--dy) * 1cqw);
+    transform: translate(calc(-100% - 1rem), -50%);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    opacity: 0;
+    animation: univ-label 420ms var(--motion-ease) forwards;
+    animation-delay: calc(620ms + var(--row) * 90ms);
   }
 
-  .atlas__link--s0 {
-    animation-delay: 60ms;
+  /*
+   * Sahne oranı viewBox'tan DARSA (yüksek ve dar pencere) `slice` ölçeği
+   * yükseklikten gelir; 1600/900 oranı gereği çarpan 16/9 = 1.7778'dir.
+   */
+  @container herostage (aspect-ratio < 1600 / 900) {
+    .univ__label {
+      left: calc(50% + var(--dx) * 1.7778cqh);
+      top: calc(50% + var(--dy) * 1.7778cqh);
+    }
   }
-  .atlas__link--s1 {
-    animation-delay: 120ms;
+
+  @keyframes univ-label {
+    to {
+      opacity: 1;
+    }
   }
-  .atlas__link--s2 {
+
+  /* ================================================================ hareket */
+
+  /*
+   * GİRİŞ.
+   * Yollar soldan sağa çizilir, düğümler sonra belirir. Metin bu zincirin
+   * DIŞINDADIR: ilk karede zaten okunur.
+   */
+  .u-path {
+    stroke-dasharray: 600;
+    stroke-dashoffset: 600;
+    animation: u-draw 1000ms var(--motion-ease) forwards;
+  }
+
+  .u-path--1 {
+    animation-delay: 90ms;
+  }
+  .u-path--2 {
     animation-delay: 180ms;
   }
-  .atlas__link--s3 {
-    animation-delay: 240ms;
+  .u-path--3 {
+    animation-delay: 270ms;
   }
-  .atlas__link--c0 {
-    animation-delay: 340ms;
+  .u-path--4 {
+    animation-delay: 360ms;
   }
-  .atlas__link--c1 {
-    animation-delay: 400ms;
+
+  .u-out,
+  .u-act {
+    stroke-dasharray: 200;
+    stroke-dashoffset: 200;
+    animation: u-draw 620ms var(--motion-ease) forwards;
+    animation-delay: 860ms;
   }
-  .atlas__link--c2 {
-    animation-delay: 460ms;
+
+  .u-act {
+    animation-delay: 1060ms;
   }
-  .atlas__link--c3 {
+
+  .u-up,
+  .u-feedback {
+    opacity: 0;
+    animation: u-appear 700ms var(--motion-ease) forwards;
+    animation-delay: 1400ms;
+  }
+
+  .u-up {
     animation-delay: 520ms;
   }
 
-  .atlas__link--ai {
-    stroke: var(--signal);
-    animation-delay: 660ms;
-  }
-
-  .atlas__link--act {
-    stroke: var(--action);
-    animation-delay: 800ms;
-  }
-
-  @keyframes atlas-draw {
+  @keyframes u-draw {
     to {
       stroke-dashoffset: 0;
     }
   }
 
-  .atlas__source {
-    fill: var(--text-muted);
-  }
-
-  .atlas__signal {
-    fill: none;
-    stroke: var(--border-strong);
-    stroke-width: 1.5;
-  }
-
-  .atlas__hub {
-    fill: none;
-    stroke: var(--signal);
-    stroke-width: 2;
-  }
-
-  .atlas__hub-inner {
-    fill: var(--signal);
-  }
-
-  /* Izgara: haritanın üstünde durduğu yüzey. Çok siliktir, okumayı bozmaz. */
-  .atlas__gridline {
-    stroke: var(--border-subtle);
-    stroke-width: 1;
-  }
-
-  /*
-   * KARAR NOKTASI — BAKIR.
-   * Sanat yönü: bakır yalnızca karar ve insan müdahalesi anlarında.
-   */
-  .atlas__decision rect {
-    fill: none;
-    stroke: var(--decision);
-    stroke-width: 2;
-  }
-
-  .atlas__decision circle {
-    fill: var(--decision);
-  }
-
-  .atlas__check {
-    fill: none;
-    stroke: var(--action);
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  /*
-   * AKAN SİNYAL.
-   *
-   * Harita "yaşıyor" hissini veren TEK hareketli öğe. Yalnızca
-   * `stroke-dashoffset` değişir — düzen özelliği animasyonu yok, CLS 0.
-   * Sonsuz döngüdür ama tek bir CSS animasyonudur: JS yok, rAF döngüsü yok,
-   * bu yüzden sekme arka plandayken tarayıcı onu kendisi durdurur.
-   */
-  .atlas__pulse {
-    fill: none;
-    stroke: var(--signal);
-    stroke-width: 2.5;
-    stroke-linecap: round;
-    stroke-dasharray: 26 187;
+  .u-source,
+  .u-chip,
+  .u-core > *,
+  .u-decision,
+  .u-action,
+  .u-near-ticks,
+  .u-rail {
     opacity: 0;
-    animation: atlas-flow 3.2s linear infinite;
-    animation-delay: 1200ms;
+    animation: u-appear 520ms var(--motion-ease) forwards;
   }
 
-  .atlas__pulse--1 {
-    animation-delay: 1500ms;
+  .u-source--0 {
+    animation-delay: 60ms;
+  }
+  .u-source--1 {
+    animation-delay: 140ms;
+  }
+  .u-source--2 {
+    animation-delay: 220ms;
+  }
+  .u-source--3 {
+    animation-delay: 300ms;
+  }
+  .u-source--4 {
+    animation-delay: 380ms;
   }
 
-  .atlas__pulse--2 {
-    animation-delay: 1800ms;
+  .u-chip {
+    animation-delay: 420ms;
   }
 
-  .atlas__pulse--3 {
-    animation-delay: 2100ms;
+  .u-core > * {
+    animation-delay: 860ms;
   }
 
-  .atlas__pulse--hub {
+  .u-decision {
+    animation-delay: 1180ms;
+  }
+
+  .u-action {
+    animation-delay: 1340ms;
+  }
+
+  .u-rail,
+  .u-near-ticks {
+    animation-delay: 300ms;
+  }
+
+  @keyframes u-appear {
+    to {
+      opacity: 1;
+    }
+  }
+
+  /*
+   * SÜREKLİ SİNYAL.
+   * Tek hareketli öğe budur ve TANIMLI yollar üzerinde ilerler. Yalnızca
+   * `stroke-dashoffset` ve `opacity` değişir; düzen yazılmaz.
+   */
+  .u-pulse,
+  .u-out-pulse,
+  .u-feedback-pulse {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 26 760;
+    opacity: 0;
+    animation: u-flow 4.4s linear infinite;
+    animation-delay: 1600ms;
+  }
+
+  .u-pulse--1 {
+    animation-delay: 2s;
+  }
+  .u-pulse--2 {
+    animation-delay: 2.4s;
+  }
+  .u-pulse--3 {
+    animation-delay: 2.8s;
+  }
+  .u-pulse--4 {
+    animation-delay: 3.2s;
+  }
+
+  .u-out-pulse {
     stroke: var(--decision);
-    stroke-dasharray: 22 170;
-    animation-delay: 2400ms;
+    stroke-dasharray: 22 240;
+    animation-duration: 3.4s;
+    animation-delay: 3.6s;
   }
 
-  @keyframes atlas-flow {
+  .u-feedback-pulse {
+    stroke: var(--signal);
+    stroke-dasharray: 18 2200;
+    stroke-width: 2.5;
+    animation-duration: 7s;
+    animation-delay: 4.4s;
+  }
+
+  @keyframes u-flow {
     0% {
-      stroke-dashoffset: 213;
+      stroke-dashoffset: 786;
       opacity: 0;
     }
-    12% {
+    8% {
       opacity: 0.95;
     }
-    88% {
+    86% {
       opacity: 0.95;
     }
     100% {
@@ -399,81 +1004,115 @@ const { hero, stages }: Props = Astro.props;
     }
   }
 
-  .atlas__action {
-    fill: none;
-    stroke: var(--action);
-    stroke-width: 2;
+  /* Çekirdek nefesi: ölçek değil, ışık. Düzen etkilenmez. */
+  .u-core__halo {
+    animation:
+      u-appear 520ms var(--motion-ease) 860ms forwards,
+      u-breathe 6s ease-in-out 1400ms infinite;
   }
 
-  .atlas__nodes > * {
-    opacity: 0;
-    animation: atlas-appear 420ms var(--motion-ease) forwards;
-    animation-delay: 240ms;
+  /* Port halkası: sinyalin canlı olduğunu söyleyen tek nabız. */
+  .u-port-ring {
+    animation: u-ping 4.4s ease-out 1600ms infinite;
+    transform-box: fill-box;
+    transform-origin: center;
   }
 
-  .atlas__hub {
-    animation-delay: 560ms;
+  .u-source--1 .u-port-ring {
+    animation-delay: 2s;
+  }
+  .u-source--2 .u-port-ring {
+    animation-delay: 2.4s;
+  }
+  .u-source--3 .u-port-ring {
+    animation-delay: 2.8s;
+  }
+  .u-source--4 .u-port-ring {
+    animation-delay: 3.2s;
   }
 
-  .atlas__hub--ai {
-    animation-delay: 700ms;
-  }
-
-  .atlas__action {
-    animation-delay: 840ms;
-  }
-
-  @keyframes atlas-appear {
-    to {
-      opacity: 1;
+  @keyframes u-ping {
+    0% {
+      opacity: 0.55;
+      transform: scale(0.55);
+    }
+    40% {
+      opacity: 0;
+      transform: scale(1.35);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.35);
     }
   }
 
-  /* ---------------------------------------------------------------- aşamalar */
-
-  .atlas__stages {
-    display: grid;
-    gap: var(--space-md);
-    margin: var(--space-lg) 0 0;
-    padding: 0;
-    list-style: none;
+  @keyframes u-breathe {
+    0%,
+    100% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 0.85;
+    }
   }
 
   /*
-   * Beş sütun, SVG'nin beş bölgesiyle AYNI hizada: sütun merkezleri
-   * 120/360/600/840/1080 birimine denk gelir, başlık kendi düğümünün altında
-   * durur. `gap` daraltıldı; ilk ekran bütçesi bunu gerektiriyor.
+   * SCROLL PARALLAKSI — JS YOK.
+   * Hero çıkarken kamera geri çekilir. `animation-timeline` desteklenmiyorsa
+   * hiçbir şey olmaz; sahne yerinde kalır.
    */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .univ__camera {
+        animation: univ-depart linear both;
+        animation-timeline: var(--scroll-timeline);
+        animation-range: exit 0% exit 100%;
+      }
+    }
+  }
+
+  @keyframes univ-depart {
+    to {
+      transform: translateY(-5%) scale(1.08);
+      opacity: 0.22;
+    }
+  }
+
+  /* ================================================================ ray */
+
+  .hero__rail {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    gap: var(--space-md);
+    margin: 0;
+    padding: var(--space-lg) var(--container-gutter) var(--space-2xl);
+    list-style: none;
+  }
+
   @media (min-width: 60rem) {
-    .atlas__stages {
+    .hero__rail {
       grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: var(--space-md);
-      margin-top: var(--space-2xs);
-    }
-
-    .stage {
-      padding-top: var(--space-2xs);
-    }
-
-    .stage__title {
-      margin: 0 0 var(--space-3xs);
-      font-size: var(--text-md);
+      gap: var(--space-lg);
+      width: 100%;
+      max-width: var(--container-max);
+      margin-inline: auto;
+      padding-block: var(--space-sm) var(--space-lg);
     }
   }
 
   .stage {
     position: relative;
     padding-top: var(--space-sm);
-    border-top: var(--border-width) solid var(--border-subtle);
-  }
-
-  /* Son aşama (aksiyon) vurgulanır: zincirin çıktısı budur. */
-  .stage[data-stage="act"] {
-    border-top-color: var(--action);
+    border-top: var(--border-width) solid var(--border-strong);
   }
 
   .stage[data-stage="decide"] {
-    border-top-color: var(--signal);
+    border-top-color: var(--decision);
+  }
+
+  .stage[data-stage="act"] {
+    border-top-color: var(--action);
   }
 
   .stage__index {
@@ -485,7 +1124,7 @@ const { hero, stages }: Props = Astro.props;
 
   .stage__title {
     margin: var(--space-3xs) 0 var(--space-2xs);
-    font-size: var(--text-lg);
+    font-size: var(--text-md);
     letter-spacing: var(--tracking-tight);
   }
 
@@ -496,14 +1135,70 @@ const { hero, stages }: Props = Astro.props;
     font-size: var(--text-sm);
   }
 
+  /* ================================================================ dar ekran */
+
   /*
-   * MOBİL: geniş topoloji gizlidir, liste dikey bir sinyal rayına dönüşür.
-   * İkinci bir SVG yüklenmez.
+   * MOBİL — SAHNE RAYIN İÇİNE TAŞINIR.
+   *
+   * Dar ekran için ayrı bir dikey SVG denendi; metnin arkasına düşüp
+   * okunurluğu bozuyordu (kanıt: ilk `03-hero-mobile-390.png` çekimi). Bunun
+   * yerine operasyon haritası aşama rayının KENDİSİ oldu: sinyal omurgası
+   * rayın solundan iner, karar bakır bir düğüm, aksiyon kapalı bir karedir.
+   * Arka planda yalnızca CSS ızgarası ve tek bir ışık kalır — ek SVG, istek
+   * veya JS yok.
    */
   @media (max-width: 59.99rem) {
-    .atlas__stages {
-      padding-left: var(--space-md);
-      border-left: var(--border-width) solid var(--border-subtle);
+    .univ__camera {
+      display: none;
+    }
+
+    .hero__stage {
+      /*
+       * Izgara bilinçli olarak ÇOK silik: başlığın üzerinden geçen bir çizgi
+       * okumayı bozuyordu (ilk mobil çekimde ölçüldü).
+       */
+      background:
+        radial-gradient(22rem 18rem at 82% 16%, var(--signal-surface) 0%, transparent 72%),
+        repeating-linear-gradient(
+          to right,
+          color-mix(in srgb, var(--border-subtle) 45%, transparent) 0 1px,
+          transparent 1px 5rem
+        ),
+        repeating-linear-gradient(
+          to bottom,
+          color-mix(in srgb, var(--border-subtle) 45%, transparent) 0 1px,
+          transparent 1px 5rem
+        );
+    }
+
+    .univ__veil {
+      background: linear-gradient(
+        to bottom,
+        var(--surface-canvas) 0%,
+        color-mix(in srgb, var(--surface-canvas) 62%, transparent) 24%,
+        color-mix(in srgb, var(--surface-canvas) 72%, transparent) 58%,
+        var(--surface-canvas) 86%
+      );
+    }
+
+    .hero__rail {
+      padding-left: calc(var(--container-gutter) + var(--space-md));
+    }
+
+    /* Sinyal omurgası: rayın solundan kesintisiz iner. */
+    .hero__rail::before {
+      content: "";
+      position: absolute;
+      inset-block: 0.9rem 1.2rem;
+      inset-inline-start: calc(var(--container-gutter) + 3px);
+      inline-size: 1px;
+      background: linear-gradient(
+        to bottom,
+        var(--border-strong) 0%,
+        var(--signal) 42%,
+        var(--decision) 76%,
+        var(--action) 100%
+      );
     }
 
     .stage {
@@ -514,7 +1209,7 @@ const { hero, stages }: Props = Astro.props;
     .stage::before {
       content: "";
       position: absolute;
-      inset-inline-start: calc(-1 * var(--space-md) - 4px);
+      inset-inline-start: calc(-1 * var(--space-md));
       inset-block-start: 0.55rem;
       inline-size: 7px;
       block-size: 7px;
@@ -522,54 +1217,86 @@ const { hero, stages }: Props = Astro.props;
       background: var(--border-strong);
     }
 
-    .stage[data-stage="decide"]::before {
+    .stage[data-stage="context"]::before {
       background: var(--signal);
     }
 
+    /* KARAR: bakır düğüm, çevresinde durak halkası. */
+    .stage[data-stage="decide"]::before {
+      background: var(--decision);
+      box-shadow: 0 0 0 3px var(--decision-surface);
+    }
+
+    /* AKSİYON: kapalı kare — akış burada bir sonuca bağlanır. */
     .stage[data-stage="act"]::before {
-      background: var(--action);
+      background: none;
+      border: var(--border-width-strong) solid var(--action);
+      border-radius: var(--radius-sm);
+      inline-size: 9px;
+      block-size: 9px;
+      inset-block-start: 0.45rem;
+      inset-inline-start: calc(-1 * var(--space-md) - 1px);
     }
   }
 
-  /*
-   * VURGU — SIFIR JS.
-   * Bir aşamaya gelindiğinde veya odaklanıldığında ilgili bağ vurgulanır.
-   * Bilgi bu etkileşime BAĞLI DEĞİLDİR; açıklamalar zaten kalıcı metindir.
-   */
-  .atlas:has(.stage[data-stage="decide"]:hover) .atlas__link--ai,
-  .atlas:has(.stage[data-stage="decide"]:focus-within) .atlas__link--ai,
-  .atlas:has(.stage[data-stage="act"]:hover) .atlas__link--act,
-  .atlas:has(.stage[data-stage="act"]:focus-within) .atlas__link--act {
-    stroke-width: 3;
-  }
-
-  /* ---------------------------------------------------------------- hareket azaltma */
+  /* ================================================================ hareket azaltma */
 
   /*
-   * Hareket kapalıyken intro HİÇ çalışmaz: kompozisyon doğrudan son hâlinde
-   * görünür. Anlam veya CTA kaybı olmaz; scroll davranışı animasyona bağlı
-   * değildir (scrolljacking yok).
-   */
-  /*
-   * REDUCED MOTION: BOŞ EKRAN DEĞİL, ANLAMLI SON DURUM.
-   *
-   * Harita tamamen görünür kalır; yalnızca hareket durur. Akan sinyal
-   * tamamen KALDIRILIR — çünkü tek başına sürekli bir hareketti ve
-   * taşıdığı bilgi zaten yolların kendisinde duruyor.
+   * BOŞ EKRAN DEĞİL, ANLAMLI SON DURUM.
+   * Tüm katmanlar tam görünür; yalnızca hareket durur. Kamera da durur:
+   * `--px/--py` yazılsa bile dönüş uygulanmaz.
    */
   @media (prefers-reduced-motion: reduce) {
-    .atlas__link {
+    .u-path,
+    .u-out,
+    .u-act {
       animation: none;
       stroke-dashoffset: 0;
     }
 
-    .atlas__nodes > * {
+    .u-source,
+    .u-chip,
+    .u-core > *,
+    .u-core__halo,
+    .u-decision,
+    .u-action,
+    .u-near-ticks,
+    .u-rail,
+    .u-feedback,
+    .u-up,
+    .univ__label {
       animation: none;
       opacity: 1;
+      transform: none;
     }
 
-    .atlas__pulses {
+    .u-core__halo {
+      opacity: 0.5;
+    }
+
+    .u-up {
+      opacity: 0.7;
+    }
+
+    .u-port-ring {
+      animation: none;
+      opacity: 0.45;
+      transform: none;
+    }
+
+    .u-pulses,
+    .u-out-pulse,
+    .u-feedback-pulse {
       display: none;
+    }
+
+    .univ {
+      transform: none;
+      transition: none;
+    }
+
+    .univ__camera {
+      animation: none;
     }
   }
 </style>

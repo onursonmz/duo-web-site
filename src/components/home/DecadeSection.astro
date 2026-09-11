@@ -162,27 +162,40 @@ const { locale, decade, milestones }: Props = Astro.props;
   /*
    * KONTROLLÜ GİRİŞ.
    *
-   * Duraklar sırayla belirir; kaydırmayı ele geçirmez, yalnızca görünür
-   * olduğunda bir kez oynar. `animation-timeline` desteklenmiyorsa hiçbir
-   * şey olmaz ve duraklar zaten görünürdür (varsayılan opaklık 1).
+   * Duraklar sırayla AÇILIR; kaydırmayı ele geçirmez, yalnızca görünür
+   * olduğunda bir kez oynar. `animation-timeline` desteklenmiyorsa hiçbir şey
+   * olmaz ve duraklar zaten görünürdür.
    */
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
       .decade__item {
         animation: decade-step linear both;
-        animation-timeline: view();
+        animation-timeline: var(--scroll-timeline);
         animation-range: entry 10% entry 55%;
       }
     }
   }
 
+  /*
+   * MASKE İLE AÇILIR, OPAKLIKLA DEĞİL.
+   *
+   * ÖLÇÜLMÜŞ SORUN: açılış `opacity: 0.35` ile başlıyordu. Scroll tabanlı
+   * animasyon gerçekten bağlandıktan sonra (bkz. `--scroll-timeline`) henüz
+   * görünmemiş duraklar %35 opaklıkta kalıyor ve axe bunları GERÇEK bir
+   * kontrast ihlali olarak raporluyordu (#606468 / #14181c = 2.99:1).
+   *
+   * Maske açılışı hem bu ihlali kaldırır hem de talimattaki "bölümler yalnız
+   * opacity ile görünmemeli" kuralını karşılar. Negatif `inset` değerleri ray
+   * düğümünün (`.decade__node`) kutunun dışına taşan kısmını kırpmamak
+   * içindir.
+   */
   @keyframes decade-step {
     from {
-      opacity: 0.35;
-      transform: translateY(8px);
+      clip-path: inset(-8px -8px 100% -8px);
+      transform: translateY(10px);
     }
     to {
-      opacity: 1;
+      clip-path: inset(-8px -8px -8px -8px);
       transform: translateY(0);
     }
   }

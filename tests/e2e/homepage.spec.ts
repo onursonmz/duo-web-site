@@ -12,7 +12,14 @@ import AxeBuilder from "@axe-core/playwright";
 const DESKTOP = { width: 1440, height: 900 };
 const MOBILE = { width: 390, height: 844 };
 
-/** Sözleşmedeki bölüm sırası (`03_CONTENT_AND_ROUTE_MAP` + S05 talimatı). */
+/**
+ * Sözleşmedeki bölüm sırası (`03_CONTENT_AND_ROUTE_MAP` + S05 talimatı).
+ *
+ * S15-R1: `decade` yukarıdan SONA alındı. Gerekçe Codex incelemesinde:
+ * "10. yıl anlatısı → İletişim finali" bir signature transition olacak;
+ * bunun için iki bölümün komşu olması gerekiyor. Anlatı sırası da bunu
+ * destekliyor: ne yaptığımız → nasıl → on yıldır kim olduğumuz → konuşalım.
+ */
 const EXPECTED_ORDER = [
   "hero",
   "trust",
@@ -20,11 +27,11 @@ const EXPECTED_ORDER = [
   "cyclops",
   "intelligence",
   "method",
-  "decade",
   // ADR-011 ile bölgeler yayınlanabilir hâle geldi; bölüm artık render ediliyor.
   "regional",
   "technology",
   "insights",
+  "decade",
   "roadmap",
 ];
 

@@ -2,10 +2,22 @@ import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 /**
- * S06 — COMMAND ATLAS İMZA HERO KABUL TESTLERİ.
+ * İMZA HERO KABUL TESTLERİ — S06'da yazıldı, S15-R1'de yeniden kuruldu.
  *
- * Hero, Duosis'in çalışma modelini anlatır: kaynak → sinyal → bağlam → karar
- * → aksiyon. Bilgi animasyona veya hover'a BAĞLI DEĞİLDİR.
+ * Hero artık ekranı dolduran, katmanlı bir operasyon evrenidir
+ * (`SignatureHero.astro`). Anlatı değişmedi: kaynak → sinyal → bağlam → karar
+ * → aksiyon. Bilgi animasyona, hover'a veya JavaScript'e BAĞLI DEĞİLDİR.
+ *
+ * S15-R1'DE DEĞİŞEN İKİ GÜVENCE — ikisi de bilinçli ve gerekçeli:
+ *
+ * 1. "HERO SIFIR EK CLIENT JS GETİRİR" kaldırıldı. Talimat kontrollü bir
+ *    kamera/parallax hareketi istiyor; bu ~1 KB JS ile çözüldü. Yerine ÖLÇÜLEN
+ *    bir bütçe ve "JS olmadan da tam çalışır" güvencesi kondu.
+ *
+ * 2. "BEŞ AŞAMA METNİ 1366x768'İN İLK EKRANINDA" güvencesi daraltıldı.
+ *    85-100vh'lik bir hero ile beş aşamanın GÖVDE metinleri 768 piksel
+ *    yüksekliğe sığmıyor. Sığması gereken ve ölçülen küme: H1, açıklama, iki
+ *    CTA ve beş aşama BAŞLIĞI. Gövdeler ilk kaydırmada okunur.
  */
 
 const DESKTOP = { width: 1440, height: 900 };
@@ -49,28 +61,53 @@ test.describe("hero anlatısı", () => {
 
   test("hero'dan ÇÖZÜM ATLASINA görsel süreklilik var", async ({ page }) => {
     await page.goto("/");
-    // Hero topolojisi ile çözüm atlası aynı sayfada ve sırayla gelir.
     const heroBox = await page.getByTestId("hero-atlas").boundingBox();
     const atlasBox = await page.getByTestId("solution-atlas").boundingBox();
     expect(heroBox).not.toBeNull();
     expect(atlasBox).not.toBeNull();
     expect(atlasBox!.y).toBeGreaterThan(heroBox!.y);
+
+    // Aradaki geçiş bandı GERÇEKTEN var ve hero'nun hemen ardından geliyor.
+    const bridge = page.locator('[data-bridge="flow-out"]').first();
+    const bridgeBox = await bridge.boundingBox();
+    expect(bridgeBox).not.toBeNull();
+    expect(bridgeBox!.y).toBeGreaterThanOrEqual(heroBox!.y + heroBox!.height - 2);
+    expect(bridgeBox!.y).toBeLessThan(atlasBox!.y);
+  });
+
+  test("hero EKRANI DOLDURUYOR (85-100vh aralığı)", async ({ page }) => {
+    await page.goto("/");
+    await page.evaluate(() => document.fonts.ready);
+    const ratio = await page.evaluate(() => {
+      const hero = document.querySelector(".hero");
+      if (hero === null) return 0;
+      return hero.getBoundingClientRect().height / window.innerHeight;
+    });
+    expect(
+      ratio,
+      `hero yüksekliği viewport'un %${Math.round(ratio * 100)}'i`
+    ).toBeGreaterThanOrEqual(0.85);
+    expect(ratio).toBeLessThanOrEqual(1);
   });
 });
 
 test.describe("hero erişilebilirliği", () => {
-  test("SVG topolojisi DEKORATİF olarak işaretli", async ({ page }) => {
+  test("SAHNE DEKORATİF olarak işaretli", async ({ page }) => {
     await page.setViewportSize(DESKTOP);
     await page.goto("/");
-    const svg = page.locator(".atlas__svg");
-    await expect(svg).toHaveAttribute("aria-hidden", "true");
-    await expect(svg).toHaveAttribute("focusable", "false");
+    const stage = page.getByTestId("hero-atlas");
+    await expect(stage).toHaveAttribute("aria-hidden", "true");
+
+    // Sahnedeki her SVG odaklanılamaz olmalı.
+    const focusable = await stage
+      .locator("svg")
+      .evaluateAll((els) => els.filter((e) => e.getAttribute("focusable") !== "false").length);
+    expect(focusable).toBe(0);
   });
 
   test("aşama bilgisi HOVER'a bağlı DEĞİL: etkileşimsiz görünür", async ({ page }) => {
     await page.setViewportSize(DESKTOP);
     await page.goto("/");
-    // Fareyi hiç kullanmadan tüm açıklamalar görünür olmalı.
     for (const key of STAGES) {
       await expect(page.locator(`.stage[data-stage="${key}"] .stage__body`)).toBeVisible();
     }
@@ -80,7 +117,7 @@ test.describe("hero erişilebilirliği", () => {
     await page.setViewportSize(DESKTOP);
     await page.goto("/");
     const heroTooltips = await page
-      .getByTestId("hero-atlas")
+      .locator(".hero")
       .locator('[role="tooltip"], [data-tooltip], title')
       .count();
     expect(heroTooltips).toBe(0);
@@ -124,7 +161,7 @@ test.describe("hero hareket davranışı", () => {
     await page.goto("/");
 
     const link = await page
-      .locator(".atlas__link")
+      .locator(".u-path")
       .first()
       .evaluate((el) => {
         const s = getComputedStyle(el);
@@ -135,7 +172,7 @@ test.describe("hero hareket davranışı", () => {
         };
       });
     expect(link.name).not.toBe("none");
-    // Sürekli loop YOK.
+    // Giriş animasyonu sürekli loop DEĞİL.
     expect(link.count).toBe("1");
     expect(link.fill).toBe("forwards");
   });
@@ -145,7 +182,7 @@ test.describe("hero hareket davranışı", () => {
     await page.goto("/");
 
     const link = await page
-      .locator(".atlas__link")
+      .locator(".u-path")
       .first()
       .evaluate((el) => {
         const s = getComputedStyle(el);
@@ -156,14 +193,28 @@ test.describe("hero hareket davranışı", () => {
     expect(Number.parseFloat(link.offset)).toBe(0);
 
     const node = await page
-      .locator(".atlas__nodes > *")
+      .locator(".u-core > *")
       .first()
       .evaluate((el) => {
         const s = getComputedStyle(el);
         return { name: s.animationName, opacity: s.opacity };
       });
     expect(node.name).toBe("none");
-    expect(Number.parseFloat(node.opacity)).toBe(1);
+    expect(Number.parseFloat(node.opacity)).toBeGreaterThan(0);
+
+    // Sürekli akan sinyal TAMAMEN kaldırılır.
+    await expect(page.locator(".u-pulses").first()).toBeHidden();
+  });
+
+  test("REDUCED MOTION altında KAMERA da durur", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+    await page.mouse.move(300, 400);
+    await page.mouse.move(1200, 700);
+    await page.waitForTimeout(200);
+
+    const transform = await page.locator(".univ").evaluate((el) => getComputedStyle(el).transform);
+    expect(transform === "none" || transform === "matrix(1, 0, 0, 1, 0, 0)").toBe(true);
   });
 
   test("REDUCED MOTION altında içerik ve CTA kaybı YOK", async ({ page }) => {
@@ -189,18 +240,53 @@ test.describe("hero hareket davranışı", () => {
         } catch {
           continue;
         }
-        for (const rule of [...rules]) {
-          if (!(rule instanceof CSSKeyframesRule)) continue;
-          for (const frame of [...rule.cssRules] as CSSStyleRule[]) {
-            for (const prop of ["width", "height", "top", "left", "margin", "padding"]) {
-              if (frame.style.getPropertyValue(prop) !== "") found.push(`${rule.name}:${prop}`);
+        const walk = (list: CSSRuleList): void => {
+          for (const rule of [...list]) {
+            if (rule instanceof CSSKeyframesRule) {
+              for (const frame of [...rule.cssRules] as CSSStyleRule[]) {
+                for (const prop of ["width", "height", "top", "left", "margin", "padding"]) {
+                  if (frame.style.getPropertyValue(prop) !== "") found.push(`${rule.name}:${prop}`);
+                }
+              }
+            } else if ("cssRules" in rule) {
+              walk((rule as CSSGroupingRule).cssRules);
             }
           }
-        }
+        };
+        walk(rules);
       }
       return found;
     });
     expect(unsafe, `düzen özelliği animasyonu: ${unsafe.join(", ")}`).toEqual([]);
+  });
+
+  test("SCROLL HIJACKING YOK: wheel/touchmove dinleyicisi kaydedilmiyor", async ({ page }) => {
+    /*
+     * DOM'a bakmak yetmez; kanıt, dinleyicinin HİÇ kaydedilmediğidir. Bu
+     * yüzden `addEventListener` sayfa script'lerinden ÖNCE sarmalanır ve
+     * kaydedilen her wheel/touchmove/scroll dinleyicisi toplanır.
+     */
+    await page.addInitScript(() => {
+      const registry: string[] = [];
+      (window as unknown as { __scrollListeners: string[] }).__scrollListeners = registry;
+      const original = EventTarget.prototype.addEventListener;
+      EventTarget.prototype.addEventListener = function patched(
+        type: string,
+        listener: EventListenerOrEventListenerObject | null,
+        options?: boolean | AddEventListenerOptions
+      ): void {
+        if (type === "wheel" || type === "touchmove" || type === "mousewheel") {
+          registry.push(type);
+        }
+        original.call(this, type, listener, options);
+      };
+    });
+
+    await page.goto("/", { waitUntil: "networkidle" });
+    const listeners = await page.evaluate(
+      () => (window as unknown as { __scrollListeners: string[] }).__scrollListeners
+    );
+    expect(listeners, `scroll'a müdahale eden dinleyici: ${listeners.join(", ")}`).toEqual([]);
   });
 });
 
@@ -210,9 +296,7 @@ test.describe("hero performans bütçesi", () => {
   test("HİÇBİR harici ağ isteği yok", async ({ page }) => {
     /*
      * E2E sunucusu her koşuda DİNAMİK bir loopback portunda çalışır; bu yüzden
-     * karşılaştırma origin değil HOST üzerinden yapılır. (İlk denemede
-     * `page.url()` henüz `about:blank` olduğu için kendi sunucumuz "harici"
-     * sayılıyordu.)
+     * karşılaştırma origin değil HOST üzerinden yapılır.
      */
     const external: string[] = [];
     page.on("request", (req) => {
@@ -227,14 +311,20 @@ test.describe("hero performans bütçesi", () => {
     expect(external, `harici istek: ${external.join(", ")}`).toEqual([]);
   });
 
-  test("HERO SIFIR ek client JS getiriyor", async ({ page }) => {
+  test("KAMERA JS'i satır içi ve bütçe altında", async ({ page }) => {
     await page.goto("/");
-    // Hero yalnızca CSS ve inline SVG kullanır; kendi script'i yoktur.
-    const heroScripts = await page.getByTestId("hero-atlas").locator("script").count();
-    expect(heroScripts).toBe(0);
 
-    // Sayfa genelinde harici script dosyası da yok.
+    // Harici script dosyası yok: her şey satır içi modülde.
     await expect(page.locator("script[src]")).toHaveCount(0);
+
+    // Toplam satır içi modül bütçesi: ana sayfa için 8 KB ham.
+    const bytes = await page.evaluate(() =>
+      [...document.querySelectorAll('script[type="module"]')].reduce(
+        (sum, el) => sum + new Blob([el.textContent ?? ""]).size,
+        0
+      )
+    );
+    expect(bytes, `satır içi modül boyutu ${bytes} B`).toBeLessThan(8192);
   });
 
   test("yeni RASTER görsel eklenmedi", async ({ page }) => {
@@ -247,43 +337,100 @@ test.describe("hero performans bütçesi", () => {
     expect(raster, `raster görsel: ${raster.join(", ")}`).toEqual([]);
   });
 
-  test("hero kaynaklı CLS yok: SVG sabit en-boy oranı taşıyor", async ({ page }) => {
-    await page.goto("/", { waitUntil: "networkidle" });
-    // Oran, SVG'nin KENDİ viewBox'ıyla karşılaştırılır: geometri değişirse
-    // aspect-ratio da değişmek zorundadır, aksi halde yer ayırma bozulur ve
-    // test kırılır. Sabit bir değere bağlanmaz.
-    const measured = await page.locator(".atlas__svg").evaluate((el) => ({
-      ratio: getComputedStyle(el).aspectRatio.replace(/\s/g, ""),
-      viewBox: el.getAttribute("viewBox") ?? "",
-    }));
-    const parts = measured.viewBox.split(/\s+/);
-    expect(parts).toHaveLength(4);
-    expect(measured.ratio).toBe(`${parts[2]}/${parts[3]}`);
+  test("hero kaynaklı DÜZEN KAYMASI yok (ölçülen CLS)", async ({ page }) => {
+    /*
+     * Eski sürüm `aspect-ratio` üzerinden dolaylı ölçüyordu. Sahne artık
+     * akıştan çıkarılmış bir katman; doğru güvence GERÇEK kaymayı ölçmektir.
+     */
+    await page.goto("/", { waitUntil: "commit" });
+    await page.evaluate(() => {
+      const state = { value: 0 };
+      (window as unknown as { __cls: { value: number } }).__cls = state;
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries() as (PerformanceEntry & {
+          value: number;
+          hadRecentInput: boolean;
+        })[]) {
+          if (!entry.hadRecentInput) state.value += entry.value;
+        }
+      }).observe({ type: "layout-shift", buffered: true });
+    });
+    await page.waitForLoadState("networkidle");
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForTimeout(3000);
+
+    const cls = await page.evaluate(
+      () => (window as unknown as { __cls: { value: number } }).__cls.value
+    );
+    expect(cls, `ölçülen CLS ${cls}`).toBeLessThan(0.05);
   });
 });
 
 test.describe("hero JavaScript olmadan", () => {
   test.use({ viewport: DESKTOP, javaScriptEnabled: false });
 
-  test("topoloji ve aşamalar SON kompozisyonda görünüyor", async ({ page }) => {
+  test("sahne ve aşamalar SON kompozisyonda görünüyor", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator("h1")).toBeVisible();
     await expect(page.getByTestId("hero-stages").locator("li")).toHaveCount(5);
-    await expect(page.locator(".atlas__svg")).toBeVisible();
+    await expect(page.locator(".univ__layer--core svg")).toBeVisible();
     await expect(page.locator('#hero a[href="/cozumler/"]')).toBeVisible();
+
+    // Kamera yazmasa da sahne nötr duruşta durur.
+    const transform = await page.locator(".univ").evaluate((el) => getComputedStyle(el).transform);
+    expect(transform === "none" || transform === "matrix(1, 0, 0, 1, 0, 0)").toBe(true);
   });
 });
 
 test.describe("hero mobil", () => {
   test.use({ viewport: MOBILE, isMobile: true, hasTouch: true });
 
-  test("geniş topoloji GİZLİ, aşamalar okunabilir kalıyor", async ({ page }) => {
+  test("geniş sahne gizli; harita RAYIN İÇİNE taşınmış", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator(".atlas__svg")).toBeHidden();
+    // 3B katmanlı geniş sahne mobilde hiç render edilmez.
+    await expect(page.locator(".univ__camera")).toBeHidden();
+
+    // Beş aşama ve metinleri okunur kalır.
     await expect(page.getByTestId("hero-stages").locator("li")).toHaveCount(5);
     for (const key of STAGES) {
       await expect(page.locator(`.stage[data-stage="${key}"] .stage__body`)).toBeVisible();
     }
+
+    /*
+     * Operasyon haritası mobilde rayın kendisidir: kesintisiz bir sinyal
+     * omurgası ve aşamaya göre farklılaşan düğümler. Bunlar `::before`
+     * olduğu için GERÇEKTEN çizildiklerini computed style ile ölçeriz.
+     */
+    const rail = await page.locator('[data-testid="hero-stages"]').evaluate((el) => {
+      const spine = getComputedStyle(el, "::before");
+      return { content: spine.content, width: spine.inlineSize, image: spine.backgroundImage };
+    });
+    expect(rail.content).not.toBe("none");
+    expect(rail.image, "sinyal omurgası boyanmamış").toContain("gradient");
+
+    const markers = await page.evaluate(() =>
+      ["source", "decide", "act"].map((key) => {
+        const el = document.querySelector(`.stage[data-stage="${key}"]`);
+        if (el === null) return null;
+        const style = getComputedStyle(el, "::before");
+        return {
+          key,
+          radius: style.borderTopLeftRadius,
+          border: style.borderTopWidth,
+          background: style.backgroundColor,
+        };
+      })
+    );
+    // Aksiyon düğümü DAİRE DEĞİL, kapalı bir karedir: akış bir sonuca bağlanır.
+    const act = markers.find((m) => m?.key === "act");
+    expect(act).not.toBeNull();
+    expect(Number.parseFloat(act?.border ?? "0"), "aksiyon düğümü çerçevesiz").toBeGreaterThan(0);
+    expect(act?.radius).not.toBe("50%");
+
+    // Karar düğümü bakır dolgu taşır; kaynak düğümünden farklıdır.
+    const decide = markers.find((m) => m?.key === "decide");
+    const source = markers.find((m) => m?.key === "source");
+    expect(decide?.background).not.toBe(source?.background);
   });
 
   test("DOKUNMATİK senaryo: bilgi için dokunma gerekmiyor", async ({ page }) => {
@@ -291,20 +438,16 @@ test.describe("hero mobil", () => {
     const before = await page.getByTestId("hero-stages").innerText();
     await page.locator('.stage[data-stage="decide"]').tap();
     const after = await page.getByTestId("hero-stages").innerText();
-    // Dokunma bilgiyi DEĞİŞTİRMEZ; zaten tamamı görünürdür.
     expect(after).toBe(before);
   });
 });
 
 /**
- * İLK EKRAN KOMPOZİSYONU (S08 takip kararı).
+ * İLK EKRAN KOMPOZİSYONU.
  *
- * Beş aşamanın metinleri masaüstünde ilk viewport'un ALTINDA kalıyordu; soyut
- * SVG tek başına kaynak → sinyal → bağlam → karar → aksiyon hikâyesini
- * anlatmıyordu.
- *
- * Test DOM'da bulunmayı değil GERÇEK VIEWPORT GÖRÜNÜRLÜĞÜNÜ ölçer: her aşama
- * başlığının bounding box'ı viewport sınırları içinde olmalıdır.
+ * S08'de kondu, S15-R1'de ÖLÇÜLEREK daraltıldı: 85-100vh'lik bir hero ile beş
+ * aşamanın gövde metinleri 768 piksel yüksekliğe sığmıyor. Sığması gereken ve
+ * burada ölçülen küme H1, açıklama, iki CTA ve beş aşama BAŞLIĞIDIR.
  */
 const FIRST_SCREEN = [
   { width: 1440, height: 900 },
@@ -314,7 +457,7 @@ const FIRST_SCREEN = [
 test.describe("ilk ekran kompozisyonu", () => {
   for (const viewport of FIRST_SCREEN) {
     for (const route of ["/", "/en/"]) {
-      test(`${viewport.width}x${viewport.height} ${route} — beş aşama adı ilk viewport içinde`, async ({
+      test(`${viewport.width}x${viewport.height} ${route} — beş aşama BAŞLIĞI ilk viewport içinde`, async ({
         page,
       }) => {
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
@@ -367,7 +510,6 @@ test.describe("ilk ekran kompozisyonu", () => {
           expect(bottom, `${selector} ilk viewport dışında`).toBeLessThanOrEqual(viewport.height);
         }
 
-        // İki CTA da görünür kalmalı.
         await expect(page.locator(".hero__actions a")).toHaveCount(2);
         for (const cta of await page.locator(".hero__actions a").all()) {
           await expect(cta).toBeInViewport();
@@ -376,46 +518,77 @@ test.describe("ilk ekran kompozisyonu", () => {
     }
   }
 
-  test("aşama başlıkları SVG düğümleriyle aynı hizada", async ({ page }) => {
+  test("sinyal etiketleri sahnedeki PORTLARLA aynı hizada", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");
     await page.evaluate(() => document.fonts.ready);
 
-    const centers = await page.evaluate(() => {
-      const centerOf = (el: Element): number => {
+    const measured = await page.evaluate(() => {
+      const mid = (el: Element): number => {
         const rect = el.getBoundingClientRect();
-        return rect.left + rect.width / 2;
+        return rect.top + rect.height / 2;
       };
-      const stages = [...document.querySelectorAll('[data-testid="hero-stages"] .stage')].map(
-        centerOf
-      );
-      const nodes = [
-        document.querySelector(".atlas__source"),
-        document.querySelector(".atlas__signal"),
-        document.querySelector(".atlas__hub"),
-        // S15: dördüncü düğüm artık bakır KARAR noktası (`.atlas__hub--ai`
-        // yerine `.atlas__decision`). Aynı ızgara sütununda durur.
-        document.querySelector(".atlas__decision"),
-        document.querySelector(".atlas__action"),
-      ].map((el) => (el === null ? Number.NaN : centerOf(el)));
-      return { stages, nodes };
+      return {
+        labels: [...document.querySelectorAll(".univ__label")].map(mid),
+        ports: [...document.querySelectorAll(".univ__layer--flow .u-port")].map(mid),
+        labelRight: Math.max(
+          ...[...document.querySelectorAll(".univ__label")].map(
+            (el) => el.getBoundingClientRect().right
+          )
+        ),
+        portLeft: Math.min(
+          ...[...document.querySelectorAll(".univ__layer--flow .u-port")].map(
+            (el) => el.getBoundingClientRect().left
+          )
+        ),
+      };
     });
 
-    expect(centers.stages).toHaveLength(5);
+    expect(measured.labels).toHaveLength(5);
+    expect(measured.ports).toHaveLength(5);
     for (let i = 0; i < 5; i += 1) {
-      const stage = centers.stages[i] ?? Number.NaN;
-      const node = centers.nodes[i] ?? Number.NaN;
-      // Düğüm ve etiket aynı sütunda: 20px'ten fazla kayma görsel eşleşmeyi bozar.
-      expect(Math.abs(stage - node), `aşama ${i + 1} düğümüyle hizalı değil`).toBeLessThanOrEqual(
-        20
+      const label = measured.labels[i] ?? Number.NaN;
+      const port = measured.ports[i] ?? Number.NaN;
+      expect(Math.abs(label - port), `etiket ${i + 1} portuyla hizalı değil`).toBeLessThanOrEqual(
+        12
       );
     }
+
+    // Etiket portun SOLUNDA durur; üstüne binmez.
+    expect(measured.labelRight).toBeLessThan(measured.portLeft);
+  });
+
+  test("METİN BLOĞU sahnenin sinyal portlarına DEĞMİYOR", async ({ page }) => {
+    /*
+     * Kompozisyon kuralı: metin sütunu ile sahne arasında gerçek bir boşluk
+     * kalmalı. Değerse hem üst üste biner hem metnin altındaki kontrast
+     * garantisi bozulur.
+     */
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    await page.evaluate(() => document.fonts.ready);
+
+    const gap = await page.evaluate(() => {
+      const textRight = Math.max(
+        ...["h1", ".hero__lead"].map((selector) => {
+          const el = document.querySelector(selector);
+          return el === null ? 0 : el.getBoundingClientRect().right;
+        })
+      );
+      const labelLeft = Math.min(
+        ...[...document.querySelectorAll(".univ__label")].map(
+          (el) => el.getBoundingClientRect().left
+        )
+      );
+      return labelLeft - textRight;
+    });
+    expect(gap, `metin ile sahne arası ${Math.round(gap)} px`).toBeGreaterThan(24);
   });
 
   test("SVG'ye metin GÖMÜLMEMİŞ", async ({ page }) => {
     await page.goto("/");
     const svgText = await page
-      .locator(".atlas__svg")
+      .getByTestId("hero-atlas")
       .evaluate((el) => el.querySelectorAll("text, foreignObject").length);
     expect(svgText).toBe(0);
   });

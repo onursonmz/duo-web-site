@@ -1,0 +1,909 @@
+---
+/**
+ * ÜRÜN SAHNESİ — DÖRT FARKLI HAREKET DİLİ (S15-R1).
+ *
+ * Codex incelemesi: "Ürünler yalnız metin sekmesi ve AYNI SVG'nin varyasyonu
+ * olarak kalamaz. Her ürün seçiminde kompozisyon gerçekten yeniden kurulmalı."
+ *
+ * Bu yüzden dört ürünün DÖRT AYRI sahnesi vardır. Ortak olan tek şey kabuk
+ * (koordinat sistemi, etiket yerleşimi ve hareket sözleşmesi); topoloji,
+ * düğümler ve hareketin anlamı her üründe farklıdır:
+ *
+ *   converge (CyclOps)  dağınık alarm/olay akışları korele edilip TEK bir
+ *                       olay yaşam döngüsüne iner; döngü aksiyondan sonra
+ *                       kaynaklara geri kapanır.
+ *   organise (Hermes)   dağınık zaman/görev/destek kayıtları müşteri-proje
+ *                       ızgarasına OTURUR ve rapora dönüşür.
+ *   allocate (LogiSlot) talep üç kural kapısından geçer, uygun olmayan
+ *                       saatler ELENİR, talep tek bir rampa-saat hücresine
+ *                       yerleşir (bakır: bu bir karardır).
+ *   answer (RAVSKALD)   soru üç bağlam bandından iner, her bantta bir KANIT
+ *                       toplar ve kanıtıyla birlikte geri döner.
+ *
+ * KURALLAR
+ * - Düğümler boş kutu DEĞİLDİR: her bölgenin HTML etiketi vardır (sözlükten),
+ *   ürünün kendi adımları ayrıca numaralı liste olarak okunur.
+ * - SVG dekoratiftir (`aria-hidden`); anlam etiketlerde ve adım listesindedir.
+ * - Yalnızca `transform`, `opacity` ve `stroke-dashoffset` animasyonu.
+ * - `prefers-reduced-motion` altında hareket durur ve sahne ANLAMLI SON
+ *   durumunda kalır: kayıtlar yerleşmiş, hücre atanmış, cevap dönmüş olur.
+ */
+import type { CollectionEntry } from "astro:content";
+import type { Locale } from "@lib/content/schema";
+import { t, type TranslationKey } from "@lib/i18n/dictionary";
+
+type Product = CollectionEntry<"products">;
+
+interface Props {
+  locale: Locale;
+  product: Product;
+}
+
+const { locale, product }: Props = Astro.props;
+const motion = product.data.motionKey;
+
+/** Ortak sahne koordinatı. Etiketler bu sisteme göre yüzdeye çevrilir. */
+const W = 640;
+const H = 420;
+
+type Align = "center" | "start" | "end";
+interface Label {
+  /** Sözlük anahtarı — kapalı küme, yazım hatası derlemede yakalanır. */
+  key: TranslationKey;
+  x: number;
+  y: number;
+  align?: Align;
+}
+
+const pos = (label: Label): string =>
+  `--x:${((label.x / W) * 100).toFixed(2)}%;--y:${((label.y / H) * 100).toFixed(2)}%`;
+
+const LABELS: Record<Product["data"]["motionKey"], Label[]> = {
+  converge: [
+    { key: "products.scene.sources", x: 76, y: 18, align: "center" },
+    { key: "products.scene.correlation", x: 200, y: 158, align: "center" },
+    { key: "products.scene.lifecycle", x: 452, y: 158, align: "center" },
+  ],
+  organise: [
+    { key: "products.scene.records", x: 74, y: 58, align: "center" },
+    { key: "products.scene.context", x: 254, y: 102, align: "center" },
+    { key: "products.scene.report", x: 520, y: 102, align: "center" },
+  ],
+  allocate: [
+    { key: "products.scene.request", x: 74, y: 172, align: "center" },
+    { key: "products.scene.rules", x: 210, y: 100, align: "center" },
+    { key: "products.scene.slots", x: 470, y: 84, align: "center" },
+  ],
+  answer: [
+    { key: "products.scene.question", x: 470, y: 58, align: "center" },
+    { key: "products.scene.tools", x: 566, y: 176, align: "center" },
+    { key: "products.scene.answer", x: 320, y: 392, align: "center" },
+  ],
+};
+
+/* ---------------------------------------------------- converge geometrisi */
+
+/** Dağınık kaynaklar: düzensiz konumlar bilinçlidir — gürültüyü anlatır. */
+const CONVERGE_SOURCES = [
+  { x: 24, y: 52, w: 76 },
+  { x: 46, y: 108, w: 58 },
+  { x: 20, y: 196, w: 82 },
+  { x: 44, y: 272, w: 60 },
+  { x: 26, y: 338, w: 74 },
+];
+const CONVERGE_HUB = { x: 200, y: 210 };
+const CONVERGE_STATIONS = [200, 296, 388, 480, 576];
+
+/* ---------------------------------------------------- organise geometrisi */
+
+/**
+ * Kayıtlar IZGARA konumunda çizilir; hareket onları DAĞINIK başlangıçtan
+ * buraya getirir. Böylece hareket kapalıyken sahne doğru son durumda kalır.
+ */
+const ORGANISE_SLOTS = [
+  { x: 148, y: 100, dx: -104, dy: -64 },
+  { x: 262, y: 100, dx: 78, dy: -78 },
+  { x: 148, y: 152, dx: -118, dy: 26 },
+  { x: 262, y: 152, dx: 96, dy: 74 },
+  { x: 148, y: 204, dx: -92, dy: 118 },
+  { x: 262, y: 204, dx: 64, dy: -126 },
+  { x: 148, y: 256, dx: -126, dy: -42 },
+  { x: 262, y: 256, dx: 88, dy: 104 },
+];
+const ORGANISE_BARS = [0.9, 0.62, 0.78, 0.44, 0.7];
+
+/* ---------------------------------------------------- allocate geometrisi */
+
+const ALLOCATE_GATES = [96, 184, 272];
+/** Rampa (satır) × saat (sütun) matrisi. */
+const ALLOCATE_ROWS = [80, 140, 200, 260];
+const ALLOCATE_COLS = [332, 382, 432, 482, 532, 582];
+/** Kural motorunun ELEDİĞİ hücreler: sabit, rastgele değil. */
+const ALLOCATE_BLOCKED = new Set(["0-1", "0-4", "1-0", "1-2", "2-3", "2-5", "3-1", "3-4"]);
+/** Talebin oturduğu hücre. */
+const ALLOCATE_PICK = { row: 1, col: 4 };
+
+/* ------------------------------------------------------ answer geometrisi */
+
+const ANSWER_BANDS = [104, 168, 232];
+---
+
+<div class="pscene" data-motion={motion} data-testid={`product-scene-${product.data.slug}`}>
+  <div class="pscene__stage">
+    <svg
+      class="pscene__svg"
+      viewBox={`0 0 ${W} ${H}`}
+      preserveAspectRatio="xMidYMid meet"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {
+        motion === "converge" && (
+          <g>
+            {/* Dağınık kaynaklardan tek korelasyon düğümüne. */}
+            {CONVERGE_SOURCES.map((source, index) => (
+              <path
+                class={`ps-link ps-link--${index}`}
+                d={`M${source.x + source.w} ${source.y + 10} C ${source.x + source.w + 60} ${source.y + 10}, ${CONVERGE_HUB.x - 70} ${CONVERGE_HUB.y}, ${CONVERGE_HUB.x - 16} ${CONVERGE_HUB.y}`}
+              />
+            ))}
+            {CONVERGE_SOURCES.map((source, index) => (
+              <path
+                class={`ps-pulse ps-pulse--${index}`}
+                d={`M${source.x + source.w} ${source.y + 10} C ${source.x + source.w + 60} ${source.y + 10}, ${CONVERGE_HUB.x - 70} ${CONVERGE_HUB.y}, ${CONVERGE_HUB.x - 16} ${CONVERGE_HUB.y}`}
+              />
+            ))}
+            {CONVERGE_SOURCES.map((source, index) => (
+              <g class={`ps-chip ps-chip--${index}`}>
+                <rect x={source.x} y={source.y} width={source.w} height="20" rx="2" />
+                <line x1={source.x + 9} y1={source.y + 10} x2={source.x + 28} y2={source.y + 10} />
+                <line
+                  class="ps-chip__value"
+                  x1={source.x + 36}
+                  y1={source.y + 10}
+                  x2={source.x + source.w - 12}
+                  y2={source.y + 10}
+                />
+                <circle class="ps-dot" cx={source.x + source.w} cy={source.y + 10} r="3.5" />
+              </g>
+            ))}
+
+            {/* Tek yaşam döngüsü rayı. */}
+            <path class="ps-track" d={`M${CONVERGE_HUB.x} 210 H576`} />
+            <path class="ps-track-pulse" d={`M${CONVERGE_HUB.x} 210 H576`} />
+
+            {CONVERGE_STATIONS.map((x, index) => (
+              <g class={`ps-station ps-station--${index}`}>
+                {index === 3 ? (
+                  <rect
+                    class="ps-decision"
+                    x={x - 15}
+                    y="195"
+                    width="30"
+                    height="30"
+                    rx="2"
+                    transform={`rotate(45 ${x} 210)`}
+                  />
+                ) : index === 4 ? (
+                  <rect class="ps-action" x={x - 18} y="192" width="36" height="36" rx="3" />
+                ) : (
+                  <circle class="ps-node" cx={x} cy="210" r="12" />
+                )}
+                {index < 3 && <circle class="ps-node-dot" cx={x} cy="210" r="4" />}
+                {index === 3 && <circle class="ps-decision-dot" cx={x} cy="210" r="4" />}
+                {index === 4 && <path class="ps-check" d={`M${x - 9} 210 l6 7 l12 -15`} />}
+              </g>
+            ))}
+
+            {/* Döngü kapanır: aksiyon kaynaklara geri döner. */}
+            <path class="ps-loop" d="M576 228 V368 H108 V356" />
+          </g>
+        )
+      }
+
+      {
+        motion === "organise" && (
+          /* Sahne dikeyde ortalanır: kompozisyon kutunun üst yarısına yığılmasın. */
+          <g transform="translate(0 40)">
+            {/* Bağlam çerçevesi: kayıtların oturduğu düzen. */}
+            <rect class="ps-frame" x="132" y="76" width="246" height="228" rx="4" />
+            {[126, 178, 230].map((y) => (
+              <line class="ps-rule" x1="132" y1={y} x2="378" y2={y} />
+            ))}
+
+            {ORGANISE_SLOTS.map((slot, index) => (
+              <g
+                class={`ps-record ps-record--${index}`}
+                style={`--dx:${slot.dx};--dy:${slot.dy};--i:${index}`}
+              >
+                <rect x={slot.x} y={slot.y} width="98" height="28" rx="2" />
+                <line x1={slot.x + 10} y1={slot.y + 14} x2={slot.x + 34} y2={slot.y + 14} />
+                <line
+                  class="ps-record__value"
+                  x1={slot.x + 62}
+                  y1={slot.y + 14}
+                  x2={slot.x + 88}
+                  y2={slot.y + 14}
+                />
+              </g>
+            ))}
+
+            <path class="ps-track" d="M378 190 H430" />
+            <path class="ps-track-pulse" d="M378 190 H430" />
+
+            {/* Rapor: çubuklar kayıtlar yerleştikten SONRA dolar. */}
+            <rect class="ps-report" x="430" y="80" width="176" height="220" rx="4" />
+            {ORGANISE_BARS.map((ratio, index) => (
+              <g>
+                <line
+                  class="ps-bar-track"
+                  x1="452"
+                  y1={116 + index * 36}
+                  x2="584"
+                  y2={116 + index * 36}
+                />
+                <line
+                  class={`ps-bar ps-bar--${index}`}
+                  x1="452"
+                  y1={116 + index * 36}
+                  x2={452 + 132 * ratio}
+                  y2={116 + index * 36}
+                />
+              </g>
+            ))}
+          </g>
+        )
+      }
+
+      {
+        motion === "allocate" && (
+          /* Sahne dikeyde ortalanır: kompozisyon kutunun üst yarısına yığılmasın. */
+          <g transform="translate(0 40)">
+            {/* Talep. */}
+            <g class="ps-request">
+              <rect x="22" y="176" width="104" height="56" rx="3" />
+              <line x1="36" y1="196" x2="88" y2="196" />
+              <line x1="36" y1="212" x2="70" y2="212" />
+            </g>
+
+            {/* Üç kural kapısı — sırayla değerlendirilir. */}
+            {ALLOCATE_GATES.map((y, index) => (
+              <g class={`ps-gate ps-gate--${index}`}>
+                <path class="ps-link" d={`M126 204 C 150 204, 150 ${y + 20}, 172 ${y + 20}`} />
+                <rect x="172" y={y} width="96" height="40" rx="3" />
+                <line class="ps-gate__bar" x1="186" y1={y + 20} x2="254" y2={y + 20} />
+                <path class="ps-link" d={`M268 ${y + 20} C 296 ${y + 20}, 300 200, 320 200`} />
+              </g>
+            ))}
+
+            {/* Rampa × saat matrisi. */}
+            {ALLOCATE_ROWS.map((y, row) =>
+              ALLOCATE_COLS.map((x, col) => (
+                <g
+                  class={[
+                    "ps-cell",
+                    ALLOCATE_BLOCKED.has(`${row}-${col}`) ? "ps-cell--blocked" : "",
+                    row === ALLOCATE_PICK.row && col === ALLOCATE_PICK.col ? "ps-cell--pick" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  style={`--i:${row * 6 + col}`}
+                >
+                  <rect x={x} y={y} width="46" height="52" rx="2" />
+                  {ALLOCATE_BLOCKED.has(`${row}-${col}`) && (
+                    <path class="ps-strike" d={`M${x + 10} ${y + 14} L${x + 36} ${y + 38}`} />
+                  )}
+                  {row === ALLOCATE_PICK.row && col === ALLOCATE_PICK.col && (
+                    <path class="ps-check" d={`M${x + 12} ${y + 26} l6 7 l14 -17`} />
+                  )}
+                </g>
+              ))
+            )}
+          </g>
+        )
+      }
+
+      {
+        motion === "answer" && (
+          <g>
+            {/* Soru. */}
+            <g class="ps-question">
+              <rect x="252" y="44" width="136" height="34" rx="17" />
+              <circle cx="272" cy="61" r="4" />
+            </g>
+
+            {/* Üç bağlam bandı: soru her bantta bir kanıt toplar. */}
+            {ANSWER_BANDS.map((y, index) => (
+              <g class={`ps-band ps-band--${index}`}>
+                <rect x="140" y={y} width="360" height="44" rx="3" />
+                <line x1="160" y1={y + 22} x2="228" y2={y + 22} />
+                <g class="ps-evidence">
+                  <rect x="454" y={y + 12} width="20" height="20" rx="2" />
+                  <path class="ps-check" d={`M459 ${y + 22} l4 5 l8 -10`} />
+                </g>
+              </g>
+            ))}
+
+            {/* İniş yolu ve cevap. */}
+            <path class="ps-track" d="M320 78 V104 M320 148 V168 M320 212 V232 M320 276 V300" />
+            <path class="ps-track-pulse" d="M320 78 V300" />
+            <g class="ps-answer">
+              <rect x="200" y="300" width="240" height="54" rx="3" />
+              {[0, 1, 2].map((index) => (
+                <rect class="ps-badge" x={214 + index * 26} y={330} width="18" height="12" rx="2" />
+              ))}
+              <line x1="214" y1="318" x2="330" y2="318" />
+            </g>
+
+            {/* Kanıt geri döner: cevabın kaynağı görünür kalır. */}
+            <path class="ps-loop" d="M200 327 H72 V61 H252" />
+          </g>
+        )
+      }
+    </svg>
+
+    <ul class="pscene__labels">
+      {
+        (LABELS[motion] ?? []).map((label) => (
+          <li class={`pscene__label pscene__label--${label.align ?? "center"}`} style={pos(label)}>
+            {t(locale, label.key)}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  {/* Ürünün KENDİ adımları — doğrulanmış `workflow` içeriğinden gelir. */}
+  <ol class="pscene__steps" data-testid="product-scene-steps">
+    {
+      product.data.workflow.map((step, index) => (
+        <li class="pscene__step">
+          <span class="pscene__step-index" aria-hidden="true">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <span class="pscene__step-title">{step.title}</span>
+        </li>
+      ))
+    }
+  </ol>
+</div>
+
+<style>
+  .pscene {
+    display: grid;
+    gap: var(--space-md);
+  }
+
+  .pscene__stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 640 / 420;
+    border: var(--border-width) solid var(--border-inverse);
+    border-radius: var(--radius-md);
+    background: var(--signal-surface-inverse);
+    overflow: hidden;
+  }
+
+  .pscene__svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ---------------------------------------------------------- etiketler */
+
+  .pscene__labels {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    pointer-events: none;
+  }
+
+  .pscene__label {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    transform: translate(-50%, -50%);
+    max-width: 12rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--text-inverse-muted);
+    text-wrap: balance;
+  }
+
+  .pscene__label--start {
+    transform: translate(0, -50%);
+    text-align: start;
+  }
+
+  .pscene__label--end {
+    transform: translate(-100%, -50%);
+    text-align: end;
+  }
+
+  /* Dar ekranda etiketler sahneyi doldurmasın. */
+  @media (max-width: 48rem) {
+    .pscene__label {
+      font-size: 0.625rem;
+      max-width: 7rem;
+    }
+  }
+
+  /* ---------------------------------------------------------- ortak çizgi dili */
+
+  .ps-link,
+  .ps-track,
+  .ps-loop {
+    fill: none;
+    stroke: var(--brand-cyan);
+    stroke-width: 1.5;
+    opacity: 0.55;
+  }
+
+  .ps-track {
+    stroke-width: 2;
+    opacity: 0.8;
+  }
+
+  .ps-loop {
+    stroke: var(--border-inverse-strong);
+    stroke-dasharray: 3 7;
+    opacity: 0.9;
+  }
+
+  .ps-chip rect,
+  .ps-record rect,
+  .ps-request rect,
+  .ps-gate rect,
+  .ps-cell rect,
+  .ps-question rect,
+  .ps-band rect,
+  .ps-answer rect,
+  .ps-report,
+  .ps-frame {
+    fill: none;
+    stroke: var(--border-inverse-strong);
+    stroke-width: 1.5;
+  }
+
+  .ps-chip line,
+  .ps-record line,
+  .ps-request line,
+  .ps-band line,
+  .ps-answer line {
+    stroke: var(--text-inverse-muted);
+    stroke-width: 2;
+  }
+
+  .ps-rule {
+    stroke: var(--border-inverse);
+    stroke-width: 1;
+  }
+
+  /* Kutular BOŞ değildir: her kayıt bir alan ve bir değer taşır. */
+  .ps-chip__value,
+  .ps-record__value {
+    stroke: var(--brand-cyan);
+    opacity: 0.75;
+  }
+
+  .ps-dot,
+  .ps-node-dot {
+    fill: var(--brand-cyan);
+  }
+
+  .ps-node {
+    fill: none;
+    stroke: var(--brand-cyan);
+    stroke-width: 2;
+  }
+
+  .ps-check {
+    fill: none;
+    stroke: var(--brand-cyan);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* KARAR — bakır. Yalnızca insan onayı ve yerleştirme kararında. */
+  .ps-decision {
+    fill: none;
+    stroke: var(--decision);
+    stroke-width: 2;
+  }
+
+  .ps-decision-dot {
+    fill: var(--decision);
+  }
+
+  .ps-action {
+    fill: none;
+    stroke: var(--brand-cyan);
+    stroke-width: 2;
+  }
+
+  .ps-pulse,
+  .ps-track-pulse {
+    fill: none;
+    stroke: var(--brand-cyan);
+    stroke-width: 3;
+    stroke-linecap: round;
+    opacity: 0;
+  }
+
+  /* ================================================== converge: birleşme */
+
+  .pscene[data-motion="converge"] .ps-pulse {
+    stroke-dasharray: 16 340;
+    animation: ps-flow 3.6s linear infinite;
+  }
+
+  .pscene[data-motion="converge"] .ps-pulse--1 {
+    animation-delay: 0.35s;
+  }
+  .pscene[data-motion="converge"] .ps-pulse--2 {
+    animation-delay: 0.7s;
+  }
+  .pscene[data-motion="converge"] .ps-pulse--3 {
+    animation-delay: 1.05s;
+  }
+  .pscene[data-motion="converge"] .ps-pulse--4 {
+    animation-delay: 1.4s;
+  }
+
+  /* Beş ayrı darbe TEK darbeye iner: hareketin kendisi "birleşme"dir. */
+  .pscene[data-motion="converge"] .ps-track-pulse {
+    stroke-dasharray: 22 400;
+    animation: ps-flow 3.6s linear 1.9s infinite;
+  }
+
+  @keyframes ps-flow {
+    0% {
+      stroke-dashoffset: 356;
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.95;
+    }
+    82% {
+      opacity: 0.95;
+    }
+    100% {
+      stroke-dashoffset: 0;
+      opacity: 0;
+    }
+  }
+
+  /* ================================================== organise: yerleşme */
+
+  .pscene[data-motion="organise"] .ps-record {
+    animation: ps-settle 7s var(--motion-ease) infinite;
+    animation-delay: calc(var(--i) * 90ms);
+  }
+
+  @keyframes ps-settle {
+    0% {
+      transform: translate(calc(var(--dx) * 1px), calc(var(--dy) * 1px));
+      opacity: 0.35;
+    }
+    26%,
+    88% {
+      transform: translate(0, 0);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(calc(var(--dx) * 1px), calc(var(--dy) * 1px));
+      opacity: 0.35;
+    }
+  }
+
+  .pscene[data-motion="organise"] .ps-bar-track {
+    stroke: var(--border-inverse);
+    stroke-width: 4;
+  }
+
+  .pscene[data-motion="organise"] .ps-bar {
+    stroke: var(--brand-cyan);
+    stroke-width: 4;
+    transform-box: fill-box;
+    transform-origin: left center;
+    animation: ps-fill 7s var(--motion-ease) infinite;
+    animation-delay: calc(1.6s + var(--i, 0) * 120ms);
+  }
+
+  .pscene[data-motion="organise"] .ps-bar--1 {
+    animation-delay: 1.75s;
+  }
+  .pscene[data-motion="organise"] .ps-bar--2 {
+    animation-delay: 1.9s;
+  }
+  .pscene[data-motion="organise"] .ps-bar--3 {
+    animation-delay: 2.05s;
+  }
+  .pscene[data-motion="organise"] .ps-bar--4 {
+    animation-delay: 2.2s;
+  }
+
+  @keyframes ps-fill {
+    0%,
+    8% {
+      transform: scaleX(0);
+    }
+    34%,
+    88% {
+      transform: scaleX(1);
+    }
+    100% {
+      transform: scaleX(0);
+    }
+  }
+
+  .pscene[data-motion="organise"] .ps-track-pulse {
+    stroke-dasharray: 14 60;
+    animation: ps-short-flow 7s linear 1.2s infinite;
+  }
+
+  @keyframes ps-short-flow {
+    0% {
+      stroke-dashoffset: 74;
+      opacity: 0;
+    }
+    6% {
+      opacity: 0.95;
+    }
+    18% {
+      opacity: 0.95;
+    }
+    24%,
+    100% {
+      stroke-dashoffset: 0;
+      opacity: 0;
+    }
+  }
+
+  /* ================================================== allocate: yerleştirme */
+
+  .pscene[data-motion="allocate"] .ps-gate .ps-gate__bar {
+    stroke: var(--border-inverse-strong);
+    stroke-width: 3;
+    animation: ps-gate 7s var(--motion-ease) infinite;
+  }
+
+  .pscene[data-motion="allocate"] .ps-gate--0 .ps-gate__bar {
+    animation-delay: 0.4s;
+  }
+  .pscene[data-motion="allocate"] .ps-gate--1 .ps-gate__bar {
+    animation-delay: 0.9s;
+  }
+  .pscene[data-motion="allocate"] .ps-gate--2 .ps-gate__bar {
+    animation-delay: 1.4s;
+  }
+
+  @keyframes ps-gate {
+    0%,
+    4% {
+      stroke: var(--border-inverse-strong);
+    }
+    10%,
+    88% {
+      stroke: var(--brand-cyan);
+    }
+    100% {
+      stroke: var(--border-inverse-strong);
+    }
+  }
+
+  /* Elenen saatler kural kapılarından SONRA çizilir. */
+  .pscene[data-motion="allocate"] .ps-strike {
+    fill: none;
+    stroke: var(--text-inverse-muted);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 40;
+    stroke-dashoffset: 40;
+    animation: ps-strike 7s var(--motion-ease) infinite;
+    animation-delay: calc(1.8s + var(--i) * 40ms);
+  }
+
+  @keyframes ps-strike {
+    0%,
+    6% {
+      stroke-dashoffset: 40;
+    }
+    18%,
+    88% {
+      stroke-dashoffset: 0;
+    }
+    100% {
+      stroke-dashoffset: 40;
+    }
+  }
+
+  .pscene[data-motion="allocate"] .ps-cell--blocked rect {
+    stroke: var(--border-inverse);
+  }
+
+  /* Yerleşen hücre BAKIR: bu bir karardır. */
+  .pscene[data-motion="allocate"] .ps-cell--pick rect {
+    stroke: var(--decision);
+    stroke-width: 2.5;
+    fill: var(--decision-surface);
+  }
+
+  .pscene[data-motion="allocate"] .ps-cell--pick .ps-check {
+    stroke: var(--decision);
+  }
+
+  .pscene[data-motion="allocate"] .ps-cell--pick {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: ps-land 7s var(--motion-ease) infinite;
+  }
+
+  @keyframes ps-land {
+    0%,
+    30% {
+      opacity: 0;
+      transform: translateY(-14px);
+    }
+    40%,
+    88% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-14px);
+    }
+  }
+
+  /* ================================================== answer: kanıtlı dönüş */
+
+  .pscene[data-motion="answer"] .ps-track-pulse {
+    stroke-dasharray: 18 260;
+    animation: ps-descend 6s linear infinite;
+  }
+
+  @keyframes ps-descend {
+    0% {
+      stroke-dashoffset: 278;
+      opacity: 0;
+    }
+    8% {
+      opacity: 0.95;
+    }
+    58% {
+      opacity: 0.95;
+    }
+    64%,
+    100% {
+      stroke-dashoffset: 0;
+      opacity: 0;
+    }
+  }
+
+  .pscene[data-motion="answer"] .ps-evidence {
+    opacity: 0.25;
+    animation: ps-evidence 6s var(--motion-ease) infinite;
+  }
+
+  .pscene[data-motion="answer"] .ps-band--0 .ps-evidence {
+    animation-delay: 0.9s;
+  }
+  .pscene[data-motion="answer"] .ps-band--1 .ps-evidence {
+    animation-delay: 1.6s;
+  }
+  .pscene[data-motion="answer"] .ps-band--2 .ps-evidence {
+    animation-delay: 2.3s;
+  }
+
+  @keyframes ps-evidence {
+    0%,
+    8% {
+      opacity: 0.25;
+    }
+    20%,
+    88% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.25;
+    }
+  }
+
+  .pscene[data-motion="answer"] .ps-badge {
+    fill: none;
+    stroke: var(--brand-cyan);
+    stroke-width: 1.5;
+    opacity: 0.25;
+    animation: ps-evidence 6s var(--motion-ease) infinite;
+    animation-delay: 3.1s;
+  }
+
+  /* ---------------------------------------------------------- adım şeridi */
+
+  .pscene__steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+    gap: var(--space-2xs) var(--space-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pscene__step {
+    display: grid;
+    gap: 2px;
+    padding-top: var(--space-2xs);
+    border-top: var(--border-width) solid var(--border-inverse-strong);
+  }
+
+  .pscene__step-index {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    color: var(--brand-cyan);
+  }
+
+  .pscene__step-title {
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    color: var(--text-inverse);
+  }
+
+  /* ---------------------------------------------------------- hareket azaltma */
+
+  /*
+   * ANLAMLI SON DURUM: kayıtlar yerleşmiş, kapılar açılmış, elenen saatler
+   * çizilmiş, hücre atanmış, kanıtlar toplanmış olur. Yalnızca hareket durur.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .ps-record,
+    .ps-bar,
+    .ps-strike,
+    .ps-cell--pick,
+    .ps-evidence,
+    .ps-badge,
+    .ps-gate__bar {
+      animation: none !important;
+    }
+
+    .ps-record {
+      transform: translate(0, 0);
+      opacity: 1;
+    }
+
+    .ps-bar {
+      transform: scaleX(1);
+    }
+
+    .ps-strike {
+      stroke-dashoffset: 0;
+    }
+
+    .ps-cell--pick {
+      opacity: 1;
+      transform: none;
+    }
+
+    .ps-evidence,
+    .ps-badge {
+      opacity: 1;
+    }
+
+    .pscene[data-motion="allocate"] .ps-gate__bar {
+      stroke: var(--brand-cyan);
+    }
+
+    .ps-pulse,
+    .ps-track-pulse {
+      display: none;
+    }
+  }
+</style>

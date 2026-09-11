@@ -33,6 +33,28 @@ const dictionaries = {
     "products.audiences": "Kimin için?",
     "products.aiRole": "Yapay zekânın rolü",
     "products.sourceNote": "Bu sayfadaki anlatı ürünün kendi kaynak deposundaki tanıma dayanır.",
+
+    /*
+     * ÜRÜN SAHNESİ DÜĞÜM ETİKETLERİ (S15-R1).
+     *
+     * Sahnedeki kutular BOŞ OLAMAZ: her düğümün erişilebilir bir adı vardır.
+     * Bunlar ürün İDDİASI değil, şemadaki yapısal bölgelerin adıdır; ürünün
+     * kendi anlatısı `workflow` adımlarından gelir.
+     */
+    "products.scene.label": "Çalışma modeli şeması",
+    "products.scene.sources": "Dağınık kaynaklar",
+    "products.scene.correlation": "Korelasyon",
+    "products.scene.lifecycle": "Tek olay yaşam döngüsü",
+    "products.scene.records": "Dağınık kayıtlar",
+    "products.scene.context": "Müşteri ve proje bağlamı",
+    "products.scene.report": "Rapor ve döküm",
+    "products.scene.request": "Tedarikçi talebi",
+    "products.scene.rules": "Tesis kuralları",
+    "products.scene.slots": "Rampa ve saat",
+    "products.scene.question": "Doğal dilde soru",
+    "products.scene.tools": "Deterministik araçlar",
+    "products.scene.answer": "Kanıtlı cevap",
+    "products.scene.steps": "Adımlar",
     "nav.services": "Hizmetler",
     "nav.about": "Hakkımızda",
     "nav.technologies": "Teknolojiler",
@@ -225,6 +247,22 @@ const dictionaries = {
     "products.aiRole": "The role of AI",
     "products.sourceNote":
       "The narrative on this page follows the product's own definition in its source repository.",
+
+    /* Scene node labels — structural regions, not product claims. */
+    "products.scene.label": "Working model diagram",
+    "products.scene.sources": "Scattered sources",
+    "products.scene.correlation": "Correlation",
+    "products.scene.lifecycle": "One event lifecycle",
+    "products.scene.records": "Scattered records",
+    "products.scene.context": "Customer and project context",
+    "products.scene.report": "Report and export",
+    "products.scene.request": "Supplier request",
+    "products.scene.rules": "Site rules",
+    "products.scene.slots": "Dock and time",
+    "products.scene.question": "Question in plain language",
+    "products.scene.tools": "Deterministic tools",
+    "products.scene.answer": "Answer with evidence",
+    "products.scene.steps": "Steps",
     "nav.services": "Services",
     "nav.about": "About",
     "nav.technologies": "Technologies",
