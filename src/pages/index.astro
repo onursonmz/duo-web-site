@@ -66,28 +66,31 @@ const alternates = { tr: homePath("tr"), en: homePath("en") };
   alternates={alternates}
   noindex={page.seo.noindex}
   wide={true}
+  headerOverlay={true}
 >
   {
     /*
-    HERO — kenardan kenara imza sahnesi.
-    `bleed` + `padding="none"`: ekranı dolduran kompozisyon 76rem kapsayıcıya
-    hapsedilemez, dikey ritmi bileşenin kendisi kurar.
+    HERO + ÇÖZÜM ATLASI — TEK, KESİNTİSİZ SAHNE (S15-R2).
+
+    İkisi AYNI bileşenin içindedir çünkü aralarındaki geçiş bir ayraç değil,
+    kameranın çekirdekten geçip veri yollarını atlasın yatay ray geometrisine
+    dönüştürdüğü sürekli bir harekettir. Araya bir `SectionBridge` konursa
+    süreklilik kırılır; bu yüzden hero ile atlas arasında ayraç YOKTUR.
+
+    Atlas kendi `<section id="solutions">` kimliğini korur: rota çapaları,
+    başlık hiyerarşisi ve bölüm envanteri değişmez.
   */
   }
-  <Section tone="dark" width="bleed" padding="none" id="hero">
-    <SignatureHero hero={page.hero} stages={page.heroStages} signals={page.heroSignals} />
-  </Section>
-
-  <SectionBridge variant="flow-out" />
-
-  <Section tone="light" width="wide" id="trust">
-    <TrustSection trust={page.trust} />
-  </Section>
+  <SignatureHero hero={page.hero} stages={page.heroStages} signals={page.heroSignals}>
+    <Section tone="light" width="wide" id="solutions">
+      <SolutionAtlas locale={locale} copy={page.solutions} solutions={solutions} />
+    </Section>
+  </SignatureHero>
 
   <SectionBridge variant="seam" tone="light" />
 
-  <Section tone="light" width="wide" id="solutions">
-    <SolutionAtlas locale={locale} copy={page.solutions} solutions={solutions} />
+  <Section tone="light" width="wide" id="trust">
+    <TrustSection trust={page.trust} />
   </Section>
 
   <SectionBridge variant="aperture" />

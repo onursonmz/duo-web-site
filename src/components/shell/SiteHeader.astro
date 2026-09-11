@@ -24,9 +24,21 @@ interface Props {
   locale: Locale;
   pathname: string;
   alternates?: Partial<Record<Locale, string>>;
+  /**
+   * ÜSTE BİNEN BAŞLIK (S15-R2).
+   *
+   * Ana sayfada hero artık ekranı dolduran KOYU bir sahnedir; üstünde duran
+   * beyaz şerit kompozisyonu ikiye bölüyordu. `overlay` başlığı akıştan
+   * çıkarır, zeminini şeffaflaştırır ve koyu tema bağlamına alır. Menü
+   * panelleri kendi zeminlerini taşıdığı için okunurluk değişmez.
+   *
+   * Başlık `fixed` DEĞİL `absolute`tir: sayfayla birlikte kayar, scroll'a
+   * bağlı hiçbir JavaScript gerektirmez ve düzen kaymasına yol açmaz.
+   */
+  overlay?: boolean;
 }
 
-const { locale, pathname, alternates = {} }: Props = Astro.props;
+const { locale, pathname, alternates = {}, overlay = false }: Props = Astro.props;
 
 const items = activeNavItems(locale);
 /*
@@ -42,7 +54,10 @@ const solutionLinks = solutions.map((entry) => ({
 }));
 ---
 
-<header class="site-header theme-light" data-testid="site-header">
+<header
+  class:list={["site-header", overlay ? "site-header--overlay theme-dark" : "theme-light"]}
+  data-testid="site-header"
+>
   <div class="site-header__inner">
     <a
       class="site-header__brand"
@@ -201,6 +216,20 @@ const solutionLinks = solutions.map((entry) => ({
     position: relative;
     z-index: 20;
     border-bottom: var(--border-width) solid var(--border-subtle);
+    background: var(--surface-raised);
+  }
+
+  /* Akıştan çıkar; hero sahnesi ekranın EN ÜSTÜNDEN başlar. */
+  .site-header--overlay {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    border-bottom-color: transparent;
+    background: transparent;
+  }
+
+  /* Açılan menü paneli şeffaf kalamaz: kendi koyu zeminini taşır. */
+  .site-header--overlay .mega {
     background: var(--surface-raised);
   }
 
