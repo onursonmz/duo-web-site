@@ -78,11 +78,23 @@ test.describe("ürün sahnesi her tarayıcıda çalışıyor", () => {
   test("sekme seçimi paneli ve sahneyi değiştiriyor", async ({ page }) => {
     await page.goto("/urunler/");
 
-    const scene = page.locator("[data-eco-scene]");
-    await expect(scene).toHaveAttribute("data-motion", "converge");
+    /*
+     * SEÇİCİ DÜZELTMESİ: tek bir `[data-eco-scene]` düğümü ARTIK YOK.
+     * S15-R1 ürün ekosistemini yeniden yazdı; her ürün kendi panelinde kendi
+     * sahnesini (`.pscene[data-motion]`) taşıyor. Test bu yeni sözleşmeye
+     * bağlandı; iddiası değişmedi — sekme seçimi hem paneli hem SAHNEYİ
+     * değiştirmeli. Panel adıyla kapsanır, böylece tek öğeye çözülür.
+     */
+    await expect(page.locator('[data-eco-panel="cyclops"] .pscene')).toHaveAttribute(
+      "data-motion",
+      "converge"
+    );
 
     await page.locator('[data-eco-tab="logislot"]').click();
-    await expect(scene).toHaveAttribute("data-motion", "allocate");
+    await expect(page.locator('[data-eco-panel="logislot"] .pscene')).toHaveAttribute(
+      "data-motion",
+      "allocate"
+    );
     await expect(page.locator('[data-eco-panel="logislot"]')).toBeVisible();
     await expect(page.locator('[data-eco-panel="cyclops"]')).toBeHidden();
   });
