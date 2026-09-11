@@ -196,7 +196,7 @@ test.describe("JavaScript kapalı", () => {
  */
 test.describe("JavaScript kapalı — CyclOps", () => {
   test("ürün hikâyesi ve ekranlar JS olmadan görünüyor", async ({ page }) => {
-    await page.goto("/cyclops/");
+    await page.goto("/urunler/cyclops/");
 
     await expect(page.locator("h1")).toBeVisible();
     await expect(page.locator(".hero__wordmark img")).toBeVisible();
@@ -209,7 +209,7 @@ test.describe("JavaScript kapalı — CyclOps", () => {
   });
 
   test("JS KAPALIYKEN CTA gerçek bir bağlantı", async ({ page }) => {
-    await page.goto("/cyclops/");
+    await page.goto("/urunler/cyclops/");
     const cta = page.locator('[data-analytics-event="product-cta"]').first();
     await expect(cta).toBeVisible();
     await expect(cta).toHaveAttribute("href", "/iletisim/?topic=cyclops");

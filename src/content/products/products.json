@@ -7,7 +7,6 @@
     "ownership": "duosis-own-product",
     "name": "CyclOps",
     "eyebrow": "Duosis ürünü",
-    "valueProposition": "CyclOps, farklı araçlardan gelen olayları tek bir yaşam döngüsünde toplar ve onaylı aksiyona bağlar.",
     "positioning": "Mevcut izleme araçlarınızın yerine geçmez; ürettikleri olayları ortak bir bağlamda toplar, ilişkilendirir ve ne yapılacağına karar verilen yeri tek bir yere taşır.",
     "problem": {
       "title": "Hangi operasyon problemine odaklanır?",
@@ -100,7 +99,90 @@
       "title": "CyclOps — sinyalden aksiyona",
       "description": "CyclOps, Duosis'in geliştirdiği olay yaşam döngüsü ürünüdür: farklı araçlardan gelen olayları ortak bağlamda toplar, ilişkilendirir ve onaylı aksiyona bağlar.",
       "noindex": true
-    }
+    },
+    "verificationStatus": "verified-running",
+    "source": {
+      "repository": "onursonmz/duo-web-site",
+      "commit": "560e2f3a9e98ca2f8747f46bd278a656a2d72838",
+      "document": "docs/source-materials (S08 doğrulaması)"
+    },
+    "headline": "Farklı izleme araçlarından gelen olayları tek bir yaşam döngüsünde toplayın.",
+    "summary": "CyclOps, farklı araçlardan gelen olayları tek bir yaşam döngüsünde toplar ve onaylı aksiyona bağlar.",
+    "inputs": [
+      "Farklı izleme araçlarından gelen ham olaylar ve alarmlar.",
+      "Varlık ve servis bağlamı.",
+      "Olayları ilişkilendirmek için tanımlanmış eşleştirme kuralları."
+    ],
+    "mechanism": [
+      "Farklı kaynaklardan gelen olayları ortak bir bağlamda toplar.",
+      "İlişkili olayları eşleştirme kurallarıyla birbirine bağlar.",
+      "Olayları önceliklendirir ve tek bir yaşam döngüsünde izler.",
+      "Aksiyonu insan onayına bağlar; onay sınırı görünür kalır."
+    ],
+    "outcomes": [
+      {
+        "title": "İlişkilendirme",
+        "body": "Filtreler ve matcher kuralları, aynı olguya ait sinyalleri tek bir olayda toplar. Kural ağacı okunabilir bir yapıdadır; ilişkilendirmenin neden kurulduğu incelenebilir."
+      },
+      {
+        "title": "Karar",
+        "body": "Olay önceliklendirilir, ilgili ekibe atanır ve durumu (açık, çalışılıyor, çözüldü) tek bir yerden izlenir. Inspector, olayın teknik ayrıntısını ve önerilen adımı yan yana gösterir."
+      },
+      {
+        "title": "Aksiyon",
+        "body": "Karar, dispatcher ve entegrasyonlar üzerinden bir aksiyona bağlanır: bilet açmak, bildirim göndermek veya onaylı bir otomasyon akışını tetiklemek. Yapılan iş olayın kaydında kalır."
+      }
+    ],
+    "capabilities": [
+      {
+        "title": "Sinyal",
+        "body": "İzleme araçları, uygulamalar ve altyapı bileşenleri olay üretir. CyclOps bunları kendi alıcıları (receiver) üzerinden toplar; kaynak aracın yerine geçmez."
+      },
+      {
+        "title": "Bağlam",
+        "body": "Her olay kaynağı, sürümü ve konfigürasyonuyla birlikte kayıt altına alınır. Bir kuralın ne zaman değiştiği ve o anda hangi sürümün çalıştığı görünür kalır."
+      },
+      {
+        "title": "İlişkilendirme",
+        "body": "Filtreler ve matcher kuralları, aynı olguya ait sinyalleri tek bir olayda toplar. Kural ağacı okunabilir bir yapıdadır; ilişkilendirmenin neden kurulduğu incelenebilir."
+      },
+      {
+        "title": "Karar",
+        "body": "Olay önceliklendirilir, ilgili ekibe atanır ve durumu (açık, çalışılıyor, çözüldü) tek bir yerden izlenir. Inspector, olayın teknik ayrıntısını ve önerilen adımı yan yana gösterir."
+      },
+      {
+        "title": "Aksiyon",
+        "body": "Karar, dispatcher ve entegrasyonlar üzerinden bir aksiyona bağlanır: bilet açmak, bildirim göndermek veya onaylı bir otomasyon akışını tetiklemek. Yapılan iş olayın kaydında kalır."
+      }
+    ],
+    "workflow": [
+      {
+        "title": "Sinyal",
+        "body": "İzleme araçları, uygulamalar ve altyapı bileşenleri olay üretir. CyclOps bunları kendi alıcıları (receiver) üzerinden toplar; kaynak aracın yerine geçmez."
+      },
+      {
+        "title": "Bağlam",
+        "body": "Her olay kaynağı, sürümü ve konfigürasyonuyla birlikte kayıt altına alınır. Bir kuralın ne zaman değiştiği ve o anda hangi sürümün çalıştığı görünür kalır."
+      },
+      {
+        "title": "İlişkilendirme",
+        "body": "Filtreler ve matcher kuralları, aynı olguya ait sinyalleri tek bir olayda toplar. Kural ağacı okunabilir bir yapıdadır; ilişkilendirmenin neden kurulduğu incelenebilir."
+      },
+      {
+        "title": "Karar",
+        "body": "Olay önceliklendirilir, ilgili ekibe atanır ve durumu (açık, çalışılıyor, çözüldü) tek bir yerden izlenir. Inspector, olayın teknik ayrıntısını ve önerilen adımı yan yana gösterir."
+      },
+      {
+        "title": "Aksiyon",
+        "body": "Karar, dispatcher ve entegrasyonlar üzerinden bir aksiyona bağlanır: bilet açmak, bildirim göndermek veya onaylı bir otomasyon akışını tetiklemek. Yapılan iş olayın kaydında kalır."
+      }
+    ],
+    "security": [
+      "Aksiyonlar insan onayına bağlıdır; otomasyonun sınırı arayüzde görünür kalır.",
+      "Ürün ekranlarında gerçek müşteri ve altyapı verisi kullanılmaz; hassas alanlar maskelenmiştir."
+    ],
+    "audiences": ["Operasyon ve NOC ekipleri", "Servis sahipleri", "İzleme yöneticileri"],
+    "motionKey": "converge"
   },
   {
     "id": "cyclops-en",
@@ -110,7 +192,6 @@
     "ownership": "duosis-own-product",
     "name": "CyclOps",
     "eyebrow": "A Duosis product",
-    "valueProposition": "CyclOps brings events from separate tools into one lifecycle and connects them to approved action.",
     "positioning": "It does not replace your monitoring tools. It collects the events they produce into a shared context, correlates them, and moves the place where the decision is made into one view.",
     "problem": {
       "title": "Which operational problem does it address?",
@@ -202,6 +283,1055 @@
     "seo": {
       "title": "CyclOps — from signal to action",
       "description": "CyclOps is the event lifecycle product built by Duosis: it collects events from separate tools into a shared context, correlates them and connects them to approved action.",
+      "noindex": true
+    },
+    "verificationStatus": "verified-running",
+    "source": {
+      "repository": "onursonmz/duo-web-site",
+      "commit": "560e2f3a9e98ca2f8747f46bd278a656a2d72838",
+      "document": "docs/source-materials (S08 doğrulaması)"
+    },
+    "headline": "Bring events from different monitoring tools into a single lifecycle.",
+    "summary": "CyclOps brings events from separate tools into one lifecycle and connects them to approved action.",
+    "inputs": [
+      "Raw events and alerts from different monitoring tools.",
+      "Asset and service context.",
+      "Matching rules defined to correlate events."
+    ],
+    "mechanism": [
+      "Collects events from different sources into a shared context.",
+      "Links related events through matching rules.",
+      "Prioritises events and tracks them in a single lifecycle.",
+      "Binds action to human approval; the approval boundary stays visible."
+    ],
+    "outcomes": [
+      {
+        "title": "Correlate",
+        "body": "Filters and matcher rules gather signals belonging to the same fact into a single event. The rule tree is readable, so why a correlation was made can be inspected."
+      },
+      {
+        "title": "Decide",
+        "body": "The event is prioritised, assigned to the right team and tracked through its states — open, in progress, resolved — from one place. The Inspector shows the technical detail and the suggested step side by side."
+      },
+      {
+        "title": "Act",
+        "body": "The decision is bound to an action through dispatchers and integrations: opening a ticket, sending a notification, or triggering an approved automation flow. The work done stays on the event record."
+      }
+    ],
+    "capabilities": [
+      {
+        "title": "Signal",
+        "body": "Monitoring tools, applications and infrastructure components produce events. CyclOps collects them through its own receivers; it does not take the place of the source tool."
+      },
+      {
+        "title": "Context",
+        "body": "Each event source is recorded together with its version and configuration. When a rule changed, and which version was running at that moment, stays visible."
+      },
+      {
+        "title": "Correlate",
+        "body": "Filters and matcher rules gather signals belonging to the same fact into a single event. The rule tree is readable, so why a correlation was made can be inspected."
+      },
+      {
+        "title": "Decide",
+        "body": "The event is prioritised, assigned to the right team and tracked through its states — open, in progress, resolved — from one place. The Inspector shows the technical detail and the suggested step side by side."
+      },
+      {
+        "title": "Act",
+        "body": "The decision is bound to an action through dispatchers and integrations: opening a ticket, sending a notification, or triggering an approved automation flow. The work done stays on the event record."
+      }
+    ],
+    "workflow": [
+      {
+        "title": "Signal",
+        "body": "Monitoring tools, applications and infrastructure components produce events. CyclOps collects them through its own receivers; it does not take the place of the source tool."
+      },
+      {
+        "title": "Context",
+        "body": "Each event source is recorded together with its version and configuration. When a rule changed, and which version was running at that moment, stays visible."
+      },
+      {
+        "title": "Correlate",
+        "body": "Filters and matcher rules gather signals belonging to the same fact into a single event. The rule tree is readable, so why a correlation was made can be inspected."
+      },
+      {
+        "title": "Decide",
+        "body": "The event is prioritised, assigned to the right team and tracked through its states — open, in progress, resolved — from one place. The Inspector shows the technical detail and the suggested step side by side."
+      },
+      {
+        "title": "Act",
+        "body": "The decision is bound to an action through dispatchers and integrations: opening a ticket, sending a notification, or triggering an approved automation flow. The work done stays on the event record."
+      }
+    ],
+    "security": [
+      "Actions are bound to human approval; the boundary of automation stays visible in the interface.",
+      "Product screens use no real customer or infrastructure data; sensitive fields are masked."
+    ],
+    "audiences": ["Operations and NOC teams", "Service owners", "Monitoring administrators"],
+    "motionKey": "converge"
+  },
+  {
+    "id": "hermes-tr",
+    "locale": "tr",
+    "slug": "hermes",
+    "status": "published",
+    "ownership": "duosis-own-product",
+    "name": "Hermes",
+    "eyebrow": "Duosis ürünü",
+    "verificationStatus": "verified-running",
+    "source": {
+      "repository": "Duosis-Developer-Team/Hermes",
+      "commit": "c217e24b41e8633efb4a51a79a940571602bd037",
+      "document": ".duosis/website.json"
+    },
+    "headline": "Ekibin müşteri ve proje bazında yaptığı işi kayıt altına alın, raporlayın.",
+    "summary": "Hermes, ekiplerin müşteri ve proje bazında yaptıkları işi standart zaman kayıtları olarak toplayan; görev, toplantı ve destek taleplerini aynı çalışma alanında izleyen; bu veriden faturalandırma ve raporlama çıktıları üreten bir operasyon platformudur.",
+    "inputs": [
+      "Ekip üyelerinin girdiği zaman kayıtları: müşteri, proje, iş tipi, tarih ve süre.",
+      "Görevler ve toplantılar.",
+      "Gelen destek talepleri.",
+      "Yöneticinin tanımladığı müşteri, proje ve iş tipi listeleri."
+    ],
+    "mechanism": [
+      "Her zaman girişini yöneticinin tanımladığı standart listelere bağlar.",
+      "Kayıtları rol ve izin tabanlı yetkilendirmeyle korur.",
+      "Her organizasyonun verisini veritabanı düzeyinde ayrı tutar.",
+      "Faturalandırılacak süreyi kaydedilen süreden ayrı tutar."
+    ],
+    "outcomes": [
+      {
+        "title": "Tek merkezde iş kaydı",
+        "body": "Yapılan tüm iş tek bir veritabanında, standart bir veri yapısıyla tutulur."
+      },
+      {
+        "title": "Müşteri ve proje bazında görünürlük",
+        "body": "Harcanan süre müşteri, proje ve kişi bazında panelde özetlenir."
+      },
+      {
+        "title": "Faturalandırmaya hazır dökümler",
+        "body": "Zaman kayıtları tarih aralığına göre filtrelenip Excel olarak dışa aktarılır; faturalandırılacak süre ayrıca izlenir."
+      },
+      {
+        "title": "Rol ve izne göre erişim",
+        "body": "Kimin neyi görüp değiştirebileceği, tanımlanabilir roller ve atomik izinlerle yönetilir."
+      },
+      {
+        "title": "Organizasyon bazında ayrık veri",
+        "body": "Her organizasyonun kayıtları veritabanı düzeyinde ayrı tutulur; bir organizasyonun verisi diğerine görünmez."
+      }
+    ],
+    "capabilities": [
+      {
+        "title": "Zaman girişi",
+        "body": "Ekip üyeleri yaptıkları işi müşteri, proje, iş tipi, tarih ve süre bilgisiyle kaydeder; haftalık planlar ve zaman çizelgesi gönderimi aynı akışın parçasıdır."
+      },
+      {
+        "title": "Çalışma alanı yapılandırması",
+        "body": "Yöneticiler müşteri, proje, iş tipi, aktivite tipi, platform ve iş kolu listelerini yönetir; kullanıcıları davet eder veya pasife alır."
+      },
+      {
+        "title": "Raporlama ve panel",
+        "body": "Tarih aralığına göre filtrelenen zaman kayıtları Excel dosyası olarak dışa aktarılır; panel toplam süreyi müşteri, proje ve kişi dağılımıyla gösterir."
+      },
+      {
+        "title": "Faturalandırılabilir saatler",
+        "body": "Her zaman kaydı için faturalandırılacak süre ayrı tutulur; yöneticiler bu değerleri ayrı bir ekrandan düzenler."
+      },
+      {
+        "title": "Görev ve toplantı yönetimi",
+        "body": "Görevler, talepler ve toplantılar aynı çalışma alanında izlenir; görev erişimi kullanıcı ve grup bazında ayarlanır."
+      },
+      {
+        "title": "Rol ve izin yönetimi",
+        "body": "Yönetici tanımlı roller atomik izinlerden oluşur; sistem rolleri kilitlidir ve son yönetici korunur."
+      },
+      {
+        "title": "Destek talepleri merkezi",
+        "body": "Müşteri uygulamalarından gelen destek talepleri Hermes'te toplanır; kaynak uygulamalar entegrasyon API'si ve imzalı webhook'larla bağlanır, ekler paylaşılmadan önce taranır."
+      },
+      {
+        "title": "Public API ve MCP sunucusu",
+        "body": "Dış sistemler ve geliştiriciler zaman kaydı, görev, toplantı ve referans verilerine kapsamlı token'larla Public API üzerinden erişir; MCP sunucusu aynı API'yi yapay zekâ istemcilerine ince bir katman olarak sunar."
+      },
+      {
+        "title": "Microsoft hesabıyla giriş",
+        "body": "Kullanıcılar e-posta ve şifreyle ya da kurumsal Microsoft (Entra ID) hesabıyla oturum açar."
+      },
+      {
+        "title": "Çok kiracılı çalışma alanları",
+        "body": "Birden fazla organizasyona üye kullanıcılar çalışma alanları arasında geçiş yapar; platform yöneticileri organizasyonları ayrı bir konsoldan yönetir."
+      },
+      {
+        "title": "Türkçe ve İngilizce arayüz",
+        "body": "Arayüz Türkçe ve İngilizce olarak sunulur; dil kullanıcı tarafından değiştirilir."
+      }
+    ],
+    "workflow": [
+      {
+        "title": "Çalışma alanını tanımlayın",
+        "body": "Yönetici müşteri, proje ve iş tipi listelerini oluşturur, kullanıcıları davet eder."
+      },
+      {
+        "title": "İşi kaydedin",
+        "body": "Ekip üyeleri yaptıkları işi tarih, süre ve açıklamayla ilgili müşteri ve projeye kaydeder."
+      },
+      {
+        "title": "Faturalandırılacak süreyi belirleyin",
+        "body": "Yöneticiler kayıtların faturalandırılacak süresini gözden geçirir ve gerekirse düzeltir."
+      },
+      {
+        "title": "Raporlayın",
+        "body": "Seçilen tarih aralığı için Excel dökümü alınır; panel dağılımları özetler."
+      }
+    ],
+    "security": [
+      "İzinler token'a gömülmez; her istekte sunucu tarafında çözülür ve çözümleme başarısız olursa erişim kapalı kalır.",
+      "Organizasyon izolasyonu PostgreSQL satır düzeyi güvenliği (RLS) ile veritabanı katmanında zorunlu kılınır.",
+      "Public API erişimi kapsamlı token'lar, hız sınırı ve denetim kaydıyla korunur; MCP sunucusunun veritabanına doğrudan erişimi yoktur."
+    ],
+    "audiences": [
+      "Proje ve operasyon yöneticileri",
+      "Geliştirme ve danışmanlık ekipleri",
+      "Finans ve faturalama ekipleri"
+    ],
+    "scenario": {
+      "title": "Ay sonu raporu",
+      "beforeTitle": "Öncesinde",
+      "before": [
+        "Efor kayitlari e-posta ve tablolara dagilmis durumda.",
+        "Hangi projeye ne kadar sure harcandigi ancak elle birlestirilerek cikariliyor.",
+        "Faturalandirilacak sure, kaydedilen sureden ayirt edilemiyor."
+      ],
+      "afterTitle": "Sonrasinda",
+      "after": [
+        "Tum kayit tek veritabaninda ve standart bir yapida.",
+        "Sure, musteri ve proje bazinda panelde ozetleniyor.",
+        "Tarih araligi filtrelenip Excel olarak disa aktariliyor."
+      ]
+    },
+    "motionKey": "organise",
+    "positioning": "Hermes bir muhasebe veya İK sistemi değildir: yapılan işin kaydını tutar ve bu kayıttan raporlama ile faturalandırma çıktısı üretir.",
+    "problem": {
+      "title": "Çözdüğü problem",
+      "body": "Farklı müşteriler ve projeler için yapılan işler e-posta ve tablolar gibi dağınık kaynaklarda tutulduğunda, hangi projeye ne kadar efor harcandığını görmek ve raporlamak mümkün olmaz."
+    },
+    "diagramTitle": "Hermes iş akışı",
+    "diagramNote": "Aşağıdaki görsel bir SÜREÇ GÖRSELLEŞTİRMESİDİR, ürün ekranı değildir. Hermes deposunda yayımlanabilir gerçek ekran görüntüsü bulunmadığı için sahte bir ürün ekranı tasarlanmadı.",
+    "technologyRefs": [],
+    "relatedSolutionRefs": [],
+    "cta": {
+      "title": "Hermes'i konuşalım",
+      "body": "Ekibinizin çalışma kaydını nasıl standartlaştırabileceğimizi anlatalım.",
+      "labelKey": "cta.contactUs",
+      "topic": "hermes"
+    },
+    "seo": {
+      "title": "Hermes — zaman kaydı, görev ve destek operasyonları",
+      "description": "Hermes, ekiplerin müşteri ve proje bazında yaptıkları işi standart zaman kayıtları olarak toplayan; görev, toplantı ve destek taleplerini aynı çalışma alanınd",
+      "noindex": true
+    }
+  },
+  {
+    "id": "logislot-tr",
+    "locale": "tr",
+    "slug": "logislot",
+    "status": "published",
+    "ownership": "duosis-own-product",
+    "name": "LogiSlot",
+    "eyebrow": "Duosis ürünü",
+    "verificationStatus": "verified-running",
+    "source": {
+      "repository": "Duosis-Developer-Team/logislot",
+      "commit": "588b6830aa1176413b40ee9100fb812b31e8632f",
+      "document": ".duosis/website.json"
+    },
+    "headline": "Depo randevularını tesisinizin gerçek kurallarına göre planlayın.",
+    "summary": "LogiSlot; fabrikaların, depoların ve üretim tesislerinin tedarikçi mal kabul ve rampa randevu süreçlerini dijitalleştiren, kurallara dayalı, çok kiracılı bir SaaS platformudur. Tedarikçi ürün, araç ve teslimat bilgisini girer; sistem tesis kurallarını değerlendirip yalnızca gerçekten uygun saatleri gösterir ve rampayı kendisi atar.",
+    "inputs": [
+      "Tedarikçinin gireceği ürün, kategori ve miktar bilgisi.",
+      "Araç kategorisi ve teslimat tipi (standart randevu veya kargo).",
+      "Tesisin kuralları: kategori süreleri, araç-rampa uyumluluğu, çalışma saatleri ve takvim istisnaları.",
+      "Rampaların o günkü mevcut doluluğu."
+    ],
+    "mechanism": [
+      "Tüm tesis kurallarını tek bir kural motorunda değerlendirir.",
+      "Sert kurallar uygun olmayan randevuyu engeller; yumuşak kurallar uyarı üretir.",
+      "Yalnızca gerçekten uygun saatleri gösterir ve uygun rampayı atar.",
+      "Rampa çakışma gruplarını hesaba katarak aynı anda kullanılamayacak rampaları birlikte yönetir."
+    ],
+    "outcomes": [
+      {
+        "title": "Gerçek müsaitlik",
+        "body": "Tedarikçiye gösterilen saatler ürün, araç, rampa ve çakışma kuralları hesaba katılarak üretilir."
+      },
+      {
+        "title": "Kapıda sürpriz yok",
+        "body": "Araç tipi ve rampa uyumluluğu randevu anında değerlendirilir; uygun olmayan rampaya randevu yerleştirilemez."
+      },
+      {
+        "title": "Tek akışta onay ve izlenebilirlik",
+        "body": "Bekliyor, onaylandı, revize bekliyor, tamamlandı ve iptal durumları tek akışta yönetilir; her revizyon geçmişiyle saklanır."
+      },
+      {
+        "title": "Kod değişmeden tesis bazlı yapılandırma",
+        "body": "Kategoriler, araç kategorileri, rampalar, çakışma grupları, tedarikçiler ve roller tesisin kendi yöneticileri tarafından yönetilir."
+      },
+      {
+        "title": "Sağlayıcı operasyon verinizi görmez",
+        "body": "Platform paneli yalnızca agregat kullanım ve sağlık metriklerini gösterir; tedarikçi, sürücü veya plaka gibi detaylara varsayılan erişimi yoktur."
+      }
+    ],
+    "capabilities": [
+      {
+        "title": "Üç adımlı randevu sihirbazı",
+        "body": "Tedarikçi önce ürün ve kategoriyi, sonra araç ve teslimat tipini, en son gerçek müsaitlikten tarih ve saati seçer; rampayı sistem atar."
+      },
+      {
+        "title": "Kural motoru",
+        "body": "Kategori-süre kuralları, araç-rampa uyumluluğu, rampa çakışma grupları ve tavsiye katmanı tek serviste değerlendirilir; sert kurallar engeller, tavsiye kuralları yalnızca sinyal üretir."
+      },
+      {
+        "title": "Rampa çakışma grupları",
+        "body": "Yan yana rampalar veya fiziksel kapasite paylaşan alanlar karşılıklı bloke, paylaşımlı kapasite ya da koşullu tetik olarak konfigürasyonla tanımlanır; kodda sabit rampa ilişkisi yoktur."
+      },
+      {
+        "title": "Kargo uyarı katmanı",
+        "body": "Belirsiz varışlı kargolar kaba bir zaman penceresiyle kaydedilir ve takvimde ayrı bir uyarı katmanı olarak görünür; standart randevuları engellemez."
+      },
+      {
+        "title": "Yönetim takvimi ve randevu aksiyonları",
+        "body": "Günlük rampa-saat takvimi ve haftalık özet; onay, red, revize, tamamlama ve iptal aksiyonları duruma göre sunulur; revize geçmişi saklanır."
+      },
+      {
+        "title": "Tedarikçi adına randevu",
+        "body": "Yöneticiler tedarikçi adına randevu oluşturur; tedarikçi kuralları aynen uygulanır ve manuel rampa seçimi de tam kural setinden geçer."
+      },
+      {
+        "title": "Tekrarlayan randevu serileri",
+        "body": "Haftalık, iki haftalık veya aylık seriler oluşturulur; her tekrar tam kural setinden geçer ve seri ya bütünüyle kabul edilir ya hiç. Seriler toplu iptal, revize ve onaylanabilir."
+      },
+      {
+        "title": "Bildirimler ve e-posta",
+        "body": "Randevu yaşam döngüsü olayları panel bildirimi ve e-posta olarak iletilir; kullanıcılar tercihlerini yönetir, başarısız e-postalar loglanır ve yeniden gönderilir."
+      },
+      {
+        "title": "Raporlar ve CSV",
+        "body": "Tarih aralıklı operasyon raporları: durum ve kategori dağılımları, günlük trend, onay süresi; özet ve randevu detayı CSV olarak dışa aktarılır."
+      },
+      {
+        "title": "Tesis konfigürasyonu",
+        "body": "Ürün kategorileri, araç kategorileri, rampalar ve çalışma saatleri, takvim istisnaları, tedarikçiler (izinli kategori, kota, otomatik onay) ve tesis bazlı marka ayarları yönetim panelinden düzenlenir."
+      },
+      {
+        "title": "Kullanıcı ve rol yönetimi",
+        "body": "Tesis kullanıcıları ve rolleri izin gruplarıyla tanımlanır; sistem rolleri kilitlidir, rampa yöneticileri yalnızca atanmış rampalarında işlem yapar."
+      },
+      {
+        "title": "Platform paneli",
+        "body": "SaaS sağlayıcı müşteri hesaplarını açar, plan ve limit atar, agregat kullanım ve sağlık metriklerini izler; operasyonel veriye erişmez."
+      },
+      {
+        "title": "Mobil uygulama",
+        "body": "iOS ve Android uygulaması tedarikçi ve yönetim akışlarını web ile parite hedefiyle sunar; platform paneli bilinçli olarak mobilde yoktur."
+      },
+      {
+        "title": "Destek talepleri",
+        "body": "Yönetim ve tedarikçi kullanıcıları destek talebi açar ve takip eder; talepler Duosis'in Hermes destek merkezine iletilir, iç notlar müşteriye çıkmaz."
+      },
+      {
+        "title": "Türkçe ve İngilizce arayüz",
+        "body": "Açılış sayfası ve üç portal Türkçe ve İngilizce sunulur; dil tercihi sunucu tarafında okunur."
+      }
+    ],
+    "workflow": [
+      {
+        "title": "Ürün ve kategori",
+        "body": "Tedarikçi ürünü, kategoriyi, miktarı ve birimi girer; yalnızca kendisine izinli kategoriler listelenir."
+      },
+      {
+        "title": "Araç ve teslimat tipi",
+        "body": "Araç kategorisi kategori varsayılanından gelir ve değiştirilebilir; plaka ve sürücü girilir; standart ya da kargo teslimat seçilir."
+      },
+      {
+        "title": "Gerçek müsaitlikten saat",
+        "body": "Gün, 30 dakikalık başlangıç dilimi ve tahmini süre seçilir; dilimler müsait, kısmen dolu veya dolu olarak gösterilir."
+      },
+      {
+        "title": "Gönderim ve otomatik onay",
+        "body": "Tedarikçinin otomatik onay yetkisi varsa randevu onaylanır, yoksa yönetici onayına düşer."
+      },
+      {
+        "title": "Yönetici işlemi",
+        "body": "Yönetici onaylar, reddeder, revize eder, tamamlar veya iptal eder; revize halinde eski ve yeni aralık saklanır."
+      },
+      {
+        "title": "Bildirim ve denetim kaydı",
+        "body": "Her aksiyon tarafları bilgilendirir ve denetim kaydına işlenir."
+      }
+    ],
+    "security": [
+      "Platform izinleri ile tenant içi izinler ayrı uzaylardır ve asla birleşmez; tenant ve tedarikçi kimlikleri platform uçlarından 403 alır.",
+      "Her istek kimliği doğrulanmış kullanıcı ve aktif tenant/tesis bağlamıyla çalışır; tedarikçi yalnızca kendi randevularını görür.",
+      "Rampa yöneticilerinin işlem yetkisi atanmış rampa listesiyle daraltılır.",
+      "Refresh token'lar her kullanımda yenilenir; çıkış tüm oturumları kapatır; giriş ve parola sıfırlama hız sınırlıdır.",
+      "Parola politikası uygulanır; geçici parolayla açılan hesaplar ilk girişte parola değişimine zorlanır.",
+      "Kritik işlemler önce/sonra durumlarıyla denetim kaydına yazılır; parola ve token gibi alanlar maskelenir.",
+      "Platform paneli yalnızca agregat veri gösterir; tedarikçi adı, sürücü, telefon ve plaka gibi detaylar varsayılan olarak platform katmanına çıkmaz."
+    ],
+    "audiences": [
+      "Tedarikçiler ve nakliyeciler",
+      "Rampa ve depo yöneticileri",
+      "Tesis sistem yöneticileri",
+      "Planlama ve satın alma ekipleri"
+    ],
+    "scenario": {
+      "title": "Tedarikci randevu talebi",
+      "beforeTitle": "Oncesinde",
+      "before": [
+        "Talepler e-posta ve telefonla dagink yonetiliyor.",
+        "Rampa dolulugu gercek zamanli gorunmuyor.",
+        "Arac tipi ile rampa uyumsuzlugu arac kapiya geldiginde fark ediliyor."
+      ],
+      "afterTitle": "Sonrasinda",
+      "after": [
+        "Tedarikci uc adimda kendi randevusunu olusturuyor.",
+        "Yalnizca gercekten uygun saatler gosteriliyor.",
+        "Uygun rampa kurallara gore atanıyor."
+      ]
+    },
+    "motionKey": "allocate",
+    "positioning": "LogiSlot bir depo yönetim sistemi (WMS) değildir: mal kabul kapısındaki randevu ve rampa planlamasını yönetir.",
+    "problem": {
+      "title": "Çözdüğü problem",
+      "body": "Geleneksel mal kabul operasyonunda tedarikçi talepleri e-posta ve telefonla dağınık yönetilir; rampa doluluğu gerçek zamanlı görünmez; araç tipi ile rampa uyumsuzluğu araç kapıya geldiğinde fark edilir; kargo geliş saatleri günün planını bozar; planlama, depo ve tedarikçi aynı bilgiye bakamaz."
+    },
+    "galleryTitle": "Gerçek ürün ekranları",
+    "galleryNote": "Bu görseller LogiSlot'un GERÇEK ekranlarıdır; demo verisiyle alınmıştır. Tedarikçi portalı ekranlarındaki hesap adı gizlilik gereği maskelenmiştir.",
+    "gallery": [
+      {
+        "key": "logislot-landing-dark",
+        "caption": "Tedarikçi ve yönetim portallarının giriş noktası.",
+        "alt": "LogiSlot açılış sayfası, koyu tema: aynı başlık ve portal kartları."
+      },
+      {
+        "key": "logislot-wizard-vehicle",
+        "caption": "İkinci adım: araç kategorisi ve teslimat tipi.",
+        "alt": "Tedarikçi portalında randevu sihirbazının üçüncü adımı: gün, tahmini süre ve 30 dakikalık başlangıç dilimleri; müsait, kısmen dolu ve dolu dilimler işaretli."
+      },
+      {
+        "key": "logislot-wizard-slots",
+        "caption": "Üçüncü adım: gerçek müsaitliğe göre 30 dakikalık başlangıç dilimleri.",
+        "alt": "Tedarikçi portalında randevu sihirbazının ikinci adımı: araç kategorisi, plaka, sürücü ve standart/kargo teslimat tipi seçimi."
+      }
+    ],
+    "technologyRefs": [],
+    "relatedSolutionRefs": [],
+    "cta": {
+      "title": "LogiSlot'u konuşalım",
+      "body": "Tesisinizin mal kabul kurallarını birlikte çıkaralım.",
+      "labelKey": "cta.contactUs",
+      "topic": "logislot"
+    },
+    "seo": {
+      "title": "LogiSlot — mal kabul ve rampa randevu platformu",
+      "description": "LogiSlot; fabrikaların, depoların ve üretim tesislerinin tedarikçi mal kabul ve rampa randevu süreçlerini dijitalleştiren, kurallara dayalı, çok kiracılı bir ",
+      "noindex": true
+    }
+  },
+  {
+    "id": "ravskald-tr",
+    "locale": "tr",
+    "slug": "ravskald",
+    "status": "published",
+    "ownership": "duosis-own-product",
+    "name": "RAVSKALD",
+    "eyebrow": "Geliştirme aşamasında",
+    "verificationStatus": "verified-scope",
+    "source": {
+      "repository": "Duosis-Developer-Team/Ravskald",
+      "commit": "4a10a5ad0105ce778481041f0caf52b52162e877",
+      "document": "RAVSKALD-Planlama-Paketi/00-PROJE-SOZLESMESI.md"
+    },
+    "headline": "İzleme verisine Türkçe soru sorun, cevabın kanıtını görün.",
+    "summary": "RAVSKALD, operasyon ekiplerinin doğal dil sorularını Zabbix ve SiteScope verisine dayanarak yanıtlayan, kurum içinde çalışan, salt-okunur bir sohbet uygulaması olarak tasarlandı. Ürün şu anda geliştirme aşamasındadır.",
+    "inputs": [
+      "Operasyon ekibinin doğal dilde sorduğu soru.",
+      "Zabbix'teki açık problemler, host durumları ve geçmiş ölçümler.",
+      "SiteScope monitor durumları."
+    ],
+    "mechanism": [
+      "Sayma, sıralama ve toplama işlerini modele değil, deterministik araçlara yaptırır.",
+      "Zabbix ile SiteScope varlıklarını eşler ve olası korelasyonu kanıtıyla sunar.",
+      "Her yanıtta kullanılan aracı, parametreleri, zaman aralığını ve derin bağlantıyı gösterebilir.",
+      "Kurum dışına veya bulut modeline veri göndermez."
+    ],
+    "outcomes": [
+      {
+        "title": "Kanıtlı cevap",
+        "body": "Her yanıtın arkasındaki sorgu, zaman aralığı ve kaynak bağlantısı gösterilebilir."
+      },
+      {
+        "title": "Salt-okunur güvence",
+        "body": "Uygulama izleme sistemlerinde hiçbir değişiklik yapmaz; yalnızca okur."
+      },
+      {
+        "title": "Kurum içinde kalan veri",
+        "body": "Model ve veri kurum sınırının içinde çalışır."
+      }
+    ],
+    "capabilities": [
+      {
+        "title": "Doğal dil sorgulama",
+        "body": "Açık problemler, host/monitor durumları ve geçmiş ölçümler doğal dille sorgulanır."
+      },
+      {
+        "title": "Deterministik hesaplama",
+        "body": "Sayma, sıralama ve agregasyon model yerine araçlarda yapılır."
+      },
+      {
+        "title": "Varlık eşleme ve korelasyon",
+        "body": "Zabbix ve SiteScope varlıkları eşlenir; olası korelasyon kanıtıyla sunulur."
+      },
+      {
+        "title": "Kanıt görünürlüğü",
+        "body": "Kullanılan araç, parametre, zaman aralığı ve derin bağlantı gösterilebilir."
+      }
+    ],
+    "workflow": [
+      {
+        "title": "Soru sorulur",
+        "body": "Operasyon ekibi doğal dilde bir soru yazar."
+      },
+      {
+        "title": "Araçlar çalışır",
+        "body": "Soru, salt-okunur ve deterministik araçlara çevrilir; sayım ve sıralama orada yapılır."
+      },
+      {
+        "title": "Cevap ve kanıt",
+        "body": "Yanıtla birlikte kullanılan araç, parametre ve zaman aralığı gösterilebilir."
+      }
+    ],
+    "security": [
+      "Kaynak sistemlere hiçbir mutasyon gönderilmez: acknowledge, maintenance, monitor durdurma veya config değişikliği yapılmaz.",
+      "Kiracı bağlamı istemciden gelen bir değerle değil, sunucu tarafında belirlenir; bağlam yoksa erişim kapalı kalır.",
+      "Kiracıya ait her tabloda PostgreSQL satır düzeyi güvenliği zorunludur ve çalışma zamanı rolü bunu atlayamaz.",
+      "İzleme verisi kurum dışına veya bulut modeline gönderilmez."
+    ],
+    "audiences": ["Operasyon ve NOC ekipleri", "İzleme sistemi yöneticileri", "Servis sahipleri"],
+    "todayTitle": "Bugün ne çalışıyor?",
+    "todayBody": "RAVSKALD'ın ne olduğu bağlayıcı bir proje sözleşmesiyle tanımlıdır; ancak ürün hâlâ geliştirme aşamasındadır. Yukarıdaki yetenekler TASARLANAN kapsamdır, bugün çalışan özellikler değildir.",
+    "todayWorking": [
+      "Uygulama iskeleti: web kabuğu, API ve aynı kökenli ağ geçidi.",
+      "PostgreSQL üzerinde kiracı kontrol düzlemi ve satır düzeyi güvenlik.",
+      "İki kiracının izolasyonunun gerçek veritabanında kanıtlanmış olması."
+    ],
+    "todayNotWorking": [
+      "Doğal dil sohbeti ve model entegrasyonu.",
+      "Zabbix ve SiteScope sorgulama.",
+      "Giriş, rol yönetimi ve araç (MCP) katmanı."
+    ],
+    "aiRole": "Model yalnızca soruyu anlamak ve cevabı yazmak için kullanılır. Sayma, sıralama ve toplama gibi işler modele bırakılmaz; deterministik araçlarda yapılır ve sonucun kanıtı gösterilebilir.",
+    "motionKey": "answer",
+    "positioning": "RAVSKALD bir izleme sistemi değildir ve izleme sistemlerinin yerine geçmez: var olan Zabbix ve SiteScope verisini okur ve soruları yanıtlar.",
+    "problem": {
+      "title": "Çözmeyi hedeflediği problem",
+      "body": "İzleme verisine ulaşmak, doğru sorguyu kurmayı ve birden çok aracın arayüzünü bilmeyi gerektirir. Bu, sorunun cevabını bilen kişi sayısını azaltır ve her soruyu aynı birkaç kişiye taşır."
+    },
+    "diagramTitle": "RAVSKALD nasıl çalışacak?",
+    "diagramNote": "Aşağıdaki görsel bir SÜREÇ GÖRSELLEŞTİRMESİDİR. Ürün arayüzü henüz mevcut olmadığı için ekran görüntüsü yayımlanmıyor ve sahte bir ürün ekranı tasarlanmadı.",
+    "technologyRefs": [],
+    "relatedSolutionRefs": [],
+    "cta": {
+      "title": "RAVSKALD'ı konuşalım",
+      "body": "Ürün geliştirme aşamasında; kapsamı ve takvimi birlikte değerlendirebiliriz.",
+      "labelKey": "cta.contactUs",
+      "topic": "ravskald"
+    },
+    "seo": {
+      "title": "RAVSKALD — izleme asistanı (geliştirme aşamasında)",
+      "description": "Zabbix ve SiteScope verisine dayanarak doğal dil sorularını yanıtlayan, kurum içinde çalışan salt-okunur izleme asistanı. Geliştirme aşamasında.",
+      "noindex": true
+    }
+  },
+  {
+    "id": "hermes-en",
+    "locale": "en",
+    "slug": "hermes",
+    "status": "published",
+    "ownership": "duosis-own-product",
+    "name": "Hermes",
+    "eyebrow": "A Duosis product",
+    "verificationStatus": "verified-running",
+    "source": {
+      "repository": "Duosis-Developer-Team/Hermes",
+      "commit": "c217e24b41e8633efb4a51a79a940571602bd037",
+      "document": ".duosis/website.json"
+    },
+    "headline": "Record the work your team does for each customer and project, and report on it.",
+    "summary": "Hermes is an operations platform for teams whose work is tracked against customers and projects. It captures that work as standardised time entries, keeps tasks, meetings and support tickets in the same workspace, and turns the data into billing and reporting output.",
+    "inputs": [
+      "Time entries logged by the team: customer, project, work type, date and duration.",
+      "Tasks and meetings.",
+      "Incoming support requests.",
+      "The customer, project and work type lists an administrator defines."
+    ],
+    "mechanism": [
+      "Ties every time entry to the standard lists an administrator defines.",
+      "Protects records with role- and permission-based authorisation.",
+      "Keeps each organisation's data separate at the database level.",
+      "Tracks billable duration separately from logged duration."
+    ],
+    "outcomes": [
+      {
+        "title": "One record of work",
+        "body": "Everything the team works on is stored in one database, in one standard structure."
+      },
+      {
+        "title": "Effort visible per customer and project",
+        "body": "Time spent is summarised by customer, project and person on the dashboard."
+      },
+      {
+        "title": "Billing-ready breakdowns",
+        "body": "Time entries are filtered by date range and exported to Excel; billable hours are tracked separately from logged hours."
+      },
+      {
+        "title": "Access that follows roles and permissions",
+        "body": "Who can see and change what is governed by configurable roles and fine-grained permissions."
+      },
+      {
+        "title": "Data kept apart per organisation",
+        "body": "Each organisation's records are isolated at the database level; one organisation's data is not visible to another."
+      }
+    ],
+    "capabilities": [
+      {
+        "title": "Time entry",
+        "body": "Team members log work with customer, project, work type, date and duration. Weekly plans and timesheet submissions are part of the same flow."
+      },
+      {
+        "title": "Workspace configuration",
+        "body": "Administrators maintain the lists of customers, projects, work types, activity types, platforms and work lines, and invite or deactivate users."
+      },
+      {
+        "title": "Reporting and dashboard",
+        "body": "Time entries filtered by date range are exported as Excel workbooks; the dashboard breaks total time down by customer, project and person."
+      },
+      {
+        "title": "Billable hours",
+        "body": "Each time entry carries a separate billable duration, which managers can adjust from a dedicated screen."
+      },
+      {
+        "title": "Tasks and meetings",
+        "body": "Tasks, issues and meetings are tracked in the same workspace, with task access configured per user and group."
+      },
+      {
+        "title": "Roles and permissions",
+        "body": "Administrator-defined roles are built from fine-grained permissions; system roles are locked and the last administrator is protected."
+      },
+      {
+        "title": "Support ticket hub",
+        "body": "Support tickets raised in customer-facing applications are handled centrally in Hermes. Source applications connect through an integration API and signed webhooks, and attachments are scanned before they are shared."
+      },
+      {
+        "title": "Public API and MCP server",
+        "body": "External systems and developers reach time entries, tasks, meetings and reference data through a Public API with scoped tokens. An MCP server exposes the same API to AI clients as a deliberately thin layer, so there is one security model rather than two."
+      },
+      {
+        "title": "Sign in with Microsoft",
+        "body": "Users sign in with e-mail and password or with their organisation's Microsoft (Entra ID) account."
+      },
+      {
+        "title": "Multi-organisation workspaces",
+        "body": "Users who belong to more than one organisation switch between workspaces; platform administrators manage organisations from a separate console."
+      },
+      {
+        "title": "Turkish and English interface",
+        "body": "The interface is available in Turkish and English and can be switched by the user."
+      }
+    ],
+    "workflow": [
+      {
+        "title": "Set up the workspace",
+        "body": "An administrator creates the customer, project and work type lists and invites users."
+      },
+      {
+        "title": "Log the work",
+        "body": "Team members log what they did against the relevant customer and project, with date, duration and a note."
+      },
+      {
+        "title": "Settle the billable hours",
+        "body": "Managers review the billable duration on each entry and adjust it where needed."
+      },
+      {
+        "title": "Report",
+        "body": "Export an Excel breakdown for the chosen date range; the dashboard summarises the distribution."
+      }
+    ],
+    "security": [
+      "Permissions are never embedded in tokens; they are resolved server-side on every request, and access stays closed if resolution fails.",
+      "Organisation isolation is enforced in the database layer with PostgreSQL row-level security.",
+      "Public API access is protected with scoped tokens, rate limiting and audit logging; the MCP server has no direct database access."
+    ],
+    "audiences": [
+      "Project and operations managers",
+      "Development and consulting teams",
+      "Finance and billing teams"
+    ],
+    "scenario": {
+      "title": "Month-end reporting",
+      "beforeTitle": "Before",
+      "before": [
+        "Effort records are scattered across e-mail and spreadsheets.",
+        "Time per project can only be worked out by merging things by hand.",
+        "Billable time cannot be told apart from logged time."
+      ],
+      "afterTitle": "After",
+      "after": [
+        "Every record sits in one database, in one standard structure.",
+        "Time is summarised per customer and project on the dashboard.",
+        "A date range is filtered and exported to Excel."
+      ]
+    },
+    "motionKey": "organise",
+    "positioning": "Hermes is not an accounting or HR system: it records the work that was done and turns that record into reporting and billing output.",
+    "problem": {
+      "title": "The problem it solves",
+      "body": "When work for different customers and projects is tracked in scattered spreadsheets and e-mail threads, nobody can see how much effort each project actually takes, and reporting on it is guesswork."
+    },
+    "diagramTitle": "How Hermes works",
+    "diagramNote": "The diagram below is a PROCESS VISUALISATION, not a product screen. The Hermes repository holds no publishable screenshot, so no fake product screen was designed.",
+    "technologyRefs": [],
+    "relatedSolutionRefs": [],
+    "cta": {
+      "title": "Let's talk about Hermes",
+      "body": "Tell us how your team records work today and we will walk you through it.",
+      "labelKey": "cta.contactUs",
+      "topic": "hermes"
+    },
+    "seo": {
+      "title": "Hermes — time tracking, tasks and support operations",
+      "description": "Hermes is an operations platform for teams whose work is tracked against customers and projects. It captures that work as standardised time entries, keeps tas",
+      "noindex": true
+    }
+  },
+  {
+    "id": "logislot-en",
+    "locale": "en",
+    "slug": "logislot",
+    "status": "published",
+    "ownership": "duosis-own-product",
+    "name": "LogiSlot",
+    "eyebrow": "A Duosis product",
+    "verificationStatus": "verified-running",
+    "source": {
+      "repository": "Duosis-Developer-Team/logislot",
+      "commit": "588b6830aa1176413b40ee9100fb812b31e8632f",
+      "document": ".duosis/website.json"
+    },
+    "headline": "Plan inbound deliveries around the rules your site actually runs on.",
+    "summary": "LogiSlot is a rule-based, multi-tenant SaaS platform that digitises supplier goods receiving and dock appointments for factories, warehouses and production sites. The supplier enters the goods, vehicle and delivery details; the system evaluates the site's rules, shows only the times that are genuinely available and assigns the dock itself.",
+    "inputs": [
+      "The product, category and quantity the supplier enters.",
+      "Vehicle category and delivery type (standard appointment or cargo).",
+      "The site's own rules: category durations, vehicle-to-dock compatibility, working hours and calendar exceptions.",
+      "How full the docks already are that day."
+    ],
+    "mechanism": [
+      "Evaluates every site rule in a single rule engine.",
+      "Hard rules block an unsuitable appointment; soft rules raise a warning.",
+      "Shows only genuinely available times and assigns a suitable dock.",
+      "Accounts for dock conflict groups so docks that cannot be used at once are managed together."
+    ],
+    "outcomes": [
+      {
+        "title": "Availability you can trust",
+        "body": "The times a supplier sees are derived from product, vehicle, dock and conflict rules, not from an empty calendar."
+      },
+      {
+        "title": "Fewer surprises at the gate",
+        "body": "Vehicle type and dock compatibility are checked at booking time; an appointment cannot land on an unsuitable dock."
+      },
+      {
+        "title": "One approval flow, full traceability",
+        "body": "Awaiting approval, approved, awaiting revision, completed and cancelled states are handled in one flow, and every revision is kept with its history."
+      },
+      {
+        "title": "Configured per site, without code changes",
+        "body": "Categories, vehicle classes, docks, conflict groups, suppliers and roles are managed per facility by the site's own administrators."
+      },
+      {
+        "title": "The provider sees health, not your data",
+        "body": "The platform console shows only aggregate usage and health metrics; it has no default access to details such as supplier, driver or plate."
+      }
+    ],
+    "capabilities": [
+      {
+        "title": "Three-step booking wizard",
+        "body": "The supplier picks the goods and category, then the vehicle and delivery type, and finally a date and time from real availability. The dock is assigned by the system."
+      },
+      {
+        "title": "Rule engine",
+        "body": "Category handling times, vehicle-dock compatibility, dock conflict groups and the advisory layer are evaluated in one service. Hard rules block; advisory rules only signal."
+      },
+      {
+        "title": "Dock conflict groups",
+        "body": "Adjacent docks or areas that share physical capacity are modelled as mutual-block, shared-capacity or conditional groups in configuration; no dock relationship is hard-coded."
+      },
+      {
+        "title": "Courier advisory layer",
+        "body": "Courier deliveries with no fixed arrival are recorded with a rough time window and shown as a separate alert layer on the calendar; they never block standard appointments."
+      },
+      {
+        "title": "Operations calendar and appointment actions",
+        "body": "A daily dock-by-hour calendar and a weekly summary; approve, reject, revise, complete and cancel actions are offered according to state, and revision history is kept."
+      },
+      {
+        "title": "Booking on a supplier's behalf",
+        "body": "Managers can book on behalf of a supplier; the supplier's rules still apply, and a manually chosen dock goes through the full rule set."
+      },
+      {
+        "title": "Recurring appointment series",
+        "body": "Weekly, fortnightly or monthly series can be created; every occurrence goes through the full rule set and the series is accepted as a whole or not at all. Series can be cancelled, revised and approved in bulk."
+      },
+      {
+        "title": "Notifications and e-mail",
+        "body": "Appointment lifecycle events are delivered as in-app notifications and e-mail; users manage their preferences, and failed e-mails are logged and retried."
+      },
+      {
+        "title": "Reports and CSV export",
+        "body": "Date-ranged operational reports: status and category breakdowns, daily trend and approval time; summary and appointment detail can be exported as CSV."
+      },
+      {
+        "title": "Facility configuration",
+        "body": "Product categories, vehicle classes, docks and working hours, calendar exceptions, suppliers (allowed categories, quotas, auto-approval) and per-site branding are all managed from the operations panel."
+      },
+      {
+        "title": "Users and roles",
+        "body": "Site users and roles are defined from permission groups; system roles are locked, and dock managers act only on their assigned docks."
+      },
+      {
+        "title": "Platform console",
+        "body": "The SaaS provider onboards customer accounts, assigns plans and limits, and monitors aggregate usage and health metrics, without access to operational data."
+      },
+      {
+        "title": "Mobile app",
+        "body": "The iOS and Android app covers the supplier and operations flows in step with the web; the platform console is deliberately not on mobile."
+      },
+      {
+        "title": "Support requests",
+        "body": "Operations and supplier users open and follow support requests; tickets are routed to Duosis' Hermes support hub, and internal notes never reach the customer."
+      },
+      {
+        "title": "Turkish and English interface",
+        "body": "The landing page and all three portals are available in Turkish and English; the language preference is read server-side."
+      }
+    ],
+    "workflow": [
+      {
+        "title": "Goods and category",
+        "body": "The supplier enters the goods, category, quantity and unit; only the categories allowed for that supplier are listed."
+      },
+      {
+        "title": "Vehicle and delivery type",
+        "body": "The vehicle class defaults from the category and can be changed; plate and driver are entered; standard or courier delivery is chosen."
+      },
+      {
+        "title": "A time from real availability",
+        "body": "Day, a 30-minute start slot and an estimated duration are chosen; slots are shown as available, partly booked or full."
+      },
+      {
+        "title": "Submission and auto-approval",
+        "body": "If the supplier has auto-approval, the appointment is confirmed; otherwise it waits for a manager."
+      },
+      {
+        "title": "Manager action",
+        "body": "The manager approves, rejects, revises, completes or cancels; on revision both the old and the new slot are kept."
+      },
+      {
+        "title": "Notification and audit",
+        "body": "Every action notifies the parties and is written to the audit log."
+      }
+    ],
+    "security": [
+      "Platform permissions and tenant permissions are separate spaces that never merge; tenant and supplier identities get 403 from platform endpoints.",
+      "Every request runs with an authenticated user and an active tenant/facility context; a supplier sees only its own appointments.",
+      "A dock manager's actions are limited to the docks assigned to them.",
+      "Refresh tokens rotate on every use, logout closes all sessions, and login and password reset are rate-limited.",
+      "A password policy is enforced, and accounts opened with a temporary password must change it at first login.",
+      "Critical actions are written to the audit log with before/after state; fields such as passwords and tokens are masked.",
+      "The platform console shows aggregate data only; details such as supplier name, driver, phone and plate do not reach the platform layer by default."
+    ],
+    "audiences": [
+      "Suppliers and carriers",
+      "Dock and warehouse managers",
+      "Site system administrators",
+      "Planning and procurement teams"
+    ],
+    "scenario": {
+      "title": "A supplier books a delivery",
+      "beforeTitle": "Before",
+      "before": [
+        "Requests are handled ad hoc over e-mail and phone.",
+        "Dock occupancy is not visible in real time.",
+        "A vehicle-to-dock mismatch is noticed when the truck is already at the gate."
+      ],
+      "afterTitle": "After",
+      "after": [
+        "The supplier books their own slot in three steps.",
+        "Only genuinely available times are shown.",
+        "A suitable dock is assigned according to the rules."
+      ]
+    },
+    "motionKey": "allocate",
+    "positioning": "LogiSlot is not a warehouse management system: it manages appointment and dock planning at the receiving gate.",
+    "problem": {
+      "title": "The problem it solves",
+      "body": "In a typical goods-in operation, supplier requests arrive by e-mail and phone and are never captured in one place. Dock occupancy is not visible in real time, vehicle-dock mismatches only surface when the lorry is at the gate, courier arrivals with no fixed time upset the day's plan, and planning, warehouse and supplier are all looking at different lists."
+    },
+    "galleryTitle": "Real product screens",
+    "galleryNote": "These are REAL LogiSlot screens, captured with demo data. The account name shown in the supplier portal screens is masked for privacy.",
+    "gallery": [
+      {
+        "key": "logislot-landing-dark",
+        "caption": "Entry point for the supplier and operations portals.",
+        "alt": "LogiSlot landing page in the dark theme: the same headline and portal cards."
+      },
+      {
+        "key": "logislot-wizard-vehicle",
+        "caption": "Second step: vehicle category and delivery type.",
+        "alt": "Third step of the supplier booking wizard: day, estimated duration and 30-minute start slots, marked as available, partly booked or full."
+      },
+      {
+        "key": "logislot-wizard-slots",
+        "caption": "Third step: 30-minute start slots based on real availability.",
+        "alt": "Second step of the supplier booking wizard: vehicle class, plate, driver and the choice between standard and courier delivery."
+      }
+    ],
+    "technologyRefs": [],
+    "relatedSolutionRefs": [],
+    "cta": {
+      "title": "Let's talk about LogiSlot",
+      "body": "Let us map your site's receiving rules together.",
+      "labelKey": "cta.contactUs",
+      "topic": "logislot"
+    },
+    "seo": {
+      "title": "LogiSlot — goods receiving and dock scheduling platform",
+      "description": "LogiSlot is a rule-based, multi-tenant SaaS platform that digitises supplier goods receiving and dock appointments for factories, warehouses and production si",
+      "noindex": true
+    }
+  },
+  {
+    "id": "ravskald-en",
+    "locale": "en",
+    "slug": "ravskald",
+    "status": "published",
+    "ownership": "duosis-own-product",
+    "name": "RAVSKALD",
+    "eyebrow": "In development",
+    "verificationStatus": "verified-scope",
+    "source": {
+      "repository": "Duosis-Developer-Team/Ravskald",
+      "commit": "4a10a5ad0105ce778481041f0caf52b52162e877",
+      "document": "RAVSKALD-Planlama-Paketi/00-PROJE-SOZLESMESI.md"
+    },
+    "headline": "Ask questions about monitoring data in plain language, and see the evidence.",
+    "summary": "RAVSKALD is designed as an on-premises, read-only chat application that answers operations teams' natural-language questions from Zabbix and SiteScope data. The product is currently in development.",
+    "inputs": [
+      "A question asked by the operations team in natural language.",
+      "Open problems, host states and historical measurements in Zabbix.",
+      "SiteScope monitor states."
+    ],
+    "mechanism": [
+      "Counting, sorting and aggregation are done by deterministic tools, not by the model.",
+      "Matches Zabbix and SiteScope assets and presents a possible correlation with its evidence.",
+      "Can show the tool, parameters, time range and deep link behind every answer.",
+      "Sends no data outside the organisation or to a cloud model."
+    ],
+    "outcomes": [
+      {
+        "title": "Answers with evidence",
+        "body": "The query, time range and source link behind every answer can be shown."
+      },
+      {
+        "title": "Read-only by design",
+        "body": "The application changes nothing in the monitoring systems; it only reads."
+      },
+      {
+        "title": "Data stays inside",
+        "body": "The model and the data run inside the organisation's boundary."
+      }
+    ],
+    "capabilities": [
+      {
+        "title": "Natural-language querying",
+        "body": "Open problems, host and monitor states and historical measurements are queried in plain language."
+      },
+      {
+        "title": "Deterministic computation",
+        "body": "Counting, sorting and aggregation happen in tools rather than in the model."
+      },
+      {
+        "title": "Asset matching and correlation",
+        "body": "Zabbix and SiteScope assets are matched and a possible correlation is presented with evidence."
+      },
+      {
+        "title": "Visible evidence",
+        "body": "The tool, parameters, time range and deep link behind an answer can be shown."
+      }
+    ],
+    "workflow": [
+      {
+        "title": "A question is asked",
+        "body": "The operations team writes a question in plain language."
+      },
+      {
+        "title": "Tools run",
+        "body": "The question is turned into read-only, deterministic tool calls; counting and sorting happen there."
+      },
+      {
+        "title": "Answer with evidence",
+        "body": "The answer can be shown together with the tool, parameters and time range behind it."
+      }
+    ],
+    "security": [
+      "No mutation is ever sent to the source systems: no acknowledge, maintenance, monitor stop or config change.",
+      "Tenant context is determined on the server rather than from a client-supplied value; with no context, access stays closed.",
+      "PostgreSQL row-level security is mandatory on every tenant-owned table and the runtime role cannot bypass it.",
+      "Monitoring data is not sent outside the organisation or to a cloud model."
+    ],
+    "audiences": ["Operations and NOC teams", "Monitoring system administrators", "Service owners"],
+    "todayTitle": "What works today?",
+    "todayBody": "What RAVSKALD is has been defined in a binding project contract, but the product is still in development. The capabilities above are the DESIGNED scope, not features that run today.",
+    "todayWorking": [
+      "The application skeleton: web shell, API and a same-origin gateway.",
+      "A tenant control plane on PostgreSQL with row-level security.",
+      "Isolation between two tenants, proven against a real database."
+    ],
+    "todayNotWorking": [
+      "Natural-language chat and model integration.",
+      "Querying Zabbix and SiteScope.",
+      "Login, role management and the tool (MCP) layer."
+    ],
+    "aiRole": "The model is used only to understand the question and phrase the answer. Counting, sorting and aggregation are not left to the model; they run in deterministic tools and the evidence behind the result can be shown.",
+    "motionKey": "answer",
+    "positioning": "RAVSKALD is not a monitoring system and does not replace one: it reads existing Zabbix and SiteScope data and answers questions about it.",
+    "problem": {
+      "title": "The problem it aims to solve",
+      "body": "Getting to monitoring data requires knowing how to build the right query and how to use several tools' interfaces. That shrinks the number of people who can answer a question and routes every question to the same few."
+    },
+    "diagramTitle": "How RAVSKALD will work",
+    "diagramNote": "The diagram below is a PROCESS VISUALISATION. The product interface does not exist yet, so no screenshot is published and no fake product screen was designed.",
+    "technologyRefs": [],
+    "relatedSolutionRefs": [],
+    "cta": {
+      "title": "Let's talk about RAVSKALD",
+      "body": "The product is in development; we can walk you through the scope and timeline.",
+      "labelKey": "cta.contactUs",
+      "topic": "ravskald"
+    },
+    "seo": {
+      "title": "RAVSKALD — monitoring assistant (in development)",
+      "description": "An on-premises, read-only monitoring assistant that answers natural-language questions from Zabbix and SiteScope data. Currently in development.",
       "noindex": true
     }
   }

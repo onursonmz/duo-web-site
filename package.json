@@ -23,11 +23,13 @@
     "test:a11y": "node tests/support/run-e2e.mjs --grep @a11y",
     "seo:report": "node scripts/seo-report.mjs",
     "og:images": "node scripts/build-og-images.mjs",
+    "lighthouse": "node scripts/lighthouse.mjs",
     "quality": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e && pnpm build && pnpm seo:report"
   },
   "dependencies": {
     "astro": "7.3.1",
-    "sharp": "0.35.4"
+    "sharp": "0.35.4",
+    "three": "0.182.0"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
@@ -35,11 +37,13 @@
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.63.0",
     "@types/node": "24.13.3",
+    "@types/three": "0.182.0",
     "astro-eslint-parser": "3.1.0",
     "eslint": "10.10.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-astro": "3.1.0",
     "eslint-plugin-jsx-a11y": "6.10.2",
+    "lighthouse": "^13.4.1",
     "prettier": "3.9.6",
     "prettier-plugin-astro": "0.14.1",
     "typescript": "5.9.3",

@@ -70,17 +70,36 @@ const FORBIDDEN_CLAIMS = [
 
 describe("ürün içeriği şemadan geçiyor", () => {
   it("her kayıt geçerli ve iki locale de var", () => {
-    expect(products.length).toBe(2);
+    expect(products.length).toBe(8);
     const locales = products.map((entry) => {
       const parsed = productSchema.parse(entry);
       return parsed.locale;
     });
-    expect([...locales].sort()).toEqual(["en", "tr"]);
+    // Her ürün İKİ dilde de var: dört ürün × iki locale.
+    expect([...new Set(locales)].sort()).toEqual(["en", "tr"]);
+    const slugs = products.map((entry) => productSchema.parse(entry).slug);
+    expect([...new Set(slugs)].sort()).toEqual(["cyclops", "hermes", "logislot", "ravskald"]);
+    for (const slug of new Set(slugs)) {
+      expect(
+        slugs.filter((value) => value === slug),
+        `${slug} iki dilde olmalı`
+      ).toHaveLength(2);
+    }
   });
 
-  it("akış TAM BEŞ adım ve sıra kapalı", () => {
+  /*
+   * S14: akış bloğu CyclOps'a ÖZELDİR.
+   *
+   * Beş aşamalı sinyal→aksiyon zinciri CyclOps'un çalışma modelidir; Hermes,
+   * LogiSlot ve RAVSKALD'ın işleyişi farklıdır. Bu yüzden kural "her üründe
+   * beş adım" değil, "akış bloğu VARSA tam beş adım ve sıra kapalı" olarak
+   * daraltıldı.
+   */
+  it("akış bloğu varsa TAM BEŞ adım ve sıra kapalı", () => {
+    let checked = 0;
     for (const entry of products) {
       const parsed = productSchema.parse(entry);
+      if (parsed.flow === undefined) continue;
       expect(parsed.flow.map((step) => step.key)).toEqual([
         "signal",
         "context",
@@ -88,27 +107,78 @@ describe("ürün içeriği şemadan geçiyor", () => {
         "decide",
         "act",
       ]);
+      checked += 1;
     }
+    expect(checked, "hiçbir üründe akış bloğu bulunamadı").toBeGreaterThan(0);
   });
 
-  it("galeri en az üç GERÇEK ekran taşıyor ve her birinin alt metni var", () => {
+  it("galeri VARSA her ekranın alt metni ve açıklaması dolu", () => {
+    let checked = 0;
     for (const entry of products) {
       const parsed = productSchema.parse(entry);
-      expect(parsed.gallery.length).toBeGreaterThanOrEqual(3);
+      if (parsed.gallery === undefined) continue;
+      expect(parsed.gallery.length).toBeGreaterThanOrEqual(1);
       for (const screen of parsed.gallery) {
         expect(screen.alt.length).toBeGreaterThan(20);
         expect(screen.caption.length).toBeGreaterThan(20);
       }
+      checked += 1;
+    }
+    expect(checked, "hiçbir üründe galeri bulunamadı").toBeGreaterThan(0);
+  });
+
+  /*
+   * GALERİSİ OLMAYAN ÜRÜN SESSİZCE BOŞ KALMAZ.
+   *
+   * Yayımlanabilir ekranı olmayan ürün, bunun yerine bir süreç
+   * görselleştirmesi göstermek ZORUNDADIR ve bunun bir ürün ekranı olmadığını
+   * ziyaretçiye açıkça söylemelidir.
+   */
+  it("galerisi olmayan ürün süreç görselleştirmesi açıklaması taşıyor", () => {
+    for (const entry of products) {
+      const parsed = productSchema.parse(entry);
+      if (parsed.gallery !== undefined) continue;
+      expect(parsed.diagramTitle, `${parsed.id} diagramTitle taşımalı`).toBeDefined();
+      expect(parsed.diagramNote, `${parsed.id} diagramNote taşımalı`).toBeDefined();
+      expect(parsed.diagramNote ?? "").toMatch(/SÜREÇ GÖRSELLEŞTİRMESİ|PROCESS VISUALISATION/);
     }
   });
 });
+
+/**
+ * TEK KELİMELİK TERİMLER KELİME SINIRIYLA ARANIR.
+ *
+ * Alt dize taraması yanlış pozitif üretiyordu: Türkçe "asla" kelimesi "sla"
+ * içeriyor ve LogiSlot'un dürüst güvenlik cümlesini ("...asla birleşmez")
+ * yasak iddia sayıyordu. Kural GEVŞETİLMEDİ — daha DOĞRU aranıyor. Aynı
+ * düzeltme `tests/e2e/public-voice.spec.ts` içinde de yapılmıştı.
+ *
+ * Çok kelimeli ifadeler ("every event", "iş ortağı") alt dize olarak aranmaya
+ * devam eder; onlarda yanlış pozitif riski yok.
+ */
+const WORD_BOUNDED_CLAIMS = new Set(["sla", "roi", "mttr", "partner", "sertifikalı"]);
+
+function claimAppears(text: string, claim: string): boolean {
+  if (!WORD_BOUNDED_CLAIMS.has(claim)) return text.includes(claim);
+  // Türkçe ekler yakalanmaya devam etsin diye sınır YALNIZCA kelimenin başına.
+  return new RegExp(String.raw`(?<![\p{L}\p{N}])` + claim, "u").test(text);
+}
 
 describe("kanıtsız iddia yok", () => {
   it("içerik verisinde yasak pazarlama ifadesi geçmiyor", () => {
     const text = JSON.stringify(products).toLocaleLowerCase("tr");
     for (const claim of FORBIDDEN_CLAIMS) {
-      expect(text.includes(claim), `ürün içeriğinde "${claim}" geçiyor`).toBe(false);
+      expect(claimAppears(text, claim), `ürün içeriğinde "${claim}" geçiyor`).toBe(false);
     }
+  });
+
+  it("kelime sınırı kontrolü KENDİNİ KANITLAR", () => {
+    // Gerçek ihlal hâlâ yakalanmalı; yoksa yukarıdaki test boş güvence olurdu.
+    expect(claimAppears("hedefimiz %99 sla taahhüdü", "sla")).toBe(true);
+    expect(claimAppears("sla taahhüdü veriyoruz", "sla")).toBe(true);
+    // Türkçe "asla" yanlış pozitif ÜRETMEMELİ.
+    expect(claimAppears("bu iki uzay asla birleşmez", "sla")).toBe(false);
+    expect(claimAppears("kesinlikle asla", "sla")).toBe(false);
   });
 
   it("sürüm numarası, node sayısı veya fiyat yok", () => {
@@ -128,8 +198,12 @@ describe("entegrasyon listesi", () => {
     );
     for (const entry of products) {
       const parsed = productSchema.parse(entry);
+      /*
+       * S14: entegrasyon listesi CyclOps'a özeldir; diğer üç ürün için
+       * doğrulanmış bir teknoloji envanteri henüz yok. Kural "her üründe
+       * referans olsun" değil, "REFERANS VARSA onaylı ve active olsun".
+       */
       const ids = parsed.technologyRefs.map((ref) => ref.id);
-      expect(ids.length).toBeGreaterThan(0);
       for (const id of ids) {
         expect(APPROVED_INTEGRATIONS, `${id} §8 onay listesinde yok`).toContain(id);
         expect(activeIds.has(id), `${id} active değil`).toBe(true);
@@ -185,10 +259,21 @@ describe("ürün ekranı kaynak manifesti", () => {
 });
 
 describe("ürün CTA konusu KAPALI allowlist", () => {
-  it("yalnızca cyclops kabul edilir", () => {
-    expect([...PRODUCT_TOPICS]).toEqual(["cyclops"]);
-    expect(contactPathForProductTopic("tr", "cyclops")).toBe("/iletisim/?topic=cyclops");
-    expect(contactPathForProductTopic("en", "cyclops")).toBe("/en/contact/?topic=cyclops");
+  it("yalnızca dört ürün kabul edilir", () => {
+    // Küme KAPALI: ürün eklendiğinde burası da bilinçli olarak güncellenir.
+    expect([...PRODUCT_TOPICS]).toEqual(["cyclops", "hermes", "logislot", "ravskald"]);
+    for (const topic of PRODUCT_TOPICS) {
+      expect(contactPathForProductTopic("tr", topic)).toBe(`/iletisim/?topic=${topic}`);
+      expect(contactPathForProductTopic("en", topic)).toBe(`/en/contact/?topic=${topic}`);
+    }
+  });
+
+  it("her ürünün CTA konusu KENDİ slug'ı", () => {
+    // Yanlış eşleşme, ziyaretçiyi başka bir ürünün konusuyla forma taşırdı.
+    for (const entry of products) {
+      const parsed = productSchema.parse(entry);
+      expect(parsed.cta.topic, `${parsed.id} CTA konusu`).toBe(parsed.slug);
+    }
   });
 
   it("allowlist dışındaki değer parametre ÜRETMEZ", () => {

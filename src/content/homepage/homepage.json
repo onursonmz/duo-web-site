@@ -43,6 +43,7 @@
         "body": "Olay öneriye, öneri onaylı otomasyona bağlanır. Yapılan iş izlenebilir kalır."
       }
     ],
+    "heroSignals": ["metrik", "log", "event", "trace", "alarm"],
     "trust": {
       "eyebrow": "Neden Duosis",
       "title": "Ürünü almıyoruz; kurumun problemine göre eviriyoruz.",
@@ -235,6 +236,7 @@
         "body": "The event becomes a recommendation, the recommendation an approved automation. The work stays traceable."
       }
     ],
+    "heroSignals": ["metric", "log", "event", "trace", "alert"],
     "trust": {
       "eyebrow": "Why Duosis",
       "title": "We do not resell a product; we reshape it around the problem.",

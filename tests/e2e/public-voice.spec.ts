@@ -87,7 +87,38 @@ const FORBIDDEN_WORDS = [
  * (`reviewStatus: "approved"`) bu istisna KALDIRILIR.
  */
 const DRAFT_DISCLOSURE_ROUTES: readonly string[] = ["/aydinlatma-metni/", "/en/privacy-notice/"];
+
+/**
+ * GELİŞTİRME DURUMU İSTİSNASI — YALNIZCA RAVSKALD (S14).
+ *
+ * S08'de "geliştirme aşaması" yasaklandı çünkü ziyaretçiye İÇERİĞİN yayın
+ * durumu anlatılmamalıydı: bir çözüm sayfasının "henüz hazır değil" demesi,
+ * içerik modelimizin sızmasıydı.
+ *
+ * RAVSKALD'da durum farklıdır. Ürün gerçekten geliştirme aşamasındadır
+ * (kaynak deposu S02 sprintinde; sohbet, model ve Zabbix entegrasyonu henüz
+ * yok — bkz. `docs/PRODUCT_SOURCE_MANIFEST.md`). Burada geliştirme durumunu
+ * GİZLEMEK, çalışmayan bir ürünü çalışıyormuş gibi göstermek olurdu. Yani
+ * bu ifade bir sızıntı değil, ziyaretçinin bilmesi GEREKEN bir ürün
+ * gerçeğidir.
+ *
+ * İstisna dar tutuldu: yalnızca bu ifade, yalnızca RAVSKALD rotalarında.
+ * Ürün `verified-running` olduğunda istisna KALDIRILIR.
+ */
+const IN_DEVELOPMENT_ROUTES: readonly string[] = [
+  "/urunler/ravskald/",
+  "/en/products/ravskald/",
+  // Ürünler sahnesi RAVSKALD sekmesinde aynı rozeti gösteriyor.
+  "/urunler/",
+  "/en/products/",
+];
+const IN_DEVELOPMENT_PHRASES: readonly string[] = ["geliştirme aşaması", "under development"];
 const DRAFT_WORDS = [/\btaslak/, /\bdraft\b/];
+
+function forbiddenPhrasesFor(route: string): string[] {
+  if (!IN_DEVELOPMENT_ROUTES.includes(route)) return [...FORBIDDEN_PHRASES];
+  return FORBIDDEN_PHRASES.filter((phrase) => !IN_DEVELOPMENT_PHRASES.includes(phrase));
+}
 
 function forbiddenWordsFor(route: string): RegExp[] {
   if (!DRAFT_DISCLOSURE_ROUTES.includes(route)) return FORBIDDEN_WORDS;
@@ -106,7 +137,7 @@ test.describe("public arayüzde iç süreç dili yok", () => {
       // Ziyaretçinin GÖRDÜĞÜ metin (header + main + footer).
       const visible = (await page.locator("body").innerText()).toLocaleLowerCase("tr");
 
-      for (const phrase of FORBIDDEN_PHRASES) {
+      for (const phrase of forbiddenPhrasesFor(route)) {
         expect(
           visible.includes(phrase),
           `${route} sayfasında görünür metin "${phrase}" içeriyor`
@@ -133,7 +164,7 @@ test.describe("public arayüzde iç süreç dili yok", () => {
           .join(" ")
       );
       const lower = meta.toLocaleLowerCase("tr");
-      for (const phrase of FORBIDDEN_PHRASES) {
+      for (const phrase of forbiddenPhrasesFor(route)) {
         expect(lower.includes(phrase), `${route} metadata "${phrase}" içeriyor`).toBe(false);
       }
       for (const word of forbiddenWordsFor(route)) {

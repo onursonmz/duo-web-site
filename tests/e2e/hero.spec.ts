@@ -1,11 +1,31 @@
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
+import { gzipSync } from "node:zlib";
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 /**
- * S06 — COMMAND ATLAS İMZA HERO KABUL TESTLERİ.
+ * İMZA HERO KABUL TESTLERİ — S06'da yazıldı, S15-R2'de WebGL'e taşındı.
  *
- * Hero, Duosis'in çalışma modelini anlatır: kaynak → sinyal → bağlam → karar
- * → aksiyon. Bilgi animasyona veya hover'a BAĞLI DEĞİLDİR.
+ * Hero artık tek, sürekli bir WebGL sahnesidir (`SignatureHero.astro` +
+ * `@lib/scene/universe`). Anlatı değişmedi: kaynak → sinyal → bağlam → karar
+ * → aksiyon. Bilgi hâlâ animasyona, hover'a, WebGL'e veya JavaScript'e BAĞLI
+ * DEĞİLDİR; sahne yalnızca ANLATIR.
+ *
+ * S15-R2'DE DEĞİŞEN ÜÇ GÜVENCE — üçü de bilinçli ve gerekçeli:
+ *
+ * 1. "SATIR İÇİ MODÜL < 8 KB" kaldırıldı. Sahne artık dinamik olarak yüklenen
+ *    ayrı bir yığın; doğru güvence SAYFANIN TOPLAM istemci JS'ini GZIP ile
+ *    ölçmektir (tavan 220 KB, S15-R2 talimatı §9).
+ *
+ * 2. "BEŞ AŞAMA BAŞLIĞI İLK EKRANDA" kaldırıldı. Aşamalar artık ilk ekranın
+ *    süsü değil, kamera yolculuğunun ANLATISIDIR ve kasıtlı olarak katlamanın
+ *    altındadır. İlk ekranda olması gereken ve ölçülen küme: H1, açıklama ve
+ *    iki CTA. Aşamaların tamamı JS olmadan da normal scroll ile okunur.
+ *
+ * 3. "SİNYAL ETİKETLERİ PORTLARLA HİZALI" kaldırıldı. Sahnede artık serpiştirilmiş
+ *    etiket yoktur (tasarım sınırı); sinyal türleri metnin altında tek satırlık
+ *    dekoratif bir künyedir.
  */
 
 const DESKTOP = { width: 1440, height: 900 };
@@ -13,6 +33,44 @@ const MOBILE = { width: 390, height: 844 };
 
 /** Sözleşmedeki beş aşama; sıra ve anahtar kümesi kapalıdır. */
 const STAGES = ["source", "signal", "context", "decide", "act"];
+
+/** S15-R2 §9: ana sayfa istemci JS tavanı. */
+const HOME_JS_BUDGET_KB = 220;
+/** S15-R2 §9: ilk yük toplamı tavanı. */
+const FIRST_LOAD_BUDGET_KB = 1536;
+
+type UniverseState = "poster" | "live" | "static";
+
+/** Sahnenin çizim kipini döndürür; WebGL yoksa `poster` kalır. */
+async function universeState(page: import("@playwright/test").Page): Promise<UniverseState> {
+  return (await page
+    .locator("[data-universe]")
+    .getAttribute("data-universe-state")) as UniverseState;
+}
+
+/**
+ * WebGL YOLUNU zorlayarak açar.
+ *
+ * Başsız tarayıcıda gerçek GPU yoktur; sahne üretimde olduğu gibi postere
+ * düşer (bkz. `failIfMajorPerformanceCaveat`). WebGL yolunu doğrulayan
+ * testler bu kapıyı `?universe=force` ile açar. Yazılım rasterleştirici yavaş
+ * olduğu için bu testlerin süresi ayrıca uzatılır.
+ */
+async function openScene(
+  page: import("@playwright/test").Page,
+  route = "/"
+): Promise<UniverseState> {
+  await page.goto(`${route}?universe=force`);
+  await page
+    .waitForFunction(
+      () =>
+        document.querySelector("[data-universe]")?.getAttribute("data-universe-state") !== "poster",
+      null,
+      { timeout: 60_000 }
+    )
+    .catch(() => undefined);
+  return universeState(page);
+}
 
 test.describe("hero anlatısı", () => {
   test.use({ viewport: DESKTOP });
@@ -27,218 +85,434 @@ test.describe("hero anlatısı", () => {
       .evaluateAll((els) => els.map((e) => e.getAttribute("data-stage")));
     expect(keys).toEqual(STAGES);
 
-    // Her aşama gerçek bir açıklama taşımalı — süs değil.
-    const bodies = await list
-      .locator(".stage__body")
-      .evaluateAll((els) => els.map((e) => (e.textContent ?? "").trim().length));
-    for (const length of bodies) {
-      expect(length).toBeGreaterThan(40);
+    // Her aşamanın BAŞLIĞI ve GÖVDESİ gerçek metin taşır.
+    const texts = await list.locator("li").evaluateAll((els) =>
+      els.map((e) => ({
+        title: e.querySelector(".journey__title")?.textContent?.trim() ?? "",
+        body: e.querySelector(".journey__body")?.textContent?.trim() ?? "",
+      }))
+    );
+    for (const item of texts) {
+      expect(item.title.length).toBeGreaterThan(2);
+      expect(item.body.length).toBeGreaterThan(20);
     }
   });
 
-  test("H1 ve CTA'lar İLK HTML'de; görsel içine gömülü değil", async ({ page }) => {
-    // Ham HTML üzerinde kontrol: JS veya görsel olmadan da orada olmalı.
-    const res = await page.request.get("/");
-    const html = await res.text();
+  test("H1 ve CTA'lar İLK HTML'de; tuvale gömülü değil", async ({ page }) => {
+    const response = await page.goto("/");
+    const html = (await response?.text()) ?? "";
 
-    expect(html).toMatch(/<h1[^>]*>/);
-    expect(html).toContain("Operasyonu görün");
-    expect(html).toContain("Çözüm alanlarını inceleyin");
-    expect(html).toContain("Birlikte yol haritası çıkaralım");
+    expect(html).toContain("<h1");
+    const h1 = await page.locator("h1").innerText();
+    expect(html).toContain(h1.split(",")[0]?.trim() ?? h1);
+
+    const ctas = page.locator(".hero__actions a");
+    await expect(ctas).toHaveCount(2);
+    for (const cta of await ctas.all()) {
+      await expect(cta).toBeVisible();
+      expect((await cta.getAttribute("href")) ?? "").not.toBe("");
+    }
   });
 
   test("hero'dan ÇÖZÜM ATLASINA görsel süreklilik var", async ({ page }) => {
     await page.goto("/");
-    // Hero topolojisi ile çözüm atlası aynı sayfada ve sırayla gelir.
-    const heroBox = await page.getByTestId("hero-atlas").boundingBox();
-    const atlasBox = await page.getByTestId("solution-atlas").boundingBox();
-    expect(heroBox).not.toBeNull();
-    expect(atlasBox).not.toBeNull();
-    expect(atlasBox!.y).toBeGreaterThan(heroBox!.y);
+
+    /*
+     * Süreklilik bir ayraç grafiği DEĞİL, aynı tuvaldir: hero bölümü ile
+     * çözüm atlası TEK bir yapışkan sahnenin içinde yaşar.
+     */
+    const universe = page.locator("[data-universe]");
+    await expect(universe.locator("#hero")).toHaveCount(1);
+    await expect(universe.locator("#solutions")).toHaveCount(1);
+    await expect(universe.locator("canvas[data-universe-canvas]")).toHaveCount(1);
+
+    // Hero ile atlas arasında bölüm ayracı YOKTUR.
+    const between = await page.evaluate(() => {
+      const hero = document.querySelector("#hero");
+      const atlas = document.querySelector("#solutions");
+      if (hero === null || atlas === null) return -1;
+      let count = 0;
+      let node: Element | null = hero;
+      while (node !== null && !node.contains(atlas)) {
+        node = node.nextElementSibling;
+        if (node !== null && node.querySelector("[data-bridge]") !== null) count += 1;
+      }
+      return count;
+    });
+    expect(between).toBe(0);
+  });
+
+  test("hero EKRANI DOLDURUYOR ve tuval TAM KAPLIYOR", async ({ page }) => {
+    await page.goto("/");
+    const measured = await page.evaluate(() => {
+      const hero = document.querySelector("#hero");
+      const canvas = document.querySelector("[data-universe-canvas]");
+      if (hero === null || canvas === null) return null;
+      const h = hero.getBoundingClientRect();
+      const c = canvas.getBoundingClientRect();
+      return {
+        heroRatio: h.height / window.innerHeight,
+        canvasW: c.width / window.innerWidth,
+        canvasH: c.height / window.innerHeight,
+      };
+    });
+    expect(measured).not.toBeNull();
+    expect(measured!.heroRatio).toBeGreaterThanOrEqual(0.95);
+    expect(measured!.heroRatio).toBeLessThanOrEqual(1.05);
+    // Sahne küçük bir sağ kutuya sıkışamaz: tuval viewport'un TAMAMIDIR.
+    expect(measured!.canvasW).toBeGreaterThanOrEqual(0.99);
+    expect(measured!.canvasH).toBeGreaterThanOrEqual(0.99);
+  });
+
+  test("BAŞLIK hero'nun üstüne biniyor: beyaz şerit yok", async ({ page }) => {
+    await page.goto("/");
+    const overlay = await page.evaluate(() => {
+      const header = document.querySelector('[data-testid="site-header"]');
+      const hero = document.querySelector("#hero");
+      if (header === null || hero === null) return null;
+      const h = header.getBoundingClientRect();
+      return {
+        position: getComputedStyle(header).position,
+        heroTop: Math.round(hero.getBoundingClientRect().top),
+        headerTop: Math.round(h.top),
+      };
+    });
+    expect(overlay).not.toBeNull();
+    expect(overlay!.position).toBe("absolute");
+    expect(overlay!.heroTop).toBeLessThanOrEqual(1);
+    expect(overlay!.headerTop).toBeLessThanOrEqual(1);
+  });
+});
+
+test.describe("hero WebGL sahnesi", () => {
+  test.use({ viewport: DESKTOP });
+
+  test("sahne GERÇEKTEN açılıyor ve kamera HAREKET EDİYOR", async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "WebGL kipi tek tarayıcıda doğrulanır");
+    test.setTimeout(180_000);
+    expect(await openScene(page)).toBe("live");
+
+    /*
+     * Kameranın gerçekten hareket ettiğinin kanıtı: tuvalin PİKSELLERİ
+     * zaman içinde değişir. "Kodda translateZ var" kabul kanıtı değildir.
+     *
+     * Okuma `page.screenshot` ile yapılır, tuvalden `drawImage` ile DEĞİL:
+     * renderer `preserveDrawingBuffer` kullanmaz (üretimde maliyetli), bu
+     * yüzden tuvalin doğrudan okunması boş kare döndürebilir ve iki örnek
+     * YANLIŞLIKLA eşit çıkar.
+     */
+    const sample = async (): Promise<Buffer> =>
+      page.screenshot({ clip: { x: 700, y: 240, width: 560, height: 420 } });
+
+    const first = await sample();
+    await page.waitForTimeout(3000);
+    const second = await sample();
+    expect(first.byteLength).toBeGreaterThan(1000);
+    expect(Buffer.compare(first, second), "tuval iki örnek arasında DEĞİŞMEDİ").not.toBe(0);
+  });
+
+  test("HARİCİ kaynak yok: sahne yerel yığından geliyor", async ({ page }) => {
+    const external: string[] = [];
+    page.on("request", (request) => {
+      const url = new URL(request.url());
+      if (url.hostname !== "127.0.0.1" && url.protocol !== "data:") external.push(url.href);
+    });
+    await page.goto("/", { waitUntil: "load" });
+    await page.waitForTimeout(1500);
+    expect(external, `harici istek: ${external.join(", ")}`).toEqual([]);
+  });
+
+  test("KAPI GPU ADINA BAKMIYOR: yazılım sürücü adı sahneyi engellemiyor", async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName !== "chromium", "WebGL kipi tek tarayıcıda doğrulanır");
+    test.setTimeout(180_000);
+
+    /*
+     * REGRESYON KORUMASI.
+     *
+     * Önceki sürüm `WEBGL_debug_renderer_info` ile sürücü adını okuyup
+     * "swiftshader/llvmpipe/basic render" görünce sahneyi hiç açmıyordu. Bu,
+     * WebGL'i sorunsuz çalıştıran normal Chrome'ları da eliyordu. Burada
+     * sürücü adı KASTEN yazılım rasterleştirici gibi gösterilir; sahne yine de
+     * açılmalıdır.
+     */
+    await page.addInitScript(() => {
+      /*
+       * Her prototip KENDİ orijinalini saklar. Tek bir sarmalayıcıyı iki
+       * prototipe birden atamak "Illegal invocation" üretiyor: WebGL1 ve
+       * WebGL2 bağlamlarının `getParameter` uygulamaları ayrıdır.
+       */
+      const protos = [
+        WebGLRenderingContext.prototype,
+        typeof WebGL2RenderingContext === "undefined" ? null : WebGL2RenderingContext.prototype,
+      ];
+      for (const proto of protos) {
+        if (proto === null) continue;
+        const original = proto.getParameter;
+        proto.getParameter = function patchedGetParameter(
+          this: WebGLRenderingContext,
+          name: number
+        ) {
+          // UNMASKED_RENDERER_WEBGL
+          if (name === 0x9246) return "SwiftShader Device (Subzero) llvmpipe";
+          return (original as unknown as (n: number) => unknown).call(this, name);
+        } as typeof original;
+      }
+    });
+
+    expect(await openScene(page)).toBe("live");
+  });
+
+  test("GPU YOKSA sahne hiç indirilmiyor: statik poster", async ({ page }) => {
+    /*
+     * Bu testin kurduğu durum ÜRETİMDEKİ varsayılandır: gerçek donanım
+     * hızlandırma yoksa sahne açılmaz. Kurulum yine de açıkça yapılır ki
+     * makinede GPU olsa da sonuç aynı olsun.
+     */
+    await page.addInitScript(() => {
+      const original = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function patched(
+        this: HTMLCanvasElement,
+        id: string,
+        ...rest: unknown[]
+      ) {
+        if (id === "webgl" || id === "webgl2" || id === "experimental-webgl") return null;
+        return (original as unknown as (...args: unknown[]) => unknown).call(this, id, ...rest);
+      } as typeof HTMLCanvasElement.prototype.getContext;
+    });
+
+    const scripts: string[] = [];
+    page.on("response", (response) => {
+      if (/universe.*\.js$/.test(new URL(response.url()).pathname)) scripts.push(response.url());
+    });
+
+    test.setTimeout(90_000);
+    await page.goto("/", { waitUntil: "load" });
+    await page.waitForTimeout(1500);
+
+    expect(await universeState(page)).toBe("poster");
+    expect(scripts, "WebGL yokken sahne yığını İNDİRİLMEMELİ").toEqual([]);
+
+    // Poster ANLAMLI son durumu taşır ve metin hâlâ tam.
+    await expect(page.locator(".universe__poster svg")).toBeVisible();
+    await expect(page.locator("h1")).toBeVisible();
+    await expect(page.getByTestId("hero-stages").locator("li")).toHaveCount(5);
   });
 });
 
 test.describe("hero erişilebilirliği", () => {
-  test("SVG topolojisi DEKORATİF olarak işaretli", async ({ page }) => {
-    await page.setViewportSize(DESKTOP);
+  test.use({ viewport: DESKTOP });
+
+  test("SAHNE DEKORATİF olarak işaretli", async ({ page }) => {
     await page.goto("/");
-    const svg = page.locator(".atlas__svg");
-    await expect(svg).toHaveAttribute("aria-hidden", "true");
-    await expect(svg).toHaveAttribute("focusable", "false");
+    const stage = page.getByTestId("hero-atlas");
+    await expect(stage).toHaveAttribute("aria-hidden", "true");
+
+    // Tuval ve poster erişilebilirlik ağacında görünmez.
+    const focusable = await stage.locator("a, button, input, [tabindex]").count();
+    expect(focusable).toBe(0);
   });
 
   test("aşama bilgisi HOVER'a bağlı DEĞİL: etkileşimsiz görünür", async ({ page }) => {
-    await page.setViewportSize(DESKTOP);
     await page.goto("/");
-    // Fareyi hiç kullanmadan tüm açıklamalar görünür olmalı.
-    for (const key of STAGES) {
-      await expect(page.locator(`.stage[data-stage="${key}"] .stage__body`)).toBeVisible();
-    }
-  });
-
-  test("hero'da TOOLTIP katmanı yok (viewport taşması imkânsız)", async ({ page }) => {
-    await page.setViewportSize(DESKTOP);
-    await page.goto("/");
-    const heroTooltips = await page
-      .getByTestId("hero-atlas")
-      .locator('[role="tooltip"], [data-tooltip], title')
-      .count();
-    expect(heroTooltips).toBe(0);
+    const before = await page.getByTestId("hero-stages").innerText();
+    await page.mouse.move(720, 450);
+    const after = await page.getByTestId("hero-stages").innerText();
+    expect(after).toBe(before);
   });
 
   test("klavye TAB sırası hero CTA'larından geçiyor", async ({ page }) => {
-    await page.setViewportSize(DESKTOP);
     await page.goto("/");
-
-    const seen: string[] = [];
-    for (let i = 0; i < 12; i++) {
-      await page.keyboard.press("Tab");
-      seen.push(
-        await page.evaluate(() => {
-          const el = document.activeElement as HTMLElement | null;
-          return el?.getAttribute("href") ?? el?.tagName.toLowerCase() ?? "";
-        })
-      );
-    }
-    expect(seen).toContain("/cozumler/");
-    expect(seen).toContain("#roadmap");
-    expect(seen.filter((s) => s === "")).toEqual([]);
+    const primary = page.locator(".hero__actions a").first();
+    await primary.focus();
+    await expect(primary).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(page.locator(".hero__actions a").nth(1)).toBeFocused();
   });
 
   test("@a11y hero bölümü axe kontrolünden geçiyor", async ({ page }) => {
-    await page.setViewportSize(DESKTOP);
     await page.goto("/");
-    const result = await new AxeBuilder({ page })
-      .include("#hero")
+    const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+      .include("[data-universe]")
       .analyze();
-    expect(result.violations).toEqual([]);
+    expect(results.violations).toEqual([]);
   });
 });
 
 test.describe("hero hareket davranışı", () => {
   test.use({ viewport: DESKTOP });
 
-  test("NORMAL modda intro animasyonu tanımlı ve BİR KEZ çalışıyor", async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: "no-preference" });
-    await page.goto("/");
-
-    const link = await page
-      .locator(".atlas__link")
-      .first()
-      .evaluate((el) => {
-        const s = getComputedStyle(el);
-        return {
-          name: s.animationName,
-          count: s.animationIterationCount,
-          fill: s.animationFillMode,
-        };
-      });
-    expect(link.name).not.toBe("none");
-    // Sürekli loop YOK.
-    expect(link.count).toBe("1");
-    expect(link.fill).toBe("forwards");
-  });
-
-  test("REDUCED MOTION altında intro HİÇ çalışmıyor", async ({ page }) => {
+  test("REDUCED MOTION altında sahne DONAR, içerik tam kalır", async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "WebGL kipi tek tarayıcıda doğrulanır");
+    test.setTimeout(180_000);
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/");
+    expect(await openScene(page)).toBe("static");
 
-    const link = await page
-      .locator(".atlas__link")
-      .first()
-      .evaluate((el) => {
-        const s = getComputedStyle(el);
-        return { name: s.animationName, offset: s.strokeDashoffset };
-      });
-    expect(link.name).toBe("none");
-    // Çizgi doğrudan SON hâlinde: anlam kaybı yok.
-    expect(Number.parseFloat(link.offset)).toBe(0);
+    // Tek kare çizilir ve orada kalır: pikseller DEĞİŞMEZ.
+    const sample = async (): Promise<Buffer> =>
+      page.screenshot({ clip: { x: 700, y: 240, width: 560, height: 420 } });
+    const first = await sample();
+    await page.waitForTimeout(2000);
+    expect(Buffer.compare(first, await sample()), "kamera DURMADI").toBe(0);
 
-    const node = await page
-      .locator(".atlas__nodes > *")
-      .first()
-      .evaluate((el) => {
-        const s = getComputedStyle(el);
-        return { name: s.animationName, opacity: s.opacity };
-      });
-    expect(node.name).toBe("none");
-    expect(Number.parseFloat(node.opacity)).toBe(1);
-  });
-
-  test("REDUCED MOTION altında içerik ve CTA kaybı YOK", async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/");
-
+    // Anlamlı SON durum: metin ve aşamaların tamamı yerinde.
     await expect(page.locator("h1")).toBeVisible();
+    await expect(page.locator(".hero__actions a")).toHaveCount(2);
     await expect(page.getByTestId("hero-stages").locator("li")).toHaveCount(5);
-    await expect(page.locator('#hero a[href="/cozumler/"]')).toBeVisible();
-    await expect(page.locator('#hero a[href="#roadmap"]')).toBeVisible();
+    for (const step of await page.locator(".journey__inner").all()) {
+      await expect(step).toBeVisible();
+    }
   });
 
-  test("animasyon yalnızca GÜVENLİ özellikleri değiştiriyor", async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: "no-preference" });
+  test("REDUCED MOTION altında yolculuk bandı KISALIR", async ({ page }) => {
     await page.goto("/");
-    // Düzen özelliklerini animasyona sokan bir kural olmamalı.
-    const unsafe = await page.evaluate(() => {
-      const found: string[] = [];
-      for (const sheet of [...document.styleSheets]) {
-        let rules: CSSRuleList;
-        try {
-          rules = sheet.cssRules;
-        } catch {
-          continue;
-        }
-        for (const rule of [...rules]) {
-          if (!(rule instanceof CSSKeyframesRule)) continue;
-          for (const frame of [...rule.cssRules] as CSSStyleRule[]) {
-            for (const prop of ["width", "height", "top", "left", "margin", "padding"]) {
-              if (frame.style.getPropertyValue(prop) !== "") found.push(`${rule.name}:${prop}`);
-            }
-          }
-        }
-      }
-      return found;
+    const normal = await page
+      .locator("[data-universe]")
+      .evaluate((el) => el.getBoundingClientRect().height);
+
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.reload();
+    const reduced = await page
+      .locator("[data-universe]")
+      .evaluate((el) => el.getBoundingClientRect().height);
+
+    // Kamera durduğu için uzun scroll bandının anlamı kalmaz.
+    expect(reduced).toBeLessThan(normal);
+  });
+
+  test("SCROLL HIJACKING YOK: wheel/touchmove dinleyicisi kaydedilmiyor", async ({ page }) => {
+    /*
+     * Sahne scroll konumunu yalnızca OKUR. Bunu iddia etmek yetmez: dinleyici
+     * kaydının KENDİSİ ölçülür. `addEventListener` sarmalanır ve sayfanın
+     * kaydettiği her scroll türü dinleyici toplanır.
+     */
+    await page.addInitScript(() => {
+      const store: string[] = [];
+      (window as unknown as { __listeners: string[] }).__listeners = store;
+      const original = EventTarget.prototype.addEventListener;
+      EventTarget.prototype.addEventListener = function patched(
+        this: EventTarget,
+        type: string,
+        ...rest: unknown[]
+      ) {
+        if (type === "wheel" || type === "mousewheel" || type === "touchmove") store.push(type);
+        return (original as unknown as (...args: unknown[]) => unknown).apply(this, [
+          type,
+          ...rest,
+        ] as never);
+      } as typeof EventTarget.prototype.addEventListener;
     });
-    expect(unsafe, `düzen özelliği animasyonu: ${unsafe.join(", ")}`).toEqual([]);
+
+    await page.goto("/", { waitUntil: "load" });
+    await page.waitForTimeout(2000);
+    await page.mouse.wheel(0, 600);
+    await page.waitForTimeout(400);
+
+    const listeners = await page.evaluate(
+      () => (window as unknown as { __listeners: string[] }).__listeners
+    );
+    expect(listeners, `kaydedilen scroll dinleyicileri: ${listeners.join(", ")}`).toEqual([]);
+
+    // Scroll GERÇEKTEN çalışıyor.
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
   });
 });
 
 test.describe("hero performans bütçesi", () => {
   test.use({ viewport: DESKTOP });
 
-  test("HİÇBİR harici ağ isteği yok", async ({ page }) => {
-    /*
-     * E2E sunucusu her koşuda DİNAMİK bir loopback portunda çalışır; bu yüzden
-     * karşılaştırma origin değil HOST üzerinden yapılır. (İlk denemede
-     * `page.url()` henüz `about:blank` olduğu için kendi sunucumuz "harici"
-     * sayılıyordu.)
-     */
-    const external: string[] = [];
-    page.on("request", (req) => {
-      const url = new URL(req.url());
-      if (url.protocol === "data:" || url.protocol === "blob:") return;
-      if (url.hostname === "127.0.0.1" || url.hostname === "localhost") return;
-      external.push(req.url());
+  /*
+   * BÜTÇE ÖLÇÜMÜ NEDEN AĞ TRAFİĞİNDEN OKUNMUYOR?
+   *
+   * Sahne yığını yalnızca GERÇEK GPU varsa indirilir; başsız tarayıcıda hiç
+   * istenmez. Bütçeyi sayfanın o koşuda indirdiği baytlardan ölçmek, en ağır
+   * dosyayı ölçümün dışında bırakır ve testi anlamsızlaştırır.
+   *
+   * Bu yüzden ölçüm DERLEME ÇIKTISINDAN yapılır: sayfanın satır içi modülleri
+   * + `<script src>` dosyaları + yükleyicinin dinamik olarak çağırdığı sahne
+   * yığını. Üçü de en kötü durumda (GPU'lu ziyaretçide) indirilir.
+   */
+  function sceneChunks(): string[] {
+    const dir = join(process.cwd(), "dist", "_astro");
+    return readdirSync(dir)
+      .filter((name) => /^universe\..*\.js$/.test(name))
+      .map((name) => join(dir, name));
+  }
+
+  test("ana sayfa istemci JS'i GZIP bütçesinin altında", async ({ page }) => {
+    const served = new Set<string>();
+    page.on("response", (response) => {
+      const path = new URL(response.url()).pathname;
+      if (path.endsWith(".js")) served.add(join(process.cwd(), "dist", path.replace(/^\//, "")));
     });
 
-    await page.goto("/", { waitUntil: "networkidle" });
-    await page.evaluate(() => document.fonts.ready);
-    expect(external, `harici istek: ${external.join(", ")}`).toEqual([]);
+    await page.goto("/", { waitUntil: "load" });
+
+    const inline = await page.evaluate(() =>
+      [...document.querySelectorAll('script[type="module"]:not([src])')]
+        .map((el) => el.textContent ?? "")
+        .join(";")
+    );
+
+    const chunks = sceneChunks();
+    expect(chunks.length, "sahne yığını derleme çıktısında bulunamadı").toBeGreaterThan(0);
+
+    let bytes = gzipSync(Buffer.from(inline, "utf8")).length;
+    for (const file of new Set([...served, ...chunks])) {
+      bytes += gzipSync(readFileSync(file)).length;
+    }
+
+    const kb = Math.round((bytes / 1024) * 10) / 10;
+    expect(
+      kb,
+      `ana sayfa istemci JS ${kb} KB gzip (bütçe ${HOME_JS_BUDGET_KB} KB)`
+    ).toBeLessThanOrEqual(HOME_JS_BUDGET_KB);
   });
 
-  test("HERO SIFIR ek client JS getiriyor", async ({ page }) => {
-    await page.goto("/");
-    // Hero yalnızca CSS ve inline SVG kullanır; kendi script'i yoktur.
-    const heroScripts = await page.getByTestId("hero-atlas").locator("script").count();
-    expect(heroScripts).toBe(0);
+  test("İLK YÜK toplamı bütçenin altında", async ({ page }) => {
+    let bytes = 0;
+    const fetched = new Set<string>();
+    page.on("response", (response) => {
+      const path = new URL(response.url()).pathname;
+      if (path.endsWith(".js")) fetched.add(join(process.cwd(), "dist", path.replace(/^\//, "")));
+      const length = response.headers()["content-length"];
+      if (length !== undefined) bytes += Number(length);
+    });
+    await page.goto("/", { waitUntil: "load" });
 
-    // Sayfa genelinde harici script dosyası da yok.
-    await expect(page.locator("script[src]")).toHaveCount(0);
+    /*
+     * Sahne yığını da ilk yüke DÂHİL sayılır (GPU'lu ziyaretçinin durumu).
+     * Bu koşuda GERÇEKTEN indirildiyse ağ toplamına zaten girmiştir; iki kez
+     * sayılmasın diye yalnızca indirilmeyenler eklenir.
+     */
+    for (const file of sceneChunks()) {
+      if (!fetched.has(file)) bytes += statSync(file).size;
+    }
+
+    const kb = Math.round(bytes / 1024);
+    expect(kb, `ilk yük ${kb} KB (bütçe ${FIRST_LOAD_BUDGET_KB} KB)`).toBeLessThanOrEqual(
+      FIRST_LOAD_BUDGET_KB
+    );
+  });
+
+  test("DPR tavanı 1.5: tuval çözünürlüğü sınırlı", async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "WebGL kipi tek tarayıcıda doğrulanır");
+    test.setTimeout(180_000);
+    await openScene(page);
+    const ratio = await page.evaluate(() => {
+      const canvas = document.querySelector<HTMLCanvasElement>("[data-universe-canvas]");
+      if (canvas === null) return 0;
+      return canvas.width / canvas.getBoundingClientRect().width;
+    });
+    expect(ratio).toBeGreaterThan(0);
+    expect(ratio).toBeLessThanOrEqual(1.5 + 0.01);
   });
 
   test("yeni RASTER görsel eklenmedi", async ({ page }) => {
-    await page.goto("/", { waitUntil: "networkidle" });
+    await page.goto("/", { waitUntil: "load" });
     const raster = await page.evaluate(() =>
       [...document.querySelectorAll("img")]
         .map((el) => el.getAttribute("src") ?? "")
@@ -247,174 +521,137 @@ test.describe("hero performans bütçesi", () => {
     expect(raster, `raster görsel: ${raster.join(", ")}`).toEqual([]);
   });
 
-  test("hero kaynaklı CLS yok: SVG sabit en-boy oranı taşıyor", async ({ page }) => {
-    await page.goto("/", { waitUntil: "networkidle" });
-    // Oran, SVG'nin KENDİ viewBox'ıyla karşılaştırılır: geometri değişirse
-    // aspect-ratio da değişmek zorundadır, aksi halde yer ayırma bozulur ve
-    // test kırılır. Sabit bir değere bağlanmaz.
-    const measured = await page.locator(".atlas__svg").evaluate((el) => ({
-      ratio: getComputedStyle(el).aspectRatio.replace(/\s/g, ""),
-      viewBox: el.getAttribute("viewBox") ?? "",
-    }));
-    const parts = measured.viewBox.split(/\s+/);
-    expect(parts).toHaveLength(4);
-    expect(measured.ratio).toBe(`${parts[2]}/${parts[3]}`);
+  test("hero kaynaklı DÜZEN KAYMASI yok (ölçülen CLS)", async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "layout-shift yalnızca Chromium'da ölçülebilir");
+    test.setTimeout(180_000);
+    await page.goto("/?universe=force", { waitUntil: "commit" });
+    await page.evaluate(() => {
+      const store = { value: 0 };
+      (window as unknown as { __cls: { value: number } }).__cls = store;
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          const shift = entry as PerformanceEntry & { value: number; hadRecentInput: boolean };
+          if (!shift.hadRecentInput) store.value += shift.value;
+        }
+      }).observe({ type: "layout-shift", buffered: true });
+    });
+    // Sahnenin açılması TRACK yüksekliğini değiştirmemeli: tek düzen, üç kip.
+    await page
+      .waitForFunction(
+        () =>
+          document.querySelector("[data-universe]")?.getAttribute("data-universe-state") !==
+          "poster",
+        null,
+        { timeout: 60_000 }
+      )
+      .catch(() => undefined);
+    await page.waitForTimeout(2500);
+    const cls = await page.evaluate(
+      () => (window as unknown as { __cls: { value: number } }).__cls.value
+    );
+    expect(cls, `ölçülen CLS = ${cls}`).toBeLessThan(0.05);
+  });
+
+  test("KONSOL temiz: sahne hata üretmiyor", async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "WebGL kipi tek tarayıcıda doğrulanır");
+    test.setTimeout(180_000);
+    const errors: string[] = [];
+    page.on("console", (message) => {
+      if (message.type() === "error") errors.push(message.text());
+    });
+    page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
+
+    await openScene(page);
+    await page.mouse.wheel(0, 3600);
+    await page.waitForTimeout(2500);
+
+    /*
+     * Yazılım rasterleştiricinin "GPU stall" başarım uyarıları sahnenin hatası
+     * değildir ve yalnızca bu koşuda çıkar; gerçek hatalardan ayrılır.
+     */
+    const real = errors.filter((text) => !/GL Driver Message|GPU stall/.test(text));
+    expect(real, `konsol hataları: ${real.join(" | ")}`).toEqual([]);
   });
 });
 
 test.describe("hero JavaScript olmadan", () => {
   test.use({ viewport: DESKTOP, javaScriptEnabled: false });
 
-  test("topoloji ve aşamalar SON kompozisyonda görünüyor", async ({ page }) => {
+  test("poster ve aşamalar SON kompozisyonda görünüyor", async ({ page }) => {
     await page.goto("/");
+    expect(await universeState(page)).toBe("poster");
+    await expect(page.locator(".universe__poster svg")).toBeVisible();
     await expect(page.locator("h1")).toBeVisible();
-    await expect(page.getByTestId("hero-stages").locator("li")).toHaveCount(5);
-    await expect(page.locator(".atlas__svg")).toBeVisible();
-    await expect(page.locator('#hero a[href="/cozumler/"]')).toBeVisible();
+    await expect(page.locator(".hero__actions a")).toHaveCount(2);
+
+    const list = page.getByTestId("hero-stages");
+    await expect(list.locator("li")).toHaveCount(5);
+    for (const item of await list.locator(".journey__inner").all()) {
+      await expect(item).toBeVisible();
+    }
+
+    // Atlas zemini opaktır: metin tuvale bağımlı değildir.
+    const background = await page
+      .locator("#solutions")
+      .evaluate((el) => getComputedStyle(el).backgroundImage);
+    expect(background).toBe("none");
   });
 });
 
 test.describe("hero mobil", () => {
-  test.use({ viewport: MOBILE, isMobile: true, hasTouch: true });
+  test.use({ viewport: MOBILE, hasTouch: true, isMobile: true });
 
-  test("geniş topoloji GİZLİ, aşamalar okunabilir kalıyor", async ({ page }) => {
+  test("EVREN KORUNUYOR: tuval kaldırılmadı, taşma yok", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator(".atlas__svg")).toBeHidden();
-    await expect(page.getByTestId("hero-stages").locator("li")).toHaveCount(5);
-    for (const key of STAGES) {
-      await expect(page.locator(`.stage[data-stage="${key}"] .stage__body`)).toBeVisible();
-    }
+
+    const canvas = page.locator("[data-universe-canvas]");
+    await expect(canvas).toHaveCount(1);
+    const box = await canvas.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.width).toBeGreaterThanOrEqual(MOBILE.width - 1);
+    expect(box!.height).toBeGreaterThanOrEqual(MOBILE.height * 0.9);
+
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth
+    );
+    expect(overflow, `yatay taşma ${overflow}px`).toBeLessThanOrEqual(0);
   });
 
   test("DOKUNMATİK senaryo: bilgi için dokunma gerekmiyor", async ({ page }) => {
     await page.goto("/");
-    const before = await page.getByTestId("hero-stages").innerText();
-    await page.locator('.stage[data-stage="decide"]').tap();
-    const after = await page.getByTestId("hero-stages").innerText();
-    // Dokunma bilgiyi DEĞİŞTİRMEZ; zaten tamamı görünürdür.
-    expect(after).toBe(before);
+    await expect(page.locator("h1")).toBeVisible();
+    await expect(page.locator(".hero__actions a")).toHaveCount(2);
+    await expect(page.getByTestId("hero-stages").locator("li")).toHaveCount(5);
   });
 });
 
-/**
- * İLK EKRAN KOMPOZİSYONU (S08 takip kararı).
- *
- * Beş aşamanın metinleri masaüstünde ilk viewport'un ALTINDA kalıyordu; soyut
- * SVG tek başına kaynak → sinyal → bağlam → karar → aksiyon hikâyesini
- * anlatmıyordu.
- *
- * Test DOM'da bulunmayı değil GERÇEK VIEWPORT GÖRÜNÜRLÜĞÜNÜ ölçer: her aşama
- * başlığının bounding box'ı viewport sınırları içinde olmalıdır.
- */
-const FIRST_SCREEN = [
-  { width: 1440, height: 900 },
-  { width: 1366, height: 768 },
-] as const;
-
 test.describe("ilk ekran kompozisyonu", () => {
-  for (const viewport of FIRST_SCREEN) {
+  for (const viewport of [DESKTOP, { width: 1366, height: 768 }]) {
     for (const route of ["/", "/en/"]) {
-      test(`${viewport.width}x${viewport.height} ${route} — beş aşama adı ilk viewport içinde`, async ({
-        page,
-      }) => {
-        await page.setViewportSize({ width: viewport.width, height: viewport.height });
-        await page.goto(route);
-        await page.evaluate(() => document.fonts.ready);
-
-        const titles = page.locator('[data-testid="hero-stages"] .stage__title');
-        await expect(titles).toHaveCount(5);
-
-        const boxes = await titles.evaluateAll((els) =>
-          els.map((el) => {
-            const rect = el.getBoundingClientRect();
-            return {
-              text: (el.textContent ?? "").trim(),
-              top: rect.top,
-              bottom: rect.bottom,
-              left: rect.left,
-              right: rect.right,
-              width: rect.width,
-              height: rect.height,
-            };
-          })
-        );
-
-        for (const box of boxes) {
-          expect(box.width, `${box.text} genişliği sıfır`).toBeGreaterThan(0);
-          expect(box.height, `${box.text} yüksekliği sıfır`).toBeGreaterThan(0);
-          expect(box.top, `${box.text} viewport üstünde`).toBeGreaterThanOrEqual(0);
-          expect(
-            box.bottom,
-            `${box.text} ilk viewport dışında (bottom=${Math.round(box.bottom)} > ${viewport.height})`
-          ).toBeLessThanOrEqual(viewport.height);
-          expect(box.left).toBeGreaterThanOrEqual(0);
-          expect(box.right).toBeLessThanOrEqual(viewport.width);
-        }
-      });
-
       test(`${viewport.width}x${viewport.height} ${route} — H1, açıklama ve CTA'lar ilk viewport içinde`, async ({
         page,
       }) => {
-        await page.setViewportSize({ width: viewport.width, height: viewport.height });
+        await page.setViewportSize(viewport);
         await page.goto(route);
-        await page.evaluate(() => document.fonts.ready);
 
-        for (const selector of ["h1", ".hero__lead", ".hero__actions"]) {
-          const bottom = await page
-            .locator(selector)
-            .first()
-            .evaluate((el) => el.getBoundingClientRect().bottom);
-          expect(bottom, `${selector} ilk viewport dışında`).toBeLessThanOrEqual(viewport.height);
-        }
-
-        // İki CTA da görünür kalmalı.
-        await expect(page.locator(".hero__actions a")).toHaveCount(2);
-        for (const cta of await page.locator(".hero__actions a").all()) {
-          await expect(cta).toBeInViewport();
+        for (const selector of [".hero__title", ".hero__lead", ".hero__actions"]) {
+          const box = await page.locator(selector).boundingBox();
+          expect(box, `${selector} bulunamadı`).not.toBeNull();
+          expect(
+            box!.y + box!.height,
+            `${selector} ilk ekranın dışında (${Math.round(box!.y + box!.height)} > ${viewport.height})`
+          ).toBeLessThanOrEqual(viewport.height);
         }
       });
     }
   }
 
-  test("aşama başlıkları SVG düğümleriyle aynı hizada", async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
+  test("SAHNEYE metin GÖMÜLMEMİŞ", async ({ page }) => {
     await page.goto("/");
-    await page.evaluate(() => document.fonts.ready);
-
-    const centers = await page.evaluate(() => {
-      const centerOf = (el: Element): number => {
-        const rect = el.getBoundingClientRect();
-        return rect.left + rect.width / 2;
-      };
-      const stages = [...document.querySelectorAll('[data-testid="hero-stages"] .stage')].map(
-        centerOf
-      );
-      const nodes = [
-        document.querySelector(".atlas__source"),
-        document.querySelector(".atlas__signal"),
-        document.querySelector(".atlas__hub:not(.atlas__hub--ai)"),
-        document.querySelector(".atlas__hub--ai"),
-        document.querySelector(".atlas__action"),
-      ].map((el) => (el === null ? Number.NaN : centerOf(el)));
-      return { stages, nodes };
-    });
-
-    expect(centers.stages).toHaveLength(5);
-    for (let i = 0; i < 5; i += 1) {
-      const stage = centers.stages[i] ?? Number.NaN;
-      const node = centers.nodes[i] ?? Number.NaN;
-      // Düğüm ve etiket aynı sütunda: 20px'ten fazla kayma görsel eşleşmeyi bozar.
-      expect(Math.abs(stage - node), `aşama ${i + 1} düğümüyle hizalı değil`).toBeLessThanOrEqual(
-        20
-      );
-    }
-  });
-
-  test("SVG'ye metin GÖMÜLMEMİŞ", async ({ page }) => {
-    await page.goto("/");
-    const svgText = await page
-      .locator(".atlas__svg")
-      .evaluate((el) => el.querySelectorAll("text, foreignObject").length);
+    // Poster SVG'sinde ve tuvalde okunması gereken metin YOKTUR.
+    const svgText = await page.locator(".universe__poster svg text").count();
     expect(svgText).toBe(0);
+    const canvasText = await page.locator("[data-universe-canvas]").innerText();
+    expect(canvasText.trim()).toBe("");
   });
 });

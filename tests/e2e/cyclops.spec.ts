@@ -10,7 +10,15 @@ import AxeBuilder from "@axe-core/playwright";
  * doğrular.
  */
 
-const ROUTES = ["/cyclops/", "/en/cyclops/"] as const;
+/*
+ * S14: CyclOps ürün ailesine taşındı.
+ *
+ * Kanonik adres artık `/urunler/cyclops/`. Eski `/cyclops/` adresi 301 ile
+ * yönlendirilir (bkz. `src/config/redirects.ts`, `origin: "internal"`) ve
+ * statik çıktıda sayfa olarak ÜRETİLMEZ — bu yüzden testler kanonik adresi
+ * kullanır. Yönlendirmenin kendisi `tests/e2e/seo.spec.ts` içinde denetlenir.
+ */
+const ROUTES = ["/urunler/cyclops/", "/en/products/cyclops/"] as const;
 const DESKTOP = { width: 1440, height: 900 };
 const MOBILE = { width: 390, height: 844 };
 
@@ -39,11 +47,11 @@ test.describe("rota ve yapı", () => {
   }
 
   test("dil karşılığı iki yönlü", async ({ page }) => {
-    await page.goto("/cyclops/");
+    await page.goto("/urunler/cyclops/");
     await page.getByTestId("lang-link-en").click();
-    await expect(page).toHaveURL(/\/en\/cyclops\/$/);
+    await expect(page).toHaveURL(/\/en\/products\/cyclops\/$/);
     await page.getByTestId("lang-link-tr").click();
-    await expect(page).toHaveURL(/\/cyclops\/$/);
+    await expect(page).toHaveURL(/\/urunler\/cyclops\/$/);
   });
 });
 
@@ -51,7 +59,7 @@ test.describe("ilk ekran hikâyesi", () => {
   test.use({ viewport: DESKTOP });
 
   test("CyclOps'un Duosis ürünü olduğu ilk viewport'ta görünür", async ({ page }) => {
-    await page.goto("/cyclops/");
+    await page.goto("/urunler/cyclops/");
     const eyebrow = page.locator(".hero__eyebrow");
     await expect(eyebrow).toBeInViewport();
     await expect(eyebrow).toContainText(/duosis/i);
@@ -66,16 +74,16 @@ test.describe("ilk ekran hikâyesi", () => {
   });
 
   test("izleme araçlarının yerine geçmediği açıkça yazıyor", async ({ page }) => {
-    await page.goto("/cyclops/");
+    await page.goto("/urunler/cyclops/");
     await expect(page.locator(".hero__positioning")).toContainText(/yerine geçmez/i);
-    await page.goto("/en/cyclops/");
+    await page.goto("/en/products/cyclops/");
     await expect(page.locator(".hero__positioning")).toContainText(/does not replace/i);
   });
 });
 
 test.describe("ürün ekranları", () => {
   test("üç gerçek ekran, gerçek boyutlarıyla yükleniyor", async ({ page }) => {
-    await page.goto("/cyclops/", { waitUntil: "networkidle" });
+    await page.goto("/urunler/cyclops/", { waitUntil: "networkidle" });
     await page.evaluate(async () => {
       for (let y = 0; y < document.body.scrollHeight; y += 600) {
         window.scrollTo(0, y);
@@ -107,7 +115,7 @@ test.describe("ürün ekranları", () => {
   });
 
   test("AVIF/WebP türevleri ve fallback üretilmiş", async ({ page }) => {
-    await page.goto("/cyclops/");
+    await page.goto("/urunler/cyclops/");
     const types = await page
       .locator('[data-testid="product-screens"] picture source')
       .evaluateAll((els) => els.map((el) => el.getAttribute("type")));
@@ -121,14 +129,14 @@ test.describe("ürün ekranları", () => {
   });
 
   test("her ekranda GERÇEK ÜRÜN EKRANI ayrımı yapılıyor", async ({ page }) => {
-    await page.goto("/cyclops/");
+    await page.goto("/urunler/cyclops/");
     const badges = page.locator('[data-testid="product-screens"] .screens__badge');
     await expect(badges).toHaveCount(3);
     await expect(badges.first()).toContainText(/gerçek ürün ekranı/i);
   });
 
   test("galeride klavye tuzağı YOK: sahte tıklanabilir öğe yok", async ({ page }) => {
-    await page.goto("/cyclops/");
+    await page.goto("/urunler/cyclops/");
     const gallery = page.locator('[data-testid="product-screens"]');
     // Modal yok; büyütme yok. Rol taklidi yapan div/span bulunmamalı.
     await expect(gallery.locator('[role="button"], [onclick], div[tabindex]')).toHaveCount(0);
@@ -141,7 +149,7 @@ test.describe("ürün ekranları", () => {
       const url = request.url();
       if (!url.includes("127.0.0.1") && !url.includes("localhost")) external.push(url);
     });
-    await page.goto("/cyclops/", { waitUntil: "networkidle" });
+    await page.goto("/urunler/cyclops/", { waitUntil: "networkidle" });
     expect(external).toEqual([]);
   });
 });
@@ -215,7 +223,7 @@ test.describe("hassas veri taraması", () => {
   });
 
   test("logo YALNIZCA CyclOps için render ediliyor", async ({ page }) => {
-    await page.goto("/cyclops/");
+    await page.goto("/urunler/cyclops/");
     // Entegrasyon listesi metin; hiçbir üçüncü taraf logosu yok.
     await expect(page.locator('[data-testid="integration-list"] img')).toHaveCount(0);
     const wordmark = page.locator(".hero__wordmark img");
@@ -225,14 +233,14 @@ test.describe("hassas veri taraması", () => {
 
 test.describe("CTA", () => {
   test("CTA kapalı ürün allowlist'ini kullanıyor", async ({ page }) => {
-    await page.goto("/cyclops/");
+    await page.goto("/urunler/cyclops/");
     const hrefs = await page
       .locator('[data-analytics-event="product-cta"]')
       .evaluateAll((els) => els.map((el) => el.getAttribute("href")));
     expect(hrefs.length).toBeGreaterThan(0);
     for (const href of hrefs) expect(href).toBe("/iletisim/?topic=cyclops");
 
-    await page.goto("/en/cyclops/");
+    await page.goto("/en/products/cyclops/");
     const enHrefs = await page
       .locator('[data-analytics-event="product-cta"]')
       .evaluateAll((els) => els.map((el) => el.getAttribute("href")));
@@ -245,7 +253,7 @@ test.describe("CTA", () => {
       const url = request.url();
       if (!url.includes("127.0.0.1") && !url.includes("localhost")) external.push(url);
     });
-    await page.goto("/cyclops/");
+    await page.goto("/urunler/cyclops/");
     await page.locator('[data-analytics-event="product-cta"]').first().click();
     await page.waitForURL(/\/iletisim\/\?topic=cyclops$/);
     expect(external).toEqual([]);
@@ -269,7 +277,7 @@ test.describe("düzen", () => {
 
   test("mobilde ürün görselleri kabına sığıyor", async ({ page }) => {
     await page.setViewportSize(MOBILE);
-    await page.goto("/cyclops/", { waitUntil: "networkidle" });
+    await page.goto("/urunler/cyclops/", { waitUntil: "networkidle" });
     const widths = await page
       .locator('[data-testid="product-screen"]')
       .evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().width)));
@@ -282,7 +290,7 @@ test.describe("hareket azaltma", () => {
 
   test("prefers-reduced-motion altında hareket duruyor", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/cyclops/");
+    await page.goto("/urunler/cyclops/");
 
     // Token sözleşmesi: hareket süreleri 1ms'e iner (`tokens.css` içindeki
     // `prefers-reduced-motion` bloğu), yani algılanabilir hareket kalmaz.

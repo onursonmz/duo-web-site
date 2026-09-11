@@ -21,6 +21,13 @@ interface Props {
   noindex?: boolean;
   /** Dar okuma sütunu yerine tam genişlik (ana sayfa, tasarım sistemi vb.). */
   wide?: boolean;
+  /**
+   * Başlığı sayfa akışından çıkarıp içeriğin ÜSTÜNE bindirir.
+   *
+   * Yalnızca ilk bölümü ekranı dolduran KOYU bir sahne olan sayfalar içindir
+   * (ana sayfa). Diğer sayfalarda beyaz şerit doğru davranıştır.
+   */
+  headerOverlay?: boolean;
   /** Breadcrumb izi; iki veya daha fazla öğe varsa render edilir. */
   breadcrumbs?: Crumb[];
   /**
@@ -49,6 +56,7 @@ const {
   alternates = {},
   noindex = false,
   wide = false,
+  headerOverlay = false,
   breadcrumbs = [],
   ogImage = "/og/og-default.png",
   ogType = "website",
@@ -160,7 +168,12 @@ const ldBlocks = [organization, ...(breadcrumbLdBlock ? [breadcrumbLdBlock] : []
   <body>
     <a class="skip-link" href="#main-content">{t(locale, "nav.skipToContent")}</a>
 
-    <SiteHeader locale={locale} pathname={Astro.url.pathname} alternates={alternates} />
+    <SiteHeader
+      locale={locale}
+      pathname={Astro.url.pathname}
+      alternates={alternates}
+      overlay={headerOverlay}
+    />
 
     <main id="main-content" class:list={[wide && "main--wide"]} tabindex="-1">
       {

@@ -26,6 +26,7 @@ const SEGMENTS = {
     insights: "icgoruler",
     contact: "iletisim",
     cyclops: "cyclops",
+    products: "urunler",
     about: "hakkimizda",
     legal: "aydinlatma-metni",
     services: "hizmetler",
@@ -38,6 +39,7 @@ const SEGMENTS = {
     insights: "insights",
     contact: "contact",
     cyclops: "cyclops",
+    products: "products",
     about: "about",
     legal: "privacy-notice",
     services: "services",
@@ -52,6 +54,7 @@ const SEGMENTS = {
     insights: string;
     contact: string;
     cyclops: string;
+    products: string;
     about: string;
     services: string;
     technologies: string;
@@ -174,9 +177,29 @@ export function contactPathForTopic(
   return allowed.includes(topic) ? `${base}?topic=${encodeURIComponent(topic)}` : base;
 }
 
-/** CyclOps ürün sayfası: /cyclops/ veya /en/cyclops/ */
+/**
+ * CyclOps ürün sayfası: /cyclops/ veya /en/cyclops/
+ *
+ * S14'te CyclOps ürün ailesinin bir üyesi oldu ve KANONİK adresi
+ * `/urunler/cyclops/` hâline geldi. Bu yol artık YALNIZCA yönlendirme
+ * kaynağıdır; sayfa buradan üretilmez. Bkz. `productPath`.
+ */
 export function cyclopsPath(locale: Locale): string {
   return localizedPath(locale, SEGMENTS[locale].cyclops);
+}
+
+/** Ürünler indeksi: /urunler/ veya /en/products/ */
+export function productsIndexPath(locale: Locale): string {
+  return localizedPath(locale, SEGMENTS[locale].products);
+}
+
+/**
+ * Ürün detayı: /urunler/<slug>/ veya /en/products/<slug>/
+ *
+ * Slug dilden BAĞIMSIZDIR: ürün adları çevrilmez, marka adıdır.
+ */
+export function productPath(locale: Locale, slug: string): string {
+  return localizedPath(locale, SEGMENTS[locale].products, slug);
 }
 
 /** Hakkımızda yolu: /hakkimizda/ veya /en/about/ */
@@ -204,7 +227,7 @@ export function journeyPath(locale: Locale): string {
  * buraya yazılmayan hiçbir değer parametre olamaz. Serbest query kabul
  * edilmez.
  */
-export const PRODUCT_TOPICS = ["cyclops"] as const;
+export const PRODUCT_TOPICS = ["cyclops", "hermes", "logislot", "ravskald"] as const;
 export type ProductTopic = (typeof PRODUCT_TOPICS)[number];
 
 /** Ürün sayfasının iletişim CTA'sı; konu allowlist dışındaysa parametre eklenmez. */

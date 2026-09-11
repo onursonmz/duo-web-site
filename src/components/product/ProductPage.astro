@@ -20,6 +20,7 @@ import Button from "@components/ui/Button.astro";
 import Section from "@components/ui/Section.astro";
 import LogoMark from "@components/ui/LogoMark.astro";
 import ProductScreens from "@components/product/ProductScreens.astro";
+import ProductDiagram from "@components/product/ProductDiagram.astro";
 
 interface Props {
   locale: Locale;
@@ -53,15 +54,33 @@ const ctaHref = contactPathForProductTopic(locale, data.cta.topic);
       içinde durur. Asset DEĞİŞTİRİLMEDİ: renk, oran ve geometri sunumdaki
       hâliyle aynıdır.
     -->
-    <span class="hero__wordmark">
-      <LogoMark variant="cyclops" width="8.5rem" label={data.name} />
-    </span>
-    <h1 class="hero__title">{data.valueProposition}</h1>
+    {
+      /*
+       * WORDMARK YALNIZCA CYCLOPS'A ÖZEL.
+       *
+       * Bu blok `variant="cyclops"` ile SABİT KODLANMIŞTI: dört ürünlü
+       * aileye geçince LogiSlot ve Hermes sayfaları CyclOps'un wordmark'ını
+       * kendi adlarıyla etiketlenmiş hâlde gösteriyordu. Bu hem yanlış bir
+       * marka gösterimi, hem de S08'de YALNIZCA CyclOps için verilen logo
+       * izninin dışına çıkmaktı.
+       *
+       * Kendi doğrulanmış wordmark'ı olmayan ürün logo GÖSTERMEZ; adı
+       * metin olarak durur.
+       */
+      data.slug === "cyclops" ? (
+        <span class="hero__wordmark">
+          <LogoMark variant="cyclops" width="8.5rem" label={data.name} />
+        </span>
+      ) : (
+        <p class="hero__name">{data.name}</p>
+      )
+    }
+    <h1 class="hero__title">{data.summary}</h1>
     <p class="hero__positioning">{data.positioning}</p>
 
     <ol class="chain" data-testid="product-flow">
       {
-        data.flow.map((step, index) => (
+        (data.flow ?? []).map((step, index) => (
           <li class="chain__step" data-flow-step={step.key}>
             <span class="chain__index" aria-hidden="true">
               {String(index + 1).padStart(2, "0")}
@@ -87,11 +106,93 @@ const ctaHref = contactPathForProductTopic(locale, data.cta.topic);
       <p>{data.problem.body}</p>
     </section>
 
+    {
+      /*
+       * BUGÜN NE ÇALIŞIYOR?
+       *
+       * `verified-scope` ürünlerde bu blok ZORUNLUDUR ve sayfanın ÜST
+       * kısmında durur: tasarlanan kapsamı okumadan önce ziyaretçi ürünün
+       * hangi aşamada olduğunu görür. Aşağı gömmek, yetenek listesini
+       * çalışıyormuş gibi göstermek olurdu.
+       */
+      data.todayTitle !== undefined && data.todayBody !== undefined && (
+        <section
+          aria-labelledby="today-heading"
+          class="today"
+          data-testid="product-today"
+          data-verification={data.verificationStatus}
+        >
+          <h2 id="today-heading">{data.todayTitle}</h2>
+          <p class="today__lead">{data.todayBody}</p>
+          <div class="today__cols">
+            {data.todayWorking !== undefined && (
+              <div class="today__col today__col--yes">
+                <h3 class="today__coltitle">
+                  {locale === "tr" ? "Bugün çalışıyor" : "Working today"}
+                </h3>
+                <ul class="today__list">
+                  {data.todayWorking.map((line) => (
+                    <li>{line}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {data.todayNotWorking !== undefined && (
+              <div class="today__col today__col--no">
+                <h3 class="today__coltitle">
+                  {locale === "tr" ? "Henüz çalışmıyor" : "Not working yet"}
+                </h3>
+                <ul class="today__list">
+                  {data.todayNotWorking.map((line) => (
+                    <li>{line}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </section>
+      )
+    }
+
+    {/* Girdi → mekanizma → sonuç: ürünün çalışma modeli üç adımda. */}
+    <section aria-labelledby="model-heading" class="model" data-testid="product-model">
+      <h2 id="model-heading" class="visually-hidden">
+        {t(locale, "products.mechanism")}
+      </h2>
+      <div class="model__grid">
+        <div class="model__col">
+          <h3 class="model__title">{t(locale, "products.inputs")}</h3>
+          <ul class="model__list">
+            {data.inputs.map((line) => <li>{line}</li>)}
+          </ul>
+        </div>
+        <div class="model__col model__col--mid">
+          <h3 class="model__title">{t(locale, "products.mechanism")}</h3>
+          <ul class="model__list">
+            {data.mechanism.map((line) => <li>{line}</li>)}
+          </ul>
+        </div>
+        <div class="model__col">
+          <h3 class="model__title">{t(locale, "products.outcomes")}</h3>
+          <ul class="model__list model__list--plain">
+            {
+              data.outcomes.map((item) => (
+                <li>
+                  <strong>{item.title}</strong>
+                  <span>{item.body}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+    </section>
+
     <section aria-labelledby="flow-heading" data-testid="product-flow-detail">
-      <h2 id="flow-heading">{data.flowTitle}</h2>
+      <h2 id="flow-heading">{data.flowTitle ?? ""}</h2>
       <ol class="flow">
         {
-          data.flow.map((step, index) => (
+          (data.flow ?? []).map((step, index) => (
             <li class="flow__item" data-flow-step={step.key}>
               <span class="flow__index" aria-hidden="true">
                 {String(index + 1).padStart(2, "0")}
@@ -104,44 +205,92 @@ const ctaHref = contactPathForProductTopic(locale, data.cta.topic);
       </ol>
     </section>
 
-    <section aria-labelledby="scenario-heading" data-testid="product-scenario">
-      <h2 id="scenario-heading">{data.scenario.title}</h2>
-      <div class="compare">
-        <div class="compare__col">
-          <h3 class="compare__title">{data.scenario.beforeTitle}</h3>
-          <ul class="compare__list">
-            {data.scenario.before.map((line) => <li>{line}</li>)}
-          </ul>
-        </div>
-        <div class="compare__col compare__col--after">
-          <h3 class="compare__title">{data.scenario.afterTitle}</h3>
-          <ul class="compare__list">
-            {data.scenario.after.map((line) => <li>{line}</li>)}
-          </ul>
-        </div>
-      </div>
-    </section>
+    {
+      /* Çalışmayan bir ürün için "öncesi/sonrası" yazılmaz; blok da render edilmez. */
+      data.scenario !== undefined && (
+        <section aria-labelledby="scenario-heading" data-testid="product-scenario">
+          <h2 id="scenario-heading">{data.scenario.title}</h2>
+          <div class="compare">
+            <div class="compare__col">
+              <h3 class="compare__title">{data.scenario.beforeTitle}</h3>
+              <ul class="compare__list">
+                {data.scenario.before.map((line) => (
+                  <li>{line}</li>
+                ))}
+              </ul>
+            </div>
+            <div class="compare__col compare__col--after">
+              <h3 class="compare__title">{data.scenario.afterTitle}</h3>
+              <ul class="compare__list">
+                {data.scenario.after.map((line) => (
+                  <li>{line}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+      )
+    }
 
-    <ProductScreens
-      title={data.galleryTitle}
-      note={data.galleryNote}
-      screens={data.gallery}
-      realScreenLabel={t(locale, "product.realScreen")}
-    />
+    {
+      /*
+       * GERÇEK EKRAN YOKSA GALERİ HİÇ RENDER EDİLMEZ.
+       *
+       * Boş bir galeri kutusu, ekran varmış da yüklenememiş gibi görünürdü.
+       * Ekranı olmayan ürünlerde bunun yerine süreç görselleştirmesi
+       * gösterilir ve süreç görselleştirmesi olduğu açıkça yazılır.
+       */
+      data.gallery !== undefined &&
+        data.galleryTitle !== undefined &&
+        data.galleryNote !== undefined && (
+          <ProductScreens
+            title={data.galleryTitle}
+            note={data.galleryNote}
+            screens={data.gallery}
+            realScreenLabel={t(locale, "product.realScreen")}
+          />
+        )
+    }
 
-    <section aria-labelledby="approval-heading" data-testid="product-approval">
-      <h2 id="approval-heading">{data.approval.title}</h2>
-      <p>{data.approval.body}</p>
-      <ul class="bounds">
-        {data.approval.boundaries.map((line) => <li>{line}</li>)}
-      </ul>
-    </section>
+    {
+      /*
+       * GERÇEK EKRAN YOKSA SÜREÇ GÖRSELLEŞTİRMESİ.
+       *
+       * Boş bırakmak da, sahte bir dashboard çizmek de yanlış olurdu.
+       * Ürünün işleyişi çizilir ve bunun bir ürün ekranı OLMADIĞI açıkça
+       * yazılır.
+       */
+      data.gallery === undefined &&
+        data.diagramTitle !== undefined &&
+        data.diagramNote !== undefined && (
+          <ProductDiagram
+            title={data.diagramTitle}
+            note={data.diagramNote}
+            motionKey={data.motionKey}
+            steps={data.workflow}
+          />
+        )
+    }
+
+    {
+      data.approval !== undefined && (
+        <section aria-labelledby="approval-heading" data-testid="product-approval">
+          <h2 id="approval-heading">{data.approval.title}</h2>
+          <p>{data.approval.body}</p>
+          <ul class="bounds">
+            {data.approval.boundaries.map((line) => (
+              <li>{line}</li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
 
     {
       integrations.length > 0 && (
         <section aria-labelledby="integrations-heading" data-testid="product-integrations">
-          <h2 id="integrations-heading">{data.integrationsTitle}</h2>
-          <p>{data.integrationsNote}</p>
+          <h2 id="integrations-heading">{data.integrationsTitle ?? ""}</h2>
+          <p>{data.integrationsNote ?? ""}</p>
           <ul class="tech" data-testid="integration-list">
             {integrations.map((tech) => {
               const logo = logoPathIfAllowed(tech.data);
@@ -190,6 +339,59 @@ const ctaHref = contactPathForProductTopic(locale, data.cta.topic);
       )
     }
 
+    <section aria-labelledby="caps-heading" data-testid="product-capabilities">
+      <h2 id="caps-heading">{t(locale, "products.capabilities")}</h2>
+      <ul class="caps">
+        {
+          data.capabilities.map((item) => (
+            <li class="caps__item">
+              <h3 class="caps__title">{item.title}</h3>
+              <p class="caps__body">{item.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section aria-labelledby="steps-heading" data-testid="product-workflow">
+      <h2 id="steps-heading">{t(locale, "products.workflow")}</h2>
+      <ol class="steps">
+        {
+          data.workflow.map((item, index) => (
+            <li class="steps__item">
+              <span class="steps__index">{String(index + 1).padStart(2, "0")}</span>
+              <h3 class="steps__title">{item.title}</h3>
+              <p class="steps__body">{item.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    {
+      data.aiRole !== undefined && (
+        <section aria-labelledby="ai-heading" class="airole" data-testid="product-ai-role">
+          <h2 id="ai-heading">{t(locale, "products.aiRole")}</h2>
+          <p>{data.aiRole}</p>
+        </section>
+      )
+    }
+
+    <section aria-labelledby="security-heading" data-testid="product-security">
+      <h2 id="security-heading">{t(locale, "products.security")}</h2>
+      <ul class="bounds">
+        {data.security.map((line) => <li>{line}</li>)}
+      </ul>
+    </section>
+
+    <section aria-labelledby="audience-heading" data-testid="product-audiences">
+      <h2 id="audience-heading">{t(locale, "products.audiences")}</h2>
+      <ul class="tags">
+        {data.audiences.map((line) => <li class="tags__item">{line}</li>)}
+      </ul>
+      <p class="sourcenote">{t(locale, "products.sourceNote")}</p>
+    </section>
+
     <section aria-labelledby="cta-heading" class="cta">
       <h2 id="cta-heading">{data.cta.title}</h2>
       <p>{data.cta.body}</p>
@@ -215,6 +417,14 @@ const ctaHref = contactPathForProductTopic(locale, data.cta.topic);
     letter-spacing: var(--tracking-wide);
     text-transform: uppercase;
     color: var(--text-secondary);
+  }
+
+  .hero__name {
+    margin: 0 0 var(--space-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-lg);
+    letter-spacing: var(--tracking-wide);
+    color: var(--text-inverse);
   }
 
   .hero__wordmark {
@@ -395,5 +605,197 @@ const ctaHref = contactPathForProductTopic(locale, data.cta.topic);
   .cta :global(p) {
     max-width: 60ch;
     margin-bottom: var(--space-md);
+  }
+  /* --------------------------------------------------- S14 çekirdek blokları */
+
+  .today {
+    padding: var(--space-md);
+    border-inline-start: var(--border-width-strong) solid var(--decision);
+    background: var(--surface-sunken);
+  }
+
+  .today__lead {
+    margin: var(--space-2xs) 0 0;
+    max-width: 68ch;
+  }
+
+  .today__cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-md);
+    margin-top: var(--space-md);
+  }
+
+  @media (min-width: 48rem) {
+    .today__cols {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .today__coltitle {
+    margin: 0 0 var(--space-2xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+  }
+
+  .today__col--yes .today__coltitle {
+    color: var(--signal);
+  }
+
+  .today__col--no .today__coltitle {
+    color: var(--text-muted);
+  }
+
+  .today__list {
+    margin: 0;
+    padding-inline-start: var(--space-sm);
+    display: grid;
+    gap: var(--space-3xs);
+    font-size: var(--text-sm);
+  }
+
+  .model__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-md);
+  }
+
+  @media (min-width: 60rem) {
+    .model__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .model__col--mid {
+    padding-inline: var(--space-sm);
+    border-inline: var(--border-width) solid var(--border-subtle);
+  }
+
+  @media (max-width: 59.99rem) {
+    .model__col--mid {
+      padding-inline: 0;
+      padding-block: var(--space-sm);
+      border-inline: 0;
+      border-block: var(--border-width) solid var(--border-subtle);
+    }
+  }
+
+  .model__title {
+    margin: 0 0 var(--space-2xs);
+    font-size: var(--text-sm);
+    color: var(--signal);
+  }
+
+  .model__list {
+    margin: 0;
+    padding-inline-start: var(--space-sm);
+    display: grid;
+    gap: var(--space-2xs);
+    font-size: var(--text-sm);
+  }
+
+  .model__list--plain {
+    list-style: none;
+    padding-inline-start: 0;
+  }
+
+  .model__list--plain strong {
+    display: block;
+  }
+
+  .model__list--plain span {
+    color: var(--text-secondary);
+  }
+
+  .caps {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-md);
+    margin: var(--space-md) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 48rem) {
+    .caps {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .caps__title {
+    margin: 0;
+    font-size: var(--text-sm);
+  }
+
+  .caps__body {
+    margin: var(--space-3xs) 0 0;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+
+  .steps {
+    display: grid;
+    gap: var(--space-md);
+    margin: var(--space-md) 0 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+  }
+
+  .steps__item {
+    padding-inline-start: var(--space-lg);
+    border-inline-start: var(--border-width) solid var(--border-subtle);
+    position: relative;
+  }
+
+  .steps__index {
+    position: absolute;
+    inset-inline-start: calc(var(--space-sm) * -1);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--signal);
+    background: var(--surface-canvas);
+    padding-block: 2px;
+  }
+
+  .steps__title {
+    margin: 0;
+    font-size: var(--text-sm);
+  }
+
+  .steps__body {
+    margin: var(--space-3xs) 0 0;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+
+  .airole {
+    padding: var(--space-md);
+    border: var(--border-width) solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+    margin: var(--space-sm) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tags__item {
+    padding: var(--space-3xs) var(--space-2xs);
+    border: var(--border-width) solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+  }
+
+  .sourcenote {
+    margin-top: var(--space-md);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
   }
 </style>

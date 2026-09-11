@@ -1,7 +1,23 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { REDIRECTS, activeRedirects, statusFor, type RedirectRule } from "@config/redirects";
+import {
+  REDIRECTS,
+  activeRedirects,
+  legacyRedirects,
+  statusFor,
+  type RedirectRule,
+} from "@config/redirects";
+
+/*
+ * S00 KAPSAM DENETİMİ YALNIZCA LEGACY KURALLARA BAKAR.
+ *
+ * S14'te yeni sitenin KENDİ içinde taşınan rotalar eklendi (CyclOps ürün
+ * ailesine geçti). Bunlar S00 envanterine ait değildir; envantere karıştırmak
+ * "54 legacy adresin tamamı karşılandı" güvencesini anlamsızlaştırırdı.
+ * Zincir, döngü ve kör ana sayfa denetimleri ise TÜM kurallar için geçerli.
+ */
+const LEGACY = legacyRedirects();
 
 /**
  * S13 — URL MİGRASYON MATRİSİ.
@@ -31,6 +47,7 @@ function inventoryPaths(): string[] {
 
 const paths = inventoryPaths();
 const byFrom = new Map<string, RedirectRule>(REDIRECTS.map((rule) => [rule.from, rule]));
+const legacyByFrom = new Map<string, RedirectRule>(LEGACY.map((rule) => [rule.from, rule]));
 
 describe("kapsam", () => {
   it("S00 envanteri 54 URL taşıyor", () => {
@@ -40,15 +57,16 @@ describe("kapsam", () => {
   it("her legacy URL için TEK bir karar var", () => {
     const missing = paths.filter((path) => !byFrom.has(path));
     expect(missing, `karar verilmemiş URL: ${missing.join(", ")}`).toEqual([]);
-    expect(REDIRECTS).toHaveLength(paths.length);
+    expect(LEGACY).toHaveLength(paths.length);
   });
 
   it("kaynak listesinde tekrar yok", () => {
+    expect(legacyByFrom.size).toBe(LEGACY.length);
     expect(byFrom.size).toBe(REDIRECTS.length);
   });
 
   it("envanterde olmayan uydurma kayıt yok", () => {
-    const extra = REDIRECTS.map((rule) => rule.from).filter((from) => !paths.includes(from));
+    const extra = LEGACY.map((rule) => rule.from).filter((from) => !paths.includes(from));
     expect(extra, `envanterde olmayan kayıt: ${extra.join(", ")}`).toEqual([]);
   });
 });
@@ -124,7 +142,7 @@ describe("kör yönlendirme, zincir ve döngü YOK", () => {
 describe("karar dağılımı", () => {
   it("her karar türü kullanılıyor ve sayılar toplamı 54", () => {
     const counts = new Map<string, number>();
-    for (const rule of REDIRECTS) counts.set(rule.kind, (counts.get(rule.kind) ?? 0) + 1);
+    for (const rule of LEGACY) counts.set(rule.kind, (counts.get(rule.kind) ?? 0) + 1);
 
     for (const kind of ["preserve", "301-exact", "301-merged", "410"]) {
       expect(counts.get(kind) ?? 0, `${kind} kararı hiç kullanılmamış`).toBeGreaterThan(0);

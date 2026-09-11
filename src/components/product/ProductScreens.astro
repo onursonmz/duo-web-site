@@ -20,13 +20,17 @@ import type { CollectionEntry } from "astro:content";
 import eventBrowser from "@assets/cyclops/event-browser-inspector.png";
 import matchers from "@assets/cyclops/matchers-rules.png";
 import dashboard from "@assets/cyclops/operational-dashboard.png";
+import logislotLandingLight from "@assets/logislot/landing-hero-light.png";
+import logislotLandingDark from "@assets/logislot/landing-hero-dark.png";
+import logislotWizardVehicle from "@assets/logislot/supplier-wizard-step2.png";
+import logislotWizardSlots from "@assets/logislot/supplier-wizard-step3.png";
 
 type Product = CollectionEntry<"products">;
 
 interface Props {
   title: string;
   note: string;
-  screens: Product["data"]["gallery"];
+  screens: NonNullable<Product["data"]["gallery"]>;
   /** Ekranın "gerçek ürün ekranı" olduğunu söyleyen kısa etiket. */
   realScreenLabel: string;
 }
@@ -38,6 +42,15 @@ const ASSETS = {
   "event-browser": eventBrowser,
   matchers: matchers,
   dashboard: dashboard,
+  /*
+   * LogiSlot ekranları `scripts/mask-logislot-screens.mjs` ile üretilir.
+   * Tedarikçi portalı ekranlarındaki kiracı adı maskelenmiştir; kaynak
+   * commit ve hash'ler `docs/PRODUCT_SOURCE_MANIFEST.md` içindedir.
+   */
+  "logislot-landing-light": logislotLandingLight,
+  "logislot-landing-dark": logislotLandingDark,
+  "logislot-wizard-vehicle": logislotWizardVehicle,
+  "logislot-wizard-slots": logislotWizardSlots,
 } as const;
 
 const WIDTHS = [640, 960, 1280];

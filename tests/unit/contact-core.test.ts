@@ -127,7 +127,11 @@ describe("konu allowlist'i — TEK canonical yaklaşım", () => {
   it("tekil ve geçerli parametre korunur", () => {
     expect(topicFromSearchParams(new URLSearchParams("topic=cyclops"))).toBe("cyclops");
     expect(isContactTopic("cyclops")).toBe(true);
-    expect(CONTACT_TOPICS.length).toBe(1 + 1 + 8 + 8);
+    // genel + 4 ürün + 8 TR çözüm + 8 EN çözüm
+    expect(CONTACT_TOPICS.length).toBe(1 + 4 + 8 + 8);
+    for (const product of ["cyclops", "hermes", "logislot", "ravskald"]) {
+      expect(isContactTopic(product), `${product} konu olarak kabul edilmeli`).toBe(true);
+    }
   });
 });
 

@@ -1,0 +1,84 @@
+---
+/**
+ * ÜRÜN DETAYI.
+ *
+ * `getStaticPaths` public seçiciyi kullanır: yayınlanmamış bir ürün için
+ * rota HİÇ üretilmez.
+ */
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "@layouts/BaseLayout.astro";
+import ProductPage from "@components/product/ProductPage.astro";
+import {
+  PUBLIC,
+  getInsights,
+  getProductAlternates,
+  getProducts,
+  getSolutions,
+} from "@lib/content/selectors";
+import { productPath } from "@lib/i18n/routes";
+import { t } from "@lib/i18n/dictionary";
+import { ldOrigin, softwareApplicationLd } from "@lib/seo/structuredData";
+
+export const getStaticPaths = (async () => {
+  const products = await getProducts("tr", PUBLIC);
+  return products.map((product) => ({
+    params: { slug: product.data.slug },
+    props: { product },
+  }));
+}) satisfies GetStaticPaths;
+
+const locale = "tr" as const;
+const { product } = Astro.props;
+
+const alternates = await getProductAlternates(product.data.slug, PUBLIC, productPath);
+
+const allSolutions = await getSolutions(locale, PUBLIC);
+const relatedIds = new Set(product.data.relatedSolutionRefs.map((ref) => ref.id));
+const relatedSolutions = allSolutions.filter((solution) => relatedIds.has(solution.id));
+
+const allInsights = await getInsights(locale, PUBLIC);
+const relatedInsights = allInsights.filter((insight) =>
+  insight.data.relatedSolutionRefs.some((ref) => relatedIds.has(ref.id))
+);
+
+/*
+ * STRUCTURED DATA: `SoftwareApplication`.
+ *
+ * YALNIZCA bugün çalıştığı doğrulanmış ürünler için üretilir. Henüz
+ * çalışmayan bir ürün için yapılandırılmış veri basmak, arama motoruna
+ * sayfada olmayan bir şey söylemek olurdu.
+ */
+const softwareBlock =
+  product.data.verificationStatus === "verified-running"
+    ? softwareApplicationLd({
+        siteUrl: ldOrigin(Astro.site, Astro.url),
+        path: productPath(locale, product.data.slug),
+        name: product.data.name,
+        description: product.data.seo.description,
+        locale,
+      })
+    : undefined;
+---
+
+<BaseLayout
+  locale={locale}
+  title={product.data.seo.title}
+  description={product.data.seo.description}
+  alternates={alternates}
+  noindex={product.data.seo.noindex}
+  jsonLd={softwareBlock === undefined ? [] : [softwareBlock]}
+  wide={true}
+  breadcrumbs={[
+    { label: t(locale, "nav.home"), href: "/" },
+    { label: t(locale, "products.title"), href: "/urunler/" },
+    { label: product.data.name },
+  ]}
+>
+  <ProductPage
+    locale={locale}
+    product={product}
+    mode={PUBLIC}
+    solutions={relatedSolutions}
+    insights={relatedInsights}
+  />
+</BaseLayout>

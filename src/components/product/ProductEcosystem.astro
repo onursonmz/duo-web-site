@@ -1,0 +1,322 @@
+---
+/**
+ * ÜRÜN EKOSİSTEMİ — SIGNATURE MOMENT 2 (S15, S15-R1'de yeniden kuruldu).
+ *
+ * DÖRT KÜÇÜK METİN KARTI DEĞİLDİR — ve artık aynı SVG'nin dört varyasyonu da
+ * değildir. Codex incelemesi: "Her ürün seçiminde kompozisyon gerçekten
+ * yeniden kurulmalı. Yalnız çizgi rengi, kesik çizgi veya bir kutunun
+ * gizlenmesi yeterli değildir."
+ *
+ * Bu yüzden her ürünün KENDİ sahnesi vardır (`ProductScene`): farklı topoloji,
+ * farklı düğümler, farklı hareket. Ürün değiştiğinde sahne, açıklama, adım
+ * listesi ve CTA birlikte değişir.
+ *
+ * ERİŞİLEBİLİRLİK VE DÜRÜSTLÜK
+ * - Kontroller GERÇEK `<button>`; hover, focus ve dokunmatik eşdeğer.
+ * - OTOMATİK DÖNEN CAROUSEL YOK; sahne yalnızca kullanıcı seçimiyle değişir.
+ * - Tüm ürün blokları İLK HTML'de bulunur; JavaScript kapalıyken dördü de
+ *   sahnesiyle birlikte okunur (gizleme YALNIZCA JS ile devreye girer).
+ * - Sahne düğümleri boş kutu değildir: her bölgenin etiketi, her ürünün
+ *   doğrulanmış adım listesi vardır.
+ * - `prefers-reduced-motion` altında sahneler anlamlı SON durumda durur.
+ */
+import type { CollectionEntry } from "astro:content";
+import type { Locale } from "@lib/content/schema";
+import { t } from "@lib/i18n/dictionary";
+import { productPath } from "@lib/i18n/routes";
+import ProductScene from "@components/product/ProductScene.astro";
+
+type Product = CollectionEntry<"products">;
+
+interface Props {
+  locale: Locale;
+  products: Product[];
+}
+
+const { locale, products }: Props = Astro.props;
+
+/** Sahnenin ne yaptığını tek satırda söyleyen üst etiket. */
+const STAGE_LABEL = {
+  converge: { tr: "Olay yaşam döngüsü", en: "Event lifecycle" },
+  organise: { tr: "Müşteri ve proje bağlamı", en: "Customer and project context" },
+  allocate: { tr: "Kural motoru ve yerleştirme", en: "Rule engine and allocation" },
+  answer: { tr: "Deterministik araçlar", en: "Deterministic tools" },
+} as const;
+---
+
+<section class="eco" aria-labelledby="eco-heading" data-testid="product-ecosystem">
+  <div class="eco__head">
+    <h1 id="eco-heading">{t(locale, "products.title")}</h1>
+    <p class="eco__intro">{t(locale, "products.intro")}</p>
+  </div>
+
+  <div class="eco__stage">
+    {/* Kontroller: gerçek buton, gerçek tab semantiği. */}
+    <div class="eco__tabs" role="tablist" aria-labelledby="eco-heading">
+      {
+        products.map((product, index) => (
+          <button
+            type="button"
+            role="tab"
+            class="eco__tab"
+            id={`eco-tab-${product.data.slug}`}
+            aria-controls={`eco-panel-${product.data.slug}`}
+            aria-selected={index === 0 ? "true" : "false"}
+            tabindex={index === 0 ? 0 : -1}
+            data-eco-tab={product.data.slug}
+            data-motion={product.data.motionKey}
+          >
+            <span class="eco__tab-name">{product.data.name}</span>
+            <span class="eco__tab-motion">{STAGE_LABEL[product.data.motionKey][locale]}</span>
+            {product.data.verificationStatus === "verified-scope" && (
+              <span class="eco__tab-flag">{t(locale, "products.inDevelopment")}</span>
+            )}
+          </button>
+        ))
+      }
+    </div>
+
+    {
+      products.map((product, index) => (
+        <div
+          class="eco__product"
+          role="tabpanel"
+          id={`eco-panel-${product.data.slug}`}
+          aria-labelledby={`eco-tab-${product.data.slug}`}
+          data-eco-panel={product.data.slug}
+          data-initial={index === 0 ? "true" : "false"}
+        >
+          <div class="eco__copy">
+            <p class="eco__stagelabel">{STAGE_LABEL[product.data.motionKey][locale]}</p>
+            <h2 class="eco__panel-title">{product.data.headline}</h2>
+            <p class="eco__panel-body">{product.data.summary}</p>
+            <a class="eco__panel-cta" href={productPath(locale, product.data.slug)}>
+              {product.data.name}
+              <span aria-hidden="true">→</span>
+            </a>
+          </div>
+
+          <ProductScene locale={locale} product={product} />
+        </div>
+      ))
+    }
+  </div>
+</section>
+
+<script>
+  /*
+   * Sahne kontrolü.
+   *
+   * JS YOKKEN: hiçbir blok gizlenmez; dört ürün de sahnesiyle okunur.
+   * Gizleme YALNIZCA burada, JS çalıştığında başlar — "JS kapalı" durumunda
+   * boş sekme kalmaz.
+   */
+  const tabs = [...document.querySelectorAll<HTMLButtonElement>("[data-eco-tab]")];
+  const panels = [...document.querySelectorAll<HTMLElement>("[data-eco-panel]")];
+
+  if (tabs.length > 0) {
+    const select = (slug: string, focus: boolean): void => {
+      for (const tab of tabs) {
+        const active = tab.dataset["ecoTab"] === slug;
+        tab.setAttribute("aria-selected", active ? "true" : "false");
+        tab.tabIndex = active ? 0 : -1;
+        if (active && focus) tab.focus();
+      }
+      for (const panel of panels) {
+        panel.hidden = panel.dataset["ecoPanel"] !== slug;
+      }
+    };
+
+    // İlk durum: JS varken yalnızca seçili ürün görünür.
+    const first = tabs[0]?.dataset["ecoTab"];
+    if (first !== undefined) select(first, false);
+
+    for (const tab of tabs) {
+      tab.addEventListener("click", () => select(tab.dataset["ecoTab"] ?? "", false));
+    }
+
+    // Klavye: sekmeler arasında ok tuşlarıyla gezinme (WAI-ARIA tab deseni).
+    for (const [index, tab] of tabs.entries()) {
+      tab.addEventListener("keydown", (event) => {
+        const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+        if (step === 0) return;
+        event.preventDefault();
+        const next = tabs[(index + step + tabs.length) % tabs.length];
+        if (next !== undefined) select(next.dataset["ecoTab"] ?? "", true);
+      });
+    }
+  }
+</script>
+
+<style>
+  .eco {
+    padding-block: var(--space-3xl);
+    background: var(--surface-inverse);
+    color: var(--text-inverse);
+  }
+
+  /*
+   * Bu bölüm ürünler sayfasının ANA başlığını taşır; bu yüzden `h1`.
+   * Sayfada başka `h1` yoktur (`tests/e2e/route-inventory.spec.ts` denetler).
+   */
+  .eco__head h1 {
+    margin: 0;
+  }
+
+  .eco__head {
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--container-gutter);
+  }
+
+  .eco__intro {
+    max-width: 60ch;
+    margin-top: var(--space-xs);
+    color: var(--text-inverse-muted);
+  }
+
+  .eco__stage {
+    max-width: var(--container-max);
+    margin-inline: auto;
+    margin-top: var(--space-xl);
+    padding-inline: var(--container-gutter);
+  }
+
+  /* ---------------------------------------------------------- sekmeler */
+
+  .eco__tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: var(--space-2xs);
+    margin-bottom: var(--space-lg);
+  }
+
+  .eco__tab {
+    display: grid;
+    gap: 2px;
+    padding: var(--space-xs) var(--space-sm);
+    border: var(--border-width) solid var(--border-inverse-strong);
+    border-radius: var(--radius-sm);
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    transition:
+      border-color var(--motion-base) var(--motion-ease),
+      background var(--motion-base) var(--motion-ease);
+  }
+
+  /*
+   * Bu bölüm HER İKİ temada da koyu grafit yüzey kullanıyor; bu yüzden
+   * tema-bağımlı token (`--signal-surface`, `--text-primary`) KULLANILAMAZ.
+   * Inverse yüzeye ait token'lar her iki temada aynı değeri taşır.
+   */
+  .eco__tab[aria-selected="true"] {
+    border-color: var(--brand-cyan);
+    background: var(--signal-surface-inverse);
+  }
+
+  .eco__tab:hover {
+    border-color: var(--brand-cyan);
+  }
+
+  .eco__tab:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .eco__tab-name {
+    font-weight: var(--weight-medium);
+  }
+
+  .eco__tab-motion {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-inverse-muted);
+  }
+
+  .eco__tab-flag {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--brand-cyan);
+  }
+
+  /* ---------------------------------------------------------- ürün bloğu */
+
+  .eco__product {
+    display: grid;
+    gap: var(--space-lg);
+  }
+
+  /*
+   * `display: grid`, tarayıcının `[hidden] { display: none }` kuralını
+   * ÖZGÜLLÜKTE yeniyordu: JS panelleri gizlese bile dördü birden görünür
+   * kalıyordu. Gizleme sözleşmesi burada açıkça yeniden kurulur.
+   */
+  .eco__product[hidden] {
+    display: none;
+  }
+
+  @media (min-width: 62rem) {
+    .eco__product {
+      grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+      gap: var(--space-2xl);
+      align-items: start;
+    }
+  }
+
+  /*
+   * JS KAPALIYKEN dört blok da görünür ve araları ayrılır.
+   * Genel kardeş seçici (`~`) bilinçlidir: JS açıkken yalnızca TEK blok
+   * görünür olduğu için kural hiç eşleşmez ve ayırıcı çizgi ortada
+   * "başıboş" durmaz.
+   */
+  .eco__product:not([hidden]) ~ .eco__product:not([hidden]) {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-2xl);
+    border-top: var(--border-width) solid var(--border-inverse);
+  }
+
+  .eco__stagelabel {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    color: var(--brand-cyan);
+    text-transform: uppercase;
+  }
+
+  /*
+   * `h2`: sayfanın `h1`i "Ürünler" başlığıdır; ürün başlığı onun doğrudan
+   * alt başlığıdır. `h3` kullanmak başlık sırasını ATLIYORDU (Lighthouse
+   * `heading-order` bulgusu).
+   */
+  .eco__panel-title {
+    margin: var(--space-2xs) 0 0;
+    font-size: var(--text-xl);
+    letter-spacing: var(--tracking-tight);
+    text-wrap: balance;
+  }
+
+  .eco__panel-body {
+    margin-top: var(--space-2xs);
+    max-width: 52ch;
+    color: var(--text-inverse-muted);
+  }
+
+  .eco__panel-cta {
+    display: inline-flex;
+    gap: var(--space-3xs);
+    margin-top: var(--space-sm);
+    color: var(--brand-cyan);
+    font-weight: var(--weight-medium);
+  }
+
+  .eco__panel-cta:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+</style>

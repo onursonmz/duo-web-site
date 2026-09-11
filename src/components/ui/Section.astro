@@ -9,13 +9,20 @@
  */
 interface Props {
   tone?: "light" | "dark";
-  /** Dar okuma sütunu mu, geniş editorial ızgara mı. */
-  width?: "text" | "wide";
   /**
-   * Dikey ritim. `tight`, ilk ekran bütçesi olan bölümler (hero) içindir:
-   * içerik yukarı çekilir, bölüm ritmi bozulmaz.
+   * Dar okuma sütunu mu, geniş editorial ızgara mı, yoksa TAM GENİŞLİK mi.
+   *
+   * `bleed`, kenardan kenara uzanan imza sahneleri içindir (hero, bölüm
+   * geçişleri). İç boşluğu bileşenin KENDİSİ kurar; aksi halde sahne 76rem
+   * kapsayıcısına hapsolur ve ekranı dolduran kompozisyon kurulamaz.
    */
-  padding?: "default" | "tight";
+  width?: "text" | "wide" | "bleed";
+  /**
+   * Dikey ritim. `tight`, ilk ekran bütçesi olan bölümler içindir: içerik
+   * yukarı çekilir, bölüm ritmi bozulmaz. `none`, dikey boşluğu tamamen
+   * bileşene devreder (hero ve geçiş bantları).
+   */
+  padding?: "default" | "tight" | "none";
   as?: "section" | "div" | "article" | "footer" | "header";
   class?: string;
   id?: string;
@@ -48,6 +55,11 @@ const {
     padding-block: var(--space-xl);
   }
 
+  /* Dikey ritmi bileşene devreder; ekranı dolduran sahneler bunu kullanır. */
+  .section--none {
+    padding-block: 0;
+  }
+
   .section__inner {
     width: 100%;
     margin-inline: auto;
@@ -62,6 +74,12 @@ const {
     max-width: var(--container-text);
   }
 
+  /* Kenardan kenara: kapsayıcı sınırı ve gutter bileşene devredilir. */
+  .section__inner--bleed {
+    max-width: none;
+    padding-inline: 0;
+  }
+
   @media (max-width: 40rem) {
     .section {
       padding-block: var(--space-xl);
@@ -69,6 +87,10 @@ const {
 
     .section--tight {
       padding-block: var(--space-lg);
+    }
+
+    .section--none {
+      padding-block: 0;
     }
   }
 </style>

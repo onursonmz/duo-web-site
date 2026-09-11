@@ -434,6 +434,17 @@ export const homepageSchema = z
           .strict()
       )
       .length(5),
+    /**
+     * HERO SİNYAL ETİKETLERİ (S15-R1).
+     *
+     * Operasyon evreninde soldan giren telemetri türleri. Sahne DEKORATİFTİR;
+     * bu etiketlerin taşıdığı bilgi `heroStages[1].body` içinde zaten METİN
+     * olarak vardır ("Metrik, log, event ve trace…"). Bu yüzden sahnedeki
+     * kopyaları `aria-hidden` kalır ve bilgi yalnızca görselle taşınmaz.
+     *
+     * Kısa tutulur: sahnede tek satır etikettir, cümle değildir.
+     */
+    heroSignals: z.array(z.string().min(1).max(16)).length(5),
     /** Güven bölümü: yalnızca NİTEL anlatı; sayı alanı yoktur. */
     trust: sectionCopySchema.extend({ points: z.array(namedPointSchema).min(1) }).strict(),
     solutions: sectionCopySchema,
@@ -516,7 +527,25 @@ export const regionSchema = z
  */
 const productScreenSchema = z
   .object({
-    key: z.enum(["event-browser", "matchers", "dashboard"]),
+    /*
+     * KAPALI ANAHTAR KÜMESİ (S14'te dört ürüne genişletildi).
+     *
+     * Şablon yalnızca GERÇEKTEN incelenmiş ve gerekiyorsa redakte edilmiş
+     * varlıkları render eder; serbest dosya yolu kabul edilmez. Bir anahtar
+     * buraya ancak `docs/PRODUCT_SOURCE_MANIFEST.md` içinde kaynağı, hash'i
+     * ve izin kararı kayıtlıysa eklenir.
+     */
+    key: z.enum([
+      // CyclOps — S08'de incelendi ve maskelendi.
+      "event-browser",
+      "matchers",
+      "dashboard",
+      // LogiSlot — S14'te incelendi; wizard ekranlarında kiracı adı maskelendi.
+      "logislot-landing-light",
+      "logislot-landing-dark",
+      "logislot-wizard-vehicle",
+      "logislot-wizard-slots",
+    ]),
     caption: z.string().min(1),
     /** Görselin erişilebilir karşılığı; boş bırakılamaz. */
     alt: z.string().min(1),
@@ -531,6 +560,32 @@ const productFlowStepSchema = z
   })
   .strict();
 
+/** Başlıklı, gövdeli genel blok — yetenek, sonuç, adım. */
+const productBlockSchema = z
+  .object({
+    title: z.string().min(1),
+    body: z.string().min(1),
+  })
+  .strict();
+
+/**
+ * ÜRÜN KAYNAĞI (S14).
+ *
+ * Her ürün iddiası bir commit'e dayanmak zorundadır. Buradaki değerler
+ * `docs/PRODUCT_SOURCE_MANIFEST.md` ile BİREBİR aynı olmalıdır; kaynağı
+ * gösterilemeyen bir ürün siteye giremez.
+ */
+const productSourceSchema = z
+  .object({
+    /** Kaynak deposu (kısa ad) veya bu deponun kendisi. */
+    repository: z.string().min(1),
+    /** Kaynak commit SHA'sı — "en son" gibi kayan referans KABUL EDİLMEZ. */
+    commit: z.string().regex(/^[0-9a-f]{40}$/, "tam 40 karakterlik commit SHA gerekir"),
+    /** Manifest veya sözleşme dosyasının yolu. */
+    document: z.string().min(1),
+  })
+  .strict();
+
 export const productSchema = z
   .object({
     id: z.string().min(1),
@@ -541,14 +596,68 @@ export const productSchema = z
     ownership: z.literal("duosis-own-product"),
     name: z.string().min(1),
     eyebrow: z.string().min(1),
-    /** Tek cümlelik değer önerisi. */
-    valueProposition: z.string().min(1),
+
+    /* ---------------------------------------------------- S14 çekirdeği */
+
+    /**
+     * DOĞRULAMA DURUMU — sayfanın nasıl anlatacağını belirler.
+     *
+     * `verified-running`  : yetenekler bugün çalışıyor, şimdiki zamanda anlatılır
+     * `verified-scope`    : ürün tanımı bağlayıcı bir kaynakla doğrulandı ANCAK
+     *                       yetenekler henüz çalışmıyor; sayfa tasarlanan kapsam
+     *                       ile bugünkü durumu AYRI gösterir
+     * `source-pending`    : kaynak bulunamadı; kamuya açık detay yayımlanmaz
+     */
+    verificationStatus: z.enum(["verified-running", "verified-scope", "source-pending"]),
+    source: productSourceSchema,
+    /** Sayfanın ilk cümlesi; jargonla başlamaz. */
+    headline: z.string().min(1),
+    /** İki-üç cümlelik ürün özeti. */
+    summary: z.string().min(1),
+    /** Sisteme GİREN bilgi veya sinyaller. */
+    inputs: z.array(z.string().min(1)).min(2),
+    /** Ürünün bu girdilerle NE YAPTIĞI. */
+    mechanism: z.array(z.string().min(1)).min(2),
+    /** Kullanıcının gördüğü SONUÇ. */
+    outcomes: z.array(productBlockSchema).min(2),
+    capabilities: z.array(productBlockSchema).min(3),
+    workflow: z.array(productBlockSchema).min(3),
+    security: z.array(z.string().min(1)).min(1),
+    audiences: z.array(z.string().min(1)).min(2),
+    /**
+     * BUGÜN GERÇEKTEN ÇALIŞAN kısım.
+     *
+     * `verified-scope` ürünlerde ZORUNLUDUR: tasarlanan kapsamı bugünkü
+     * durumdan ayırmadan yetenek listesi yayımlamak, olmayan bir ürünü
+     * varmış gibi göstermek olurdu.
+     */
+    todayTitle: z.string().min(1).optional(),
+    todayBody: z.string().min(1).optional(),
+    todayWorking: z.array(z.string().min(1)).optional(),
+    todayNotWorking: z.array(z.string().min(1)).optional(),
+    /**
+     * Yapay zekânın üründeki rolü. Rol yoksa alan da yazılmaz — "AI destekli"
+     * demiş olmak için doldurulmaz.
+     */
+    aiRole: z.string().min(1).optional(),
+    /** Ürün ekosistemi sahnesinde kullanılan hareket dili anahtarı. */
+    motionKey: z.enum(["converge", "organise", "allocate", "answer"]),
+
+    /* ------------------------------------------- CyclOps'a özel bloklar */
+
     /** İzleme araçlarının yerine geçmediğini söyleyen konumlandırma cümlesi. */
     positioning: z.string().min(1),
     problem: z.object({ title: z.string().min(1), body: z.string().min(1) }).strict(),
     /** Signal → Context → Correlate → Decide → Act: TAM BEŞ, sıra kapalı. */
-    flowTitle: z.string().min(1),
-    flow: z.array(productFlowStepSchema).length(5),
+    flowTitle: z.string().min(1).optional(),
+    flow: z.array(productFlowStepSchema).length(5).optional(),
+    /*
+     * ÖNCESİ / SONRASI — opsiyonel.
+     *
+     * Henüz ÇALIŞMAYAN bir ürün için "öncesi/sonrası" yazmak, ürünün bugün
+     * bir fark yarattığını iddia etmek olurdu. Bu yüzden `verified-scope`
+     * ürünlerde bu blok bilinçli olarak boş bırakılır.
+     */
     scenario: z
       .object({
         title: z.string().min(1),
@@ -557,20 +666,33 @@ export const productSchema = z
         afterTitle: z.string().min(1),
         after: z.array(z.string().min(1)).min(2),
       })
-      .strict(),
-    galleryTitle: z.string().min(1),
+      .strict()
+      .optional(),
+    /*
+     * GERÇEK ÜRÜN EKRANLARI — opsiyonel.
+     *
+     * Yayımlanabilir ekranı OLMAYAN ürün (Hermes, RAVSKALD) bu bloğu hiç
+     * taşımaz. Boş bir galeri yerine hiç galeri: "ekran yok" durumu sessizce
+     * boş bir kutuya dönüşmez, sayfa bunun yerine süreç görselleştirmesi
+     * gösterir ve bunun bir süreç görselleştirmesi olduğunu AÇIKÇA yazar.
+     */
+    galleryTitle: z.string().min(1).optional(),
     /** Her görselin "gerçek ürün ekranı" olduğu ziyaretçiye açıkça söylenir. */
-    galleryNote: z.string().min(1),
-    gallery: z.array(productScreenSchema).min(3),
+    galleryNote: z.string().min(1).optional(),
+    gallery: z.array(productScreenSchema).min(1).optional(),
+    /** Gerçek ekran yoksa gösterilecek süreç görselleştirmesinin açıklaması. */
+    diagramTitle: z.string().min(1).optional(),
+    diagramNote: z.string().min(1).optional(),
     approval: z
       .object({
         title: z.string().min(1),
         body: z.string().min(1),
         boundaries: z.array(z.string().min(1)).min(2),
       })
-      .strict(),
-    integrationsTitle: z.string().min(1),
-    integrationsNote: z.string().min(1),
+      .strict()
+      .optional(),
+    integrationsTitle: z.string().min(1).optional(),
+    integrationsNote: z.string().min(1).optional(),
     /** Yalnızca envanterdeki kayıtlar; görünürlük seçiciden geçer. */
     technologyRefs: z.array(reference("technologies")).default([]),
     relatedSolutionRefs: z.array(reference("solutions")).default([]),
@@ -580,7 +702,7 @@ export const productSchema = z
         body: z.string().min(1),
         labelKey: z.string().min(1),
         /** CTA konusu KAPALI ürün allowlist'inden gelir. */
-        topic: z.enum(["cyclops"]),
+        topic: z.enum(["cyclops", "hermes", "logislot", "ravskald"]),
       })
       .strict(),
     seo: seoSchema,
