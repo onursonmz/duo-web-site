@@ -262,8 +262,14 @@ Sahne hâlâ sabit görünüyorsa tabloya bakın:
 
 ### Doğrulanan matris
 
-Başlı Chrome, gerçek GPU, Windows grafik hızlandırması açık, DevTools kapalı,
-1440×900, `reduce` kapalı:
+Ölçüm ortamı: **Playwright'ın BAŞLI Chromium'u** (Chrome for Testing, aynı
+motor), gerçek GPU — `ANGLE (Intel, Intel(R) HD Graphics 520, Direct3D11)` —
+Windows grafik hızlandırması açık, DevTools kapalı, 1440×900, `reduce` kapalı.
+
+> DÜRÜST SINIR: bu, kullanıcının KENDİ Chrome profili değildir. Eklenti,
+> bayrak veya işletim sistemi ayarı farklı olabilir. Bu yüzden kesin doğrulama
+> aşağıdaki komutla kullanıcının kendi tarayıcısında yapılmalı; teşhis tablosu
+> tam olarak bunun için var.
 
 | Senaryo                       | Durum    | Kademe | Kare süresi | Scroll aralığı | Sahne açıldı |
 | ----------------------------- | -------- | ------ | ----------- | -------------- | ------------ |
