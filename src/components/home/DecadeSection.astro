@@ -39,8 +39,13 @@ const { locale, decade, milestones }: Props = Astro.props;
   {
     milestones.length > 0 && (
       <ol class="decade__rail" data-testid="decade-milestones">
-        {milestones.map((milestone) => (
-          <li class="decade__item">
+        {milestones.map((milestone, index) => (
+          <li class="decade__item" style={`--decade-step:${index}`}>
+            {/*
+              Ray üzerindeki düğüm: yıllar düz metin değil, zaman çizgisinin
+              üstündeki duraklar. Son durak BAKIR — bugün durduğumuz yer.
+            */}
+            <span class="decade__node" aria-hidden="true" />
             <span class="decade__year">{milestone.data.year}</span>
             <h3 class="decade__title">{milestone.data.title}</h3>
             <p class="decade__summary">{milestone.data.summary}</p>
@@ -102,9 +107,84 @@ const { locale, decade, milestones }: Props = Astro.props;
     }
   }
 
+  /*
+   * ZAMAN RAYI.
+   *
+   * Yıllar artık ayrı ayrı metin blokları değil; sürekli bir çizginin
+   * üstündeki duraklar. Çizgi `::before` ile üretilir, ek DOM düğümü yok.
+   */
+  .decade__rail {
+    position: relative;
+  }
+
+  @media (min-width: 52rem) {
+    .decade__rail::before {
+      content: "";
+      position: absolute;
+      inset-inline: 0;
+      inset-block-start: 0;
+      height: var(--border-width);
+      background: var(--border-subtle);
+    }
+  }
+
   .decade__item {
+    position: relative;
     padding-top: var(--space-sm);
     border-top: var(--border-width) solid var(--border-strong);
+  }
+
+  .decade__node {
+    position: absolute;
+    inset-block-start: calc(var(--border-width) * -1 - 3px);
+    inset-inline-start: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--signal);
+  }
+
+  /*
+   * SON DURAK BAKIR: bugün durduğumuz nokta. Bakır yalnızca karar ve
+   * dönüm anlarında kullanılır — 10. yıl bunlardan biridir.
+   */
+  .decade__item:last-child .decade__node {
+    background: var(--decision);
+    width: 9px;
+    height: 9px;
+    inset-block-start: calc(var(--border-width) * -1 - 4px);
+  }
+
+  .decade__item:last-child {
+    border-top-color: var(--decision);
+  }
+
+  /*
+   * KONTROLLÜ GİRİŞ.
+   *
+   * Duraklar sırayla belirir; kaydırmayı ele geçirmez, yalnızca görünür
+   * olduğunda bir kez oynar. `animation-timeline` desteklenmiyorsa hiçbir
+   * şey olmaz ve duraklar zaten görünürdür (varsayılan opaklık 1).
+   */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .decade__item {
+        animation: decade-step linear both;
+        animation-timeline: view();
+        animation-range: entry 10% entry 55%;
+      }
+    }
+  }
+
+  @keyframes decade-step {
+    from {
+      opacity: 0.35;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .decade__year {

@@ -64,13 +64,25 @@ const { hero, stages }: Props = Astro.props;
       role="presentation"
       aria-hidden="true"
       focusable="false"
+      data-atlas
     >
+      {/* Katman ızgarası: harita bir yüzeyin üstünde durur, boşlukta değil. */}
+      <g class="atlas__grid">
+        {
+          [240, 480, 720, 960].map((x) => (
+            <line class="atlas__gridline" x1={x} y1="8" x2={x} y2="132" />
+          ))
+        }
+      </g>
+
       <g class="atlas__links">
+        {/* Kaynak → sinyal */}
         {
           [24, 56, 88, 120].map((y, i) => (
             <path class={`atlas__link atlas__link--s${i}`} d={`M129 ${y} H342`} />
           ))
         }
+        {/* Sinyal → bağlam: dört yol tek çekirdekte toplanır. */}
         {
           [24, 56, 88, 120].map((y, i) => (
             <path
@@ -79,8 +91,27 @@ const { hero, stages }: Props = Astro.props;
             />
           ))
         }
-        <path class="atlas__link atlas__link--ai" d="M622 72 H818"></path>
-        <path class="atlas__link atlas__link--act" d="M862 72 H1058"></path>
+        {/* Bağlam → karar */}
+        <path class="atlas__link atlas__link--ai" d="M622 72 H816"></path>
+        {/* Karar → aksiyon */}
+        <path class="atlas__link atlas__link--act" d="M864 72 H1060"></path>
+      </g>
+
+      {
+        /*
+        AKAN SİNYAL.
+        Yolların üstünde ilerleyen kısa parçalar; harita "yaşıyor" hissini
+        veren tek hareketli öğedir. `stroke-dashoffset` animasyonu yalnızca
+        boyama özelliklerini değiştirir, düzeni ETKİLEMEZ (CLS 0).
+      */
+      }
+      <g class="atlas__pulses">
+        {
+          [24, 56, 88, 120].map((y, i) => (
+            <path class={`atlas__pulse atlas__pulse--${i}`} d={`M129 ${y} H342`} />
+          ))
+        }
+        <path class="atlas__pulse atlas__pulse--hub" d="M622 72 H816"></path>
       </g>
 
       <g class="atlas__nodes">
@@ -90,9 +121,25 @@ const { hero, stages }: Props = Astro.props;
             <rect class="atlas__signal" x="344" y={y - 8} width="32" height="16" rx="2" />
           ))
         }
+        {/* Bağlam çekirdeği: iç halka ilişkiyi, dış halka kapsamı gösterir. */}
         <circle class="atlas__hub" cx="600" cy="72" r="22"></circle>
-        <circle class="atlas__hub atlas__hub--ai" cx="840" cy="72" r="22"></circle>
-        <rect class="atlas__action" x="1058" y="52" width="40" height="40" rx="3"></rect>
+        <circle class="atlas__hub-inner" cx="600" cy="72" r="9"></circle>
+
+        {
+          /*
+          KARAR NOKTASI — BAKIR.
+          Sanat yönü gereği bakır YALNIZCA karar ve insan müdahalesi anlarında
+          kullanılır. Eşkenar dörtgen, akışın içinde bir DURAK olduğunu söyler.
+        */
+        }
+        <g class="atlas__decision">
+          <rect x="822" y="54" width="36" height="36" rx="3" transform="rotate(45 840 72)"></rect>
+          <circle cx="840" cy="72" r="5"></circle>
+        </g>
+
+        {/* Aksiyon: kapalı çerçeve — akış burada bir sonuca bağlanır. */}
+        <rect class="atlas__action" x="1060" y="52" width="40" height="40" rx="3"></rect>
+        <path class="atlas__check" d="M1070 73 l7 7 l14 -16"></path>
       </g>
     </svg>
 
@@ -266,8 +313,90 @@ const { hero, stages }: Props = Astro.props;
     stroke-width: 2;
   }
 
-  .atlas__hub--ai {
-    stroke-dasharray: 4 5;
+  .atlas__hub-inner {
+    fill: var(--signal);
+  }
+
+  /* Izgara: haritanın üstünde durduğu yüzey. Çok siliktir, okumayı bozmaz. */
+  .atlas__gridline {
+    stroke: var(--border-subtle);
+    stroke-width: 1;
+  }
+
+  /*
+   * KARAR NOKTASI — BAKIR.
+   * Sanat yönü: bakır yalnızca karar ve insan müdahalesi anlarında.
+   */
+  .atlas__decision rect {
+    fill: none;
+    stroke: var(--decision);
+    stroke-width: 2;
+  }
+
+  .atlas__decision circle {
+    fill: var(--decision);
+  }
+
+  .atlas__check {
+    fill: none;
+    stroke: var(--action);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /*
+   * AKAN SİNYAL.
+   *
+   * Harita "yaşıyor" hissini veren TEK hareketli öğe. Yalnızca
+   * `stroke-dashoffset` değişir — düzen özelliği animasyonu yok, CLS 0.
+   * Sonsuz döngüdür ama tek bir CSS animasyonudur: JS yok, rAF döngüsü yok,
+   * bu yüzden sekme arka plandayken tarayıcı onu kendisi durdurur.
+   */
+  .atlas__pulse {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-dasharray: 26 187;
+    opacity: 0;
+    animation: atlas-flow 3.2s linear infinite;
+    animation-delay: 1200ms;
+  }
+
+  .atlas__pulse--1 {
+    animation-delay: 1500ms;
+  }
+
+  .atlas__pulse--2 {
+    animation-delay: 1800ms;
+  }
+
+  .atlas__pulse--3 {
+    animation-delay: 2100ms;
+  }
+
+  .atlas__pulse--hub {
+    stroke: var(--decision);
+    stroke-dasharray: 22 170;
+    animation-delay: 2400ms;
+  }
+
+  @keyframes atlas-flow {
+    0% {
+      stroke-dashoffset: 213;
+      opacity: 0;
+    }
+    12% {
+      opacity: 0.95;
+    }
+    88% {
+      opacity: 0.95;
+    }
+    100% {
+      stroke-dashoffset: 0;
+      opacity: 0;
+    }
   }
 
   .atlas__action {
@@ -421,6 +550,13 @@ const { hero, stages }: Props = Astro.props;
    * görünür. Anlam veya CTA kaybı olmaz; scroll davranışı animasyona bağlı
    * değildir (scrolljacking yok).
    */
+  /*
+   * REDUCED MOTION: BOŞ EKRAN DEĞİL, ANLAMLI SON DURUM.
+   *
+   * Harita tamamen görünür kalır; yalnızca hareket durur. Akan sinyal
+   * tamamen KALDIRILIR — çünkü tek başına sürekli bir hareketti ve
+   * taşıdığı bilgi zaten yolların kendisinde duruyor.
+   */
   @media (prefers-reduced-motion: reduce) {
     .atlas__link {
       animation: none;
@@ -430,6 +566,10 @@ const { hero, stages }: Props = Astro.props;
     .atlas__nodes > * {
       animation: none;
       opacity: 1;
+    }
+
+    .atlas__pulses {
+      display: none;
     }
   }
 </style>

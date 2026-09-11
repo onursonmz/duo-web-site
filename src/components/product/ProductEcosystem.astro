@@ -309,9 +309,16 @@ const TOPOLOGY = {
     cursor: pointer;
   }
 
+  /*
+   * Bu bölüm HER İKİ temada da koyu grafit yüzey kullanıyor. Bu yüzden
+   * içinde tema-bağımlı token (`--signal-surface`, `--text-primary`)
+   * KULLANILAMAZ: açık temada beyaz zemin + açık metin çıkıyor ve seçili
+   * sekmenin adı görünmez oluyordu. Inverse yüzeye ait token'lar her iki
+   * temada aynı değeri taşır.
+   */
   .eco__tab[aria-selected="true"] {
     border-color: var(--brand-cyan);
-    background: var(--signal-surface);
+    background: var(--signal-surface-inverse);
   }
 
   .eco__tab:focus-visible {

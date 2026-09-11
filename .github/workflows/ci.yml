@@ -52,8 +52,10 @@ jobs:
       - name: Bağımlılıkları kur (lockfile'a bağlı)
         run: pnpm install --frozen-lockfile
 
-      - name: Playwright tarayıcısını kur (Chromium)
-        run: pnpm exec playwright install --with-deps chromium
+      # S15: çapraz tarayıcı matrisi için üç motor da gerekir. Firefox ve
+      # WebKit yalnızca `cross-browser.spec.ts` dosyasını koşar.
+      - name: Playwright tarayıcılarını kur (Chromium, Firefox, WebKit)
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
 
       # Lokal ile TAM AYNI komut: pnpm quality
       # (format:check -> lint -> typecheck -> test -> test:e2e -> build)

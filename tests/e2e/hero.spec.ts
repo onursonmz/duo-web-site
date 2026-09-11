@@ -392,8 +392,10 @@ test.describe("ilk ekran kompozisyonu", () => {
       const nodes = [
         document.querySelector(".atlas__source"),
         document.querySelector(".atlas__signal"),
-        document.querySelector(".atlas__hub:not(.atlas__hub--ai)"),
-        document.querySelector(".atlas__hub--ai"),
+        document.querySelector(".atlas__hub"),
+        // S15: dördüncü düğüm artık bakır KARAR noktası (`.atlas__hub--ai`
+        // yerine `.atlas__decision`). Aynı ızgara sütununda durur.
+        document.querySelector(".atlas__decision"),
         document.querySelector(".atlas__action"),
       ].map((el) => (el === null ? Number.NaN : centerOf(el)));
       return { stages, nodes };

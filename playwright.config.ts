@@ -74,6 +74,28 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], javaScriptEnabled: false },
       testMatch: /\.nojs\.spec\.ts$/,
     },
+    /*
+     * FIREFOX VE WEBKIT — GENİŞLİK, DERİNLİK DEĞİL.
+     *
+     * Bu iki proje YALNIZCA `cross-browser.spec.ts` dosyasını koşar. Tüm
+     * süiti üç motorda koşmak ~3150 test demek olurdu; bu, çapraz tarayıcı
+     * kapsamı sağlamaz, yalnızca aynı iddiaları üç kez tekrar eder ve CI
+     * bütçesini anlamsızca tüketir.
+     *
+     * Chromium derinliği (tüm süit), Firefox ve WebKit genişliği (motorlar
+     * arasında gerçekten ayrışan davranışlar) üstlenir. Ayrımın gerekçesi
+     * `tests/e2e/cross-browser.spec.ts` başında yazılıdır.
+     */
+    {
+      name: "firefox",
+      use: { ...devices["Desktop Firefox"] },
+      testMatch: /cross-browser\.spec\.ts$/,
+    },
+    {
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
+      testMatch: /cross-browser\.spec\.ts$/,
+    },
   ],
 
   // Testler ÜRETİM ÇIKTISINA karşı koşar: dev sunucusunun HMR istemcisi konsol

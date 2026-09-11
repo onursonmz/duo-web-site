@@ -137,6 +137,7 @@
    * bileşenlerin `rgb(255 255 255 / …)` gibi ham değer yazmasını önler.
    */
   --text-inverse-muted: #9aa6b1; /* 5.83:1 — koyu grafit üzerinde */
+  --signal-surface-inverse: #10262f; /* koyu grafit üstünde sinyal zemini */
   --border-inverse: #2c343c;
   --border-inverse-strong: #3d4750;
   --text-disabled: #8b95a0; /*   2.84:1 — yalnızca devre dışı kontrol */
