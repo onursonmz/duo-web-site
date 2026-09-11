@@ -22,8 +22,16 @@ const MOBILE = { width: 390, height: 844 };
  */
 const EXPECTED_ORDER = [
   "hero",
-  "trust",
+  /*
+   * S15-R2: ÇÖZÜM ATLASI hero'nun HEMEN ardındadır.
+   *
+   * İkisi tek bir yapışkan WebGL sahnesinin içinde yaşar: kamera çekirdekten
+   * geçer, veri yolları düzleşir ve atlasın ray geometrisine dönüşür. Araya
+   * başka bir bölüm girerse bu süreklilik kopar. "Neden Duosis" bölümü bu
+   * yüzden atlasın ARDINA alındı; içerik değişmedi, yalnızca sırası değişti.
+   */
   "solutions",
+  "trust",
   "cyclops",
   "intelligence",
   "method",

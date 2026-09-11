@@ -23,7 +23,7 @@ const DESKTOP = { width: 1440, height: 900 };
 
 /** Scroll tabanlı açılış kullanan öğeler. */
 const REVEAL_TARGETS = [
-  { route: "/", selector: ".univ__camera" },
+  { route: "/", selector: ".journey__inner" },
   { route: "/", selector: '[data-bridge="flow-out"] .bridge__spine' },
   { route: "/", selector: '[data-bridge="converge"] .bridge__branch' },
   { route: "/", selector: ".decade__item" },
