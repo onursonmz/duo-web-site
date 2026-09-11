@@ -164,7 +164,7 @@ const TOPOLOGY = {
           data-initial={index === 0 ? "true" : "false"}
         >
           <p class="eco__stagelabel">{TOPOLOGY[product.data.motionKey].label[locale]}</p>
-          <h3 class="eco__panel-title">{product.data.headline}</h3>
+          <h2 class="eco__panel-title">{product.data.headline}</h2>
           <p class="eco__panel-body">{product.data.summary}</p>
           <a class="eco__panel-cta" href={productPath(locale, product.data.slug)}>
             {product.data.name}
@@ -427,6 +427,11 @@ const TOPOLOGY = {
     text-transform: uppercase;
   }
 
+  /*
+   * `h2`: sayfanın `h1`i "Ürünler" başlığıdır; panel başlığı onun doğrudan
+   * alt başlığıdır. `h3` kullanmak başlık sırasını ATLIYORDU (Lighthouse
+   * `heading-order` bulgusu).
+   */
   .eco__panel-title {
     margin: var(--space-2xs) 0 0;
     font-size: var(--text-lg);

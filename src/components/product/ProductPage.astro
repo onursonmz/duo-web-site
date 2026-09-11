@@ -54,9 +54,27 @@ const ctaHref = contactPathForProductTopic(locale, data.cta.topic);
       içinde durur. Asset DEĞİŞTİRİLMEDİ: renk, oran ve geometri sunumdaki
       hâliyle aynıdır.
     -->
-    <span class="hero__wordmark">
-      <LogoMark variant="cyclops" width="8.5rem" label={data.name} />
-    </span>
+    {
+      /*
+       * WORDMARK YALNIZCA CYCLOPS'A ÖZEL.
+       *
+       * Bu blok `variant="cyclops"` ile SABİT KODLANMIŞTI: dört ürünlü
+       * aileye geçince LogiSlot ve Hermes sayfaları CyclOps'un wordmark'ını
+       * kendi adlarıyla etiketlenmiş hâlde gösteriyordu. Bu hem yanlış bir
+       * marka gösterimi, hem de S08'de YALNIZCA CyclOps için verilen logo
+       * izninin dışına çıkmaktı.
+       *
+       * Kendi doğrulanmış wordmark'ı olmayan ürün logo GÖSTERMEZ; adı
+       * metin olarak durur.
+       */
+      data.slug === "cyclops" ? (
+        <span class="hero__wordmark">
+          <LogoMark variant="cyclops" width="8.5rem" label={data.name} />
+        </span>
+      ) : (
+        <p class="hero__name">{data.name}</p>
+      )
+    }
     <h1 class="hero__title">{data.summary}</h1>
     <p class="hero__positioning">{data.positioning}</p>
 
@@ -399,6 +417,14 @@ const ctaHref = contactPathForProductTopic(locale, data.cta.topic);
     letter-spacing: var(--tracking-wide);
     text-transform: uppercase;
     color: var(--text-secondary);
+  }
+
+  .hero__name {
+    margin: 0 0 var(--space-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-lg);
+    letter-spacing: var(--tracking-wide);
+    color: var(--text-inverse);
   }
 
   .hero__wordmark {
