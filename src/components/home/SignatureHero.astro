@@ -222,51 +222,64 @@ const P_GRID_X = [80, 300, 520, 740, 960, 1180, 1400];
   const tokenSource = root?.querySelector<HTMLElement>("[data-universe-tokens]");
 
   /*
-   * GPU YOKSA SAHNE DE YOK.
+   * KAPI YALNIZCA GÜVENİLİR YETENEK ÖLÇER.
    *
-   * `failIfMajorPerformanceCaveat` tarayıcıya "yalnızca gerçek donanım
-   * hızlandırma varsa context ver" der. Yazılım rasterleştirici (SwiftShader,
-   * llvmpipe) üzerinde tam ekran bir sahne saniyede birkaç kare çizer,
-   * işlemciyi doldurur ve pili yakar; doğru davranış statik postere düşmektir.
+   * Bir önceki sürüm GPU sürücü adına (`WEBGL_debug_renderer_info`) ve
+   * `failIfMajorPerformanceCaveat` bayrağına bakıyordu. İkisi de GÜVENİLİR
+   * DEĞİL: sürücü adı gizlilik nedeniyle maskelenebiliyor, bayrak ise
+   * sürücüden sürücüye farklı davranıyor. Sonuç: WebGL'i sorunsuz çalıştıran
+   * normal Chrome'lar REDDEDİLİYOR ve sahne sessizce statik postere düşüyordu.
    *
-   * ÖLÇÜLDÜ: bu kapı olmadan başsız tarayıcıda ana sayfayı açan İLGİSİZ
-   * testler bile 30 saniyelik zaman aşımına düşüyordu — sayfa yazılım
-   * rasterleştirici yüzünden yanıt veremiyordu.
+   * Artık tek soru şu: tarayıcı bir WebGL context'i veriyor mu?
    *
-   * `?universe=force` kapıyı AÇIKÇA devre dışı bırakır. Tek kullanım yeri
-   * kanıt üretimi ve WebGL yolunu doğrulayan testlerdir; normal ziyaretçi
-   * bu parametreyi hiç görmez.
+   * Performans sorunu isim tahminiyle değil, ÖLÇÜMLE çözülüyor: sahne açıldıktan
+   * sonra kare süresi izlenir, önce kalite düşürülür, hâlâ yetmiyorsa sahne
+   * kendini kapatıp postere döner (bkz. `universe.ts`, uyarlanır kalite).
    */
-  const forced = /(?:^|[?&])universe=force(?:&|$)/.test(location.search);
+  const params = new URLSearchParams(location.search);
+  const mode = params.get("universe");
+  /** Kanıt üretimi ve WebGL testleri: yavaşlık nedeniyle ASLA vazgeçme. */
+  const forced = mode === "force";
+  /*
+   * TEŞHİS NE ZAMAN YAZILIR?
+   *
+   * ÖLÇÜLDÜ: `import.meta.env.DEV`, Astro'nun bileşen `<script>` boru hattında
+   * `astro dev` altında bile FALSE geliyor — bu yüzden geliştirme koşulu ona
+   * bağlanamaz. Güvenilir ölçüt sunucunun kendisidir: yerel makine.
+   *
+   * Böylece hem `pnpm dev` hem de `pnpm preview` aynı teşhisi verir; canlı
+   * alan adında ise hiçbir şey yazılmaz. Arayüze hiçbir öğe eklenmez, yalnızca
+   * konsola TEK bir tablo düşer.
+   */
+  const localhost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  const diagnose = localhost || mode === "debug" || forced;
 
-  /** Bilinen yazılım rasterleştiriciler. */
-  const SOFTWARE = /swiftshader|llvmpipe|softwarerasterizer|basic render|microsoft basic/i;
+  interface Probe {
+    webgl: boolean;
+    webgl2: boolean;
+    error: string;
+  }
 
-  function webglAvailable(): boolean {
+  /**
+   * WebGL yoklaması.
+   *
+   * Bir `<canvas>` YALNIZCA tek tür context verir; bu yüzden önce `webgl2`
+   * denenir, olmazsa AYNI tuvalde `webgl`. Yoklama context'i hemen bırakılır ki
+   * tarayıcının context sayacı dolmasın.
+   */
+  function probeWebgl(): Probe {
+    const result: Probe = { webgl: false, webgl2: false, error: "" };
     try {
       const probe = document.createElement("canvas");
-      const attributes = { failIfMajorPerformanceCaveat: !forced };
-      const context = (probe.getContext("webgl2", attributes) ??
-        probe.getContext("webgl", attributes)) as WebGLRenderingContext | null;
-      if (context === null) return false;
-
-      /*
-       * `failIfMajorPerformanceCaveat` TEK BAŞINA yetmiyor: ölçüldü, başsız
-       * Chromium SwiftShader ile bayrağa rağmen context veriyor. Bu yüzden
-       * sürücü adı ayrıca okunur. Ad okunamıyorsa (gizlilik kısıtı) sahne
-       * AÇILIR — yalnızca BİLİNEN yazılım rasterleştiriciler elenir.
-       */
-      const info = context.getExtension("WEBGL_debug_renderer_info");
-      const renderer =
-        info === null ? "" : String(context.getParameter(info.UNMASKED_RENDERER_WEBGL));
-
-      // Yoklama context'i sayıyı doldurmasın: hemen bırakılır.
-      context.getExtension("WEBGL_lose_context")?.loseContext();
-
-      return forced || !SOFTWARE.test(renderer);
-    } catch {
-      return false;
+      const gl2 = probe.getContext("webgl2");
+      result.webgl2 = gl2 !== null;
+      const gl = gl2 ?? probe.getContext("webgl");
+      result.webgl = gl !== null;
+      (gl as WebGLRenderingContext | null)?.getExtension("WEBGL_lose_context")?.loseContext();
+    } catch (error) {
+      result.error = String(error);
     }
+    return result;
   }
 
   if (
@@ -281,41 +294,137 @@ const P_GRID_X = [80, 300, 520, 740, 960, 1180, 1400];
     const saveData = (navigator as { connection?: { saveData?: boolean } }).connection?.saveData;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let handle: UniverseHandle | undefined;
+    let booted = false;
+
+    /* Teşhis kaydı — TEK SEFER yazılır, üretim arayüzüne hiçbir şey eklemez. */
+    const diag: Record<string, unknown> = {
+      "1 prefersReducedMotion": reducedMotion,
+      "2 webgl": "?",
+      "3 webgl2": "?",
+      "4 visibilityState": document.visibilityState,
+      "5 saveData": saveData === true,
+      "6 kapi": "?",
+      "7 rendererOlusturuldu": false,
+      "8 sahneModuluIndi": false,
+      "9 moduleSuresiMs": 0,
+      "10 dongyuBasladi": false,
+      "11 kalite": "-",
+      "12 scrollAraligiPx": 0,
+      "13 scrollProgress": 0,
+      "14 scrollProgressDegisti": false,
+      "15 durum": "poster",
+      "16 fallbackNedeni": "",
+    };
+
+    const fallback = (reason: string): void => {
+      diag["15 durum"] = "poster";
+      diag["16 fallbackNedeni"] = reason;
+      root.setAttribute("data-universe-state", "poster");
+      root.style.setProperty("--u-theme", "0");
+      handle?.dispose();
+      handle = undefined;
+    };
+
+    const report = (): void => {
+      if (!diagnose) return;
+      const live = handle?.inspect();
+      if (live !== undefined) {
+        diag["10 dongyuBasladi"] = live.loopRunning || live.frames > 0;
+        diag["11 kalite"] =
+          `${live.quality} (${live.frames} kare, ~${Math.round(live.frameMs)} ms)`;
+        diag["12 scrollAraligiPx"] = live.scrollSpanPx;
+        diag["13 scrollProgress"] = Number(live.progress.toFixed(4));
+        diag["14 scrollProgressDegisti"] = live.progressChanged;
+      }
+      diag["15 durum"] = root.getAttribute("data-universe-state") ?? "?";
+      // eslint-disable-next-line no-console
+      console.table(diag);
+    };
+
+    /*
+     * TEŞHİS KANCASI — yalnızca geliştirmede veya `?universe=debug` ile.
+     *
+     * Arayüze hiçbir şey çizmez; konsoldan `__duosisUniverse.inspect()` ile
+     * anlık kare süresi, kalite kademesi ve scroll ilerlemesi okunabilir.
+     * Üretim derlemesinde `import.meta.env.DEV` false olduğu için bu satır
+     * yalnızca parametre açıkça verilirse çalışır.
+     */
+    if (diagnose) {
+      (window as unknown as Record<string, unknown>).__duosisUniverse = {
+        diag,
+        report,
+        inspect: () => handle?.inspect(),
+      };
+    }
 
     const boot = (): void => {
-      if (saveData === true || !webglAvailable()) return;
+      if (booted) return;
+      booted = true;
+
+      const probe = probeWebgl();
+      diag["2 webgl"] = probe.webgl;
+      diag["3 webgl2"] = probe.webgl2;
+
+      if (mode === "off") {
+        diag["6 kapi"] = "kapali (universe=off)";
+        fallback("universe=off");
+        report();
+        return;
+      }
+      if (saveData === true) {
+        diag["6 kapi"] = "kapali (save-data)";
+        fallback("navigator.connection.saveData");
+        report();
+        return;
+      }
+      if (!probe.webgl) {
+        diag["6 kapi"] = "kapali (WebGL context yok)";
+        fallback(probe.error === "" ? "webgl context olusturulamadi" : probe.error);
+        report();
+        return;
+      }
+      diag["6 kapi"] = "acik";
+
+      const started = performance.now();
       void import("../../lib/scene/universe")
         .then((module) => {
+          diag["8 sahneModuluIndi"] = true;
+          diag["9 moduleSuresiMs"] = Math.round(performance.now() - started);
           handle = module.createUniverse({
             canvas,
             track: root,
             journeyEnd,
             tokenSource,
             reducedMotion,
-            allowSoftware: forced,
-            onReady: () =>
-              root.setAttribute("data-universe-state", reducedMotion ? "static" : "live"),
-            onFail: () => {
-              root.setAttribute("data-universe-state", "poster");
-              root.style.setProperty("--u-theme", "0");
-              handle?.dispose();
-              handle = undefined;
+            abandonWhenSlow: !forced,
+            onReady: () => {
+              diag["7 rendererOlusturuldu"] = true;
+              root.setAttribute("data-universe-state", reducedMotion ? "static" : "live");
             },
+            onFail: (reason) => fallback(reason),
             onTheme: (value) => root.style.setProperty("--u-theme", value.toFixed(3)),
           });
         })
-        .catch(() => root.setAttribute("data-universe-state", "poster"));
+        .catch((error: unknown) => fallback(`modul yuklenemedi: ${String(error)}`))
+        .finally(() => {
+          if (diagnose) window.setTimeout(report, 2500);
+        });
     };
 
     /*
-     * İLK BOYAMADAN SONRA: H1 ekrana geldikten sonra indirme başlar.
+     * AÇILIŞ İKİ YOLDAN BİRİYLE TETİKLENİR.
+     *
+     * `requestAnimationFrame` ilk boyamadan hemen sonra çalışır ve normal
+     * durumda kazanan yoldur. Ama sekme arka planda açıldıysa rAF HİÇ
+     * çalışmaz; bu yüzden bir zamanlayıcı da kurulur. `booted` bayrağı ikisinin
+     * birden çalışmasını engeller.
      *
      * `requestIdleCallback` ile geciktirmek DENENDİ ve ÖLÇÜLDÜ: LCP ve CLS
-     * değişmedi (2,71 sn / 0,000), bloklama süresi ise iyileşmedi. Geciktirmek
-     * yalnızca sahnenin açılış sekansını geç başlatıyordu. Bu yüzden sahne ilk
-     * kareden hemen sonra açılır.
+     * değişmedi (2,71 sn / 0,000), bloklama süresi iyileşmedi, yalnızca açılış
+     * sekansı geç başladı. Bu yüzden sahne ilk kareden hemen sonra açılır.
      */
     requestAnimationFrame(() => requestAnimationFrame(boot));
+    window.setTimeout(boot, 1200);
   }
 </script>
 

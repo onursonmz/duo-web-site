@@ -134,18 +134,169 @@ açıldığında hiçbir şey yer değiştirmez.
   scroll bandının anlamı kalmaz. Anlamlı son kompozisyon ve beş adımın tamamı
   ekranda kalır.
 
-### Yazılım rasterleştirici kapısı
+### Yetenek kapısı — S15-R2a'da YENİDEN YAZILDI
 
-Sahne yalnızca GERÇEK donanım hızlandırma varsa açılır. `WEBGL_debug_renderer_info`
-ile sürücü adı okunur; SwiftShader / llvmpipe / Basic Render tespit edilirse
-sahne indirilmez bile ve poster gösterilir.
+**Bildirilen sorun:** kullanıcı projeyi localhost'tan normal Chrome ile
+açtığında sahne sabit görünüyordu.
 
-Bu bir tercih değil, ölçülmüş bir zorunluluk: kapı olmadan başsız tarayıcıda
-ana sayfayı açan **ilgisiz** testler bile 30 saniyelik zaman aşımına düşüyordu
-— sayfa yazılım rasterleştirici altında yanıt veremiyordu. Aynı şey GPU'suz
-bir ziyaretçinin başına gelirdi.
+**Kök neden:** kapı GÜVENİLMEZ sinyallere bakıyordu.
 
----
+1. `WEBGL_debug_renderer_info` ile okunan GPU sürücü ADI. Bu dizge gizlilik
+   nedeniyle maskelenebiliyor, ANGLE katmanında farklı yazılıyor ve sürücü
+   sürümüne göre değişiyor. "swiftshader / llvmpipe / basic render" araması
+   WebGL'i sorunsuz çalıştıran normal Chrome'ları da eleyebiliyordu.
+2. `failIfMajorPerformanceCaveat: true`. Sürücüden sürücüye farklı davranıyor;
+   ölçüldü, aynı bayrak başsız Chromium'da SwiftShader'a rağmen context
+   VERİYOR, bazı gerçek GPU'larda ise REDDEDEBİLİYOR.
+
+Bu iki sinyal donanım SINIFLANDIRMASI yapıyordu; yapması gereken ise yalnızca
+YETENEK ölçmekti.
+
+**Yeni kapı — tek soru:** tarayıcı bir WebGL context'i veriyor mu?
+
+```
+webgl2 denenir -> olmazsa AYNI tuvalde webgl denenir -> yoklama context'i bırakılır
+```
+
+Başka hiçbir şeye bakılmaz. Sahnenin AÇILMAMASININ tek nedeni şunlardan biri
+olabilir ve hepsi teşhis tablosuna yazılır:
+
+| Neden                           | Davranış                               |
+| ------------------------------- | -------------------------------------- |
+| WebGL context oluşmuyor         | `poster`                               |
+| `navigator.connection.saveData` | `poster`                               |
+| `?universe=off`                 | `poster` (yalnız hata ayıklama için)   |
+| `prefers-reduced-motion`        | `static` — sahne çizilir, KAMERA durur |
+
+Normal Chrome'da (`reduce` kapalı, WebGL var, sekme görünür, canvas viewport
+içinde) sahne **kesinlikle** başlar.
+
+### Performans artık ÖLÇÜLEREK ele alınıyor
+
+İsim tahmini yerine kare süresi ölçülüyor. Isınma penceresinden (500 ms, shader
+derlemesi) sonra her 600 ms'de gerçek kare hızı hesaplanır:
+
+| Kademe   | DPR             | Kare atlama |
+| -------- | --------------- | ----------- |
+| `high`   | `min(dpr, 1.5)` | yok         |
+| `medium` | 1,0             | yok         |
+| `low`    | 0,75            | 1 kare atla |
+
+24 fps altına düşerse bir kademe inilir. En düşük kademede hâlâ 18 fps altıysa
+sahne kendini kapatır ve statik postere döner. Kademeler yalnızca aşağı iner;
+salınım yoktur. `?universe=force` bu vazgeçmeyi kapatır (kanıt üretimi ve
+testler için).
+
+Ölçülen davranış:
+
+| Ortam                                 | Kademe | Kare süresi | Durum  |
+| ------------------------------------- | ------ | ----------- | ------ |
+| Gerçek GPU (Intel HD 520, Direct3D11) | `high` | ~16,7 ms    | `live` |
+| Başsız Chromium (SwiftShader)         | `low`  | ~47 ms      | `live` |
+
+### Teşhis tablosu
+
+Yerel makinede (`localhost`, `127.0.0.1`, `[::1]`) veya `?universe=debug` ile
+konsola **tek bir** `console.table` düşer. Arayüze hiçbir öğe eklenmez; canlı
+alan adında hiçbir şey yazılmaz.
+
+```
+1 prefersReducedMotion    false
+2 webgl                   true
+3 webgl2                  true
+4 visibilityState         "visible"
+5 saveData                false
+6 kapi                    "acik"
+7 rendererOlusturuldu     true
+8 sahneModuluIndi         true
+9 moduleSuresiMs          176
+10 dongyuBasladi          true
+11 kalite                 "high (189 kare, ~17 ms)"
+12 scrollAraligiPx        3600
+13 scrollProgress         0.3333
+14 scrollProgressDegisti  true
+15 durum                  "live"
+16 fallbackNedeni         ""
+```
+
+Ayrıca konsoldan `__duosisUniverse.inspect()` anlık kare süresini, kalite
+kademesini ve scroll ilerlemesini verir.
+
+> ÖLÇÜLEN AYRINTI: `import.meta.env.DEV`, Astro'nun bileşen `<script>` boru
+> hattında `astro dev` altında bile **false** geliyor. Bu yüzden "geliştirme"
+> koşulu ona bağlanamadı; ölçüt sunucunun kendisi (yerel makine) oldu.
+
+### Kullanıcının çalıştıracağı kesin komut ve URL
+
+Üretim çıktısı (ölçümlerin yapıldığı yol):
+
+```
+pnpm build
+pnpm preview
+```
+
+→ **http://localhost:4321/**
+
+Geliştirme sunucusu:
+
+```
+pnpm dev
+```
+
+→ **http://localhost:4321/**
+
+İkisi aynı portu kullanır; aynı anda çalıştırılamaz. Teşhis için DevTools
+konsolunu açın (tablo sayfa açıldıktan ~2,5 saniye sonra düşer). Konsolu
+kapalı tutmak isterseniz `http://localhost:4321/?universe=debug` de aynı
+tabloyu yazar.
+
+Sahne hâlâ sabit görünüyorsa tabloya bakın:
+
+| Tabloda gördüğünüz               | Anlamı ve çözümü                                                                                 |
+| -------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `1 prefersReducedMotion: true`   | Windows > Erişilebilirlik > Görsel efektler > **Animasyon efektleri** açın. Sahne bilerek donar. |
+| `2 webgl: false`                 | `chrome://gpu` — donanım hızlandırma kapalı veya sürücü engelli.                                 |
+| `5 saveData: true`               | Chrome'da veri tasarrufu açık.                                                                   |
+| `15 durum: "live"`, kalite `low` | Sahne çalışıyor ama makine zorlanıyor; kalite düştü.                                             |
+| `16 fallbackNedeni` dolu         | Tam neden orada yazılı.                                                                          |
+
+### Doğrulanan matris
+
+Başlı Chrome, gerçek GPU, Windows grafik hızlandırması açık, DevTools kapalı,
+1440×900, `reduce` kapalı:
+
+| Senaryo                       | Durum    | Kademe | Kare süresi | Scroll aralığı | Sahne açıldı |
+| ----------------------------- | -------- | ------ | ----------- | -------------- | ------------ |
+| `pnpm dev` ilk yükleme        | `live`   | high   | 16,6 ms     | 3600 px        | 1138 ms      |
+| `pnpm dev` hard refresh       | `live`   | high   | 16,7 ms     | 3600 px        | 529 ms       |
+| `pnpm dev` 2. ziyaret (cache) | `live`   | high   | 16,7 ms     | 3600 px        | 456 ms       |
+| preview ilk yükleme           | `live`   | high   | 16,7 ms     | 3600 px        | 697 ms       |
+| preview hard refresh          | `live`   | high   | 16,7 ms     | 3600 px        | 457 ms       |
+| preview 2. ziyaret (cache)    | `live`   | high   | 16,6 ms     | 3600 px        | 466 ms       |
+| preview + reduced-motion      | `static` | —      | —           | —              | beklenen     |
+
+Scroll ilerlemesi ilk yüklemede doğru kuruluyor: üç ardışık başlı oturumda
+`scrollY = 0`, `progress = 0`, yolculuk bandı 3600 px ölçüldü. 1200 px
+kaydırıldığında `progress = 0,3333` ve `scrollProgressDegisti = true`.
+
+### Kabul edilen yan etki: CI süresi
+
+Kapı gevşediği için başsız tarayıcıda sahne artık GERÇEKTEN çalışıyor (düşük
+kademede, ~47 ms/kare). Ölçülen bedel: aynı dört süit 4,0 dakikadan **7,2
+dakikaya** çıktı.
+
+Bu bilinçli bir takas. Alternatif, GPU adına bakan eski kapıyı geri getirmekti;
+o kapı tam olarak bu revizyonun düzelttiği hatayı üretiyordu. Tam süit için
+ileride yapılabilecek doğru hafifletme, ÜRETİM davranışını değiştirmeden test
+koşucusuna `?universe=off` verdirmektir (yükleyici bu parametreyi zaten
+tanıyor); bu checkpoint'in kapsamı dışında bırakıldı.
+
+### Açılış iki yoldan tetiklenir
+
+`requestAnimationFrame` normal durumda kazanır. Sekme ARKA PLANDA açıldıysa
+rAF hiç çalışmaz; bu yüzden 1200 ms'lik bir zamanlayıcı da kurulur ve `booted`
+bayrağı ikisinin birden çalışmasını engeller. Açılış tek bir zamanlayıcıya
+bağlı değildir.
 
 ## 7. Ölçülen performans
 

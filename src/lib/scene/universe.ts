@@ -68,24 +68,59 @@ export interface UniverseOptions {
   /** Hareket azaltma açıksa sahne TEK kare çizilir ve döngü hiç başlamaz. */
   reducedMotion: boolean;
   /**
-   * Yazılım rasterleştiriciye İZİN ver.
+   * Sahne ÖLÇÜLEN kare süresi yetersiz kalırsa kendini kapatsın mı?
    *
-   * Varsayılan `false`: gerçek GPU yoksa context hiç istenmez ve tüketici
-   * postere düşer. Yalnızca kanıt üretimi ve WebGL yolunu doğrulayan testler
-   * bunu açar (bkz. `SignatureHero.astro`, `?universe=force`).
+   * Varsayılan `true`: kalite kademeleri tükendiğinde ve kareler hâlâ çok
+   * yavaşsa sahne postere döner. Kanıt üretimi ve WebGL yolunu doğrulayan
+   * testler (`?universe=force`) bunu kapatır; orada yavaşlık beklenen bir
+   * durumdur ve sahnenin çalışıyor olması gerekir.
    */
-  allowSoftware: boolean;
+  abandonWhenSlow: boolean;
   /** Sahne ilk kareyi çizdiğinde. */
   onReady: () => void;
-  /** WebGL yoksa veya context kaybedilirse. */
-  onFail: () => void;
+  /** Sahne açılamadığında veya kendini kapattığında — nedeniyle birlikte. */
+  onFail: (reason: string) => void;
   /** Tema geçişini DOM'a bildirir (0 koyu, 1 açık). */
   onTheme: (value: number) => void;
 }
 
 export interface UniverseHandle {
   dispose(): void;
+  /** Teşhis için anlık durum. Üretim arayüzüne hiçbir şey çizmez. */
+  inspect(): UniverseInspection;
 }
+
+export interface UniverseInspection {
+  /** Uyarlanır kalite kademesi: `high` | `medium` | `low`. */
+  quality: string;
+  loopRunning: boolean;
+  frames: number;
+  /** Kare süresinin üstel hareketli ortalaması (ms). */
+  frameMs: number;
+  progress: number;
+  /** Scroll ilerlemesi ilk değerinden HİÇ değişti mi? */
+  progressChanged: boolean;
+  /** Yolculuk bandının piksel uzunluğu; 0 ise ölçüm yapılamıyordur. */
+  scrollSpanPx: number;
+}
+
+/**
+ * UYARLANIR KALİTE.
+ *
+ * Cihazın gücü GPU adına bakarak TAHMİN EDİLMEZ, kare süresiyle ÖLÇÜLÜR.
+ * Kademeler yalnızca aşağı iner; salınım olmasın diye geri yükseltme yoktur.
+ */
+const TIERS = [
+  { name: "high", dpr: (): number => Math.min(window.devicePixelRatio, 1.5), skip: 0 },
+  { name: "medium", dpr: (): number => 1, skip: 0 },
+  { name: "low", dpr: (): number => 0.75, skip: 1 },
+];
+
+/** Ölçüm penceresi ve eşikler. */
+const WARMUP_MS = 500;
+const WINDOW_MS = 600;
+const DOWNGRADE_FPS = 24;
+const ABANDON_FPS = 18;
 
 interface Tokens {
   base: Color;
@@ -355,20 +390,35 @@ const FLAT_SPAN = 118;
 // ------------------------------------------------------------------- kurulum
 
 export function createUniverse(options: UniverseOptions): UniverseHandle {
-  const { canvas, track, journeyEnd, tokenSource, reducedMotion, allowSoftware } = options;
+  const { canvas, track, journeyEnd, tokenSource, reducedMotion, abandonWhenSlow } = options;
+
+  const noop: UniverseInspection = {
+    quality: "-",
+    loopRunning: false,
+    frames: 0,
+    frameMs: 0,
+    progress: 0,
+    progressChanged: false,
+    scrollSpanPx: 0,
+  };
 
   let renderer: WebGLRenderer;
   try {
+    /*
+     * `failIfMajorPerformanceCaveat` BİLİNÇLİ OLARAK KULLANILMIYOR: sürücüden
+     * sürücüye farklı davranıyor ve WebGL'i sorunsuz çalıştıran makinelerde de
+     * context'i reddedebiliyor. Yetersiz performans aşağıda ÖLÇÜLEREK ele
+     * alınır.
+     */
     renderer = new WebGLRenderer({
       canvas,
       antialias: true,
       alpha: false,
       powerPreference: "high-performance",
-      failIfMajorPerformanceCaveat: !allowSoftware,
     });
-  } catch {
-    options.onFail();
-    return { dispose: () => undefined };
+  } catch (error) {
+    options.onFail(`WebGLRenderer olusturulamadi: ${String(error)}`);
+    return { dispose: () => undefined, inspect: () => noop };
   }
 
   const tokens = readTokens(tokenSource);
@@ -377,7 +427,8 @@ export function createUniverse(options: UniverseOptions): UniverseHandle {
   /** Düşük geometri kipi: aynı evren, daha az segment. */
   const lite = coarse || narrow;
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  // Başlangıç kademesi (`high`) piksel oranını kurar; tavan 1.5.
+  renderer.setPixelRatio(TIERS[0]?.dpr() ?? 1);
   renderer.setClearColor(tokens.base, 1);
 
   const scene = new Scene();
@@ -913,6 +964,26 @@ export function createUniverse(options: UniverseOptions): UniverseHandle {
   const start = performance.now();
   let lastPulse = -10;
 
+  /* --- uyarlanır kalite ve teşhis durumu */
+  let tier = 0;
+  let frames = 0;
+  let frameMs = 0;
+  let lastFrameAt = 0;
+  let windowAt = 0;
+  let windowFrames = 0;
+  let skipCounter = 0;
+  let scrollSpanPx = 0;
+  let firstProgress = -1;
+  let progressChanged = false;
+  let abandoned = false;
+
+  function applyTier(): void {
+    renderer.setPixelRatio(TIERS[tier]?.dpr() ?? 1);
+    // Bir sonraki `resize()` boyutu yeni piksel oranıyla YENİDEN kursun.
+    width = 0;
+    height = 0;
+  }
+
   function resize(): void {
     const rect = canvas.getBoundingClientRect();
     const w = Math.max(1, Math.round(rect.width));
@@ -932,8 +1003,13 @@ export function createUniverse(options: UniverseOptions): UniverseHandle {
     const trackTop = track.getBoundingClientRect().top;
     const endRect = journeyEnd.getBoundingClientRect();
     const total = endRect.bottom - trackTop - window.innerHeight;
+    scrollSpanPx = Math.round(total);
     if (total <= 0) return 0;
-    return clamp01(-trackTop / total);
+    const value = clamp01(-trackTop / total);
+    /* İlk değer referans alınır; sonraki her farklılık kayda geçer. */
+    if (firstProgress < 0) firstProgress = value;
+    else if (!progressChanged && Math.abs(value - firstProgress) > 0.0005) progressChanged = true;
+    return value;
   }
 
   function cameraAt(p: number): void {
@@ -1148,7 +1224,12 @@ export function createUniverse(options: UniverseOptions): UniverseHandle {
     resize();
     const now = performance.now();
     const elapsed = (now - start) / 1000;
-    progress = reducedMotion ? 0 : readProgress();
+    /*
+     * Ölçüm hareket azaltmada da YAPILIR (teşhis tablosu yolculuk bandının
+     * gerçekten ölçülebildiğini göstersin), ama kamerayı sürmez.
+     */
+    const measured = readProgress();
+    progress = reducedMotion ? 0 : measured;
 
     pointerX += (targetX - pointerX) * 0.06;
     pointerY += (targetY - pointerY) * 0.06;
@@ -1173,9 +1254,58 @@ export function createUniverse(options: UniverseOptions): UniverseHandle {
     }
   }
 
+  /**
+   * KARE SÜRESİNİ ÖLÇ, GEREKİRSE KALİTEYİ DÜŞÜR.
+   *
+   * Isınma penceresinde (shader derlemesi, ilk yerleşim) hiçbir karar
+   * verilmez. Sonrasında her `WINDOW_MS` için gerçek kare hızı hesaplanır:
+   * düşükse bir kademe inilir, kademeler bittiyse ve hâlâ düşükse sahne
+   * kendini kapatır ve tüketici statik postere döner.
+   */
+  function measure(now: number): void {
+    const delta = lastFrameAt === 0 ? 16 : now - lastFrameAt;
+    lastFrameAt = now;
+    frames += 1;
+    frameMs = frameMs === 0 ? delta : frameMs * 0.85 + delta * 0.15;
+
+    if (now - start < WARMUP_MS) {
+      windowAt = now;
+      windowFrames = 0;
+      return;
+    }
+    windowFrames += 1;
+    if (now - windowAt < WINDOW_MS) return;
+
+    const fps = (windowFrames * 1000) / (now - windowAt);
+    windowAt = now;
+    windowFrames = 0;
+    if (fps >= DOWNGRADE_FPS) return;
+
+    if (tier < TIERS.length - 1) {
+      tier += 1;
+      applyTier();
+      return;
+    }
+    if (abandonWhenSlow && fps < ABANDON_FPS) {
+      abandoned = true;
+      pause();
+      options.onFail(`yavas kare: ${fps.toFixed(1)} fps (en dusuk kalitede)`);
+    }
+  }
+
   function loop(): void {
     if (!running) return;
     frame = requestAnimationFrame(loop);
+    const now = performance.now();
+    measure(now);
+    if (abandoned) return;
+
+    /* En düşük kademede her kare çizilmez; hareket korunur, yük yarılanır. */
+    const skip = TIERS[tier]?.skip ?? 0;
+    if (skip > 0) {
+      skipCounter = (skipCounter + 1) % (skip + 1);
+      if (skipCounter !== 0) return;
+    }
     draw();
   }
 
@@ -1209,7 +1339,7 @@ export function createUniverse(options: UniverseOptions): UniverseHandle {
   const onContextLost = (event: Event): void => {
     event.preventDefault();
     pause();
-    options.onFail();
+    options.onFail("webglcontextlost");
   };
 
   const observer = new IntersectionObserver(
@@ -1239,6 +1369,18 @@ export function createUniverse(options: UniverseOptions): UniverseHandle {
   if (!reducedMotion) play();
 
   return {
+    inspect(): UniverseInspection {
+      return {
+        quality: TIERS[tier]?.name ?? "-",
+        loopRunning: running,
+        frames,
+        frameMs,
+        progress,
+        progressChanged,
+        scrollSpanPx,
+      };
+    },
+
     dispose(): void {
       pause();
       observer.disconnect();

@@ -222,6 +222,49 @@ test.describe("hero WebGL sahnesi", () => {
     expect(external, `harici istek: ${external.join(", ")}`).toEqual([]);
   });
 
+  test("KAPI GPU ADINA BAKMIYOR: yazılım sürücü adı sahneyi engellemiyor", async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName !== "chromium", "WebGL kipi tek tarayıcıda doğrulanır");
+    test.setTimeout(180_000);
+
+    /*
+     * REGRESYON KORUMASI.
+     *
+     * Önceki sürüm `WEBGL_debug_renderer_info` ile sürücü adını okuyup
+     * "swiftshader/llvmpipe/basic render" görünce sahneyi hiç açmıyordu. Bu,
+     * WebGL'i sorunsuz çalıştıran normal Chrome'ları da eliyordu. Burada
+     * sürücü adı KASTEN yazılım rasterleştirici gibi gösterilir; sahne yine de
+     * açılmalıdır.
+     */
+    await page.addInitScript(() => {
+      /*
+       * Her prototip KENDİ orijinalini saklar. Tek bir sarmalayıcıyı iki
+       * prototipe birden atamak "Illegal invocation" üretiyor: WebGL1 ve
+       * WebGL2 bağlamlarının `getParameter` uygulamaları ayrıdır.
+       */
+      const protos = [
+        WebGLRenderingContext.prototype,
+        typeof WebGL2RenderingContext === "undefined" ? null : WebGL2RenderingContext.prototype,
+      ];
+      for (const proto of protos) {
+        if (proto === null) continue;
+        const original = proto.getParameter;
+        proto.getParameter = function patchedGetParameter(
+          this: WebGLRenderingContext,
+          name: number
+        ) {
+          // UNMASKED_RENDERER_WEBGL
+          if (name === 0x9246) return "SwiftShader Device (Subzero) llvmpipe";
+          return (original as unknown as (n: number) => unknown).call(this, name);
+        } as typeof original;
+      }
+    });
+
+    expect(await openScene(page)).toBe("live");
+  });
+
   test("GPU YOKSA sahne hiç indirilmiyor: statik poster", async ({ page }) => {
     /*
      * Bu testin kurduğu durum ÜRETİMDEKİ varsayılandır: gerçek donanım
@@ -431,14 +474,23 @@ test.describe("hero performans bütçesi", () => {
 
   test("İLK YÜK toplamı bütçenin altında", async ({ page }) => {
     let bytes = 0;
+    const fetched = new Set<string>();
     page.on("response", (response) => {
+      const path = new URL(response.url()).pathname;
+      if (path.endsWith(".js")) fetched.add(join(process.cwd(), "dist", path.replace(/^\//, "")));
       const length = response.headers()["content-length"];
       if (length !== undefined) bytes += Number(length);
     });
     await page.goto("/", { waitUntil: "load" });
 
-    // Sahne yığını da ilk yüke DÂHİL sayılır (GPU'lu ziyaretçinin durumu).
-    for (const file of sceneChunks()) bytes += statSync(file).size;
+    /*
+     * Sahne yığını da ilk yüke DÂHİL sayılır (GPU'lu ziyaretçinin durumu).
+     * Bu koşuda GERÇEKTEN indirildiyse ağ toplamına zaten girmiştir; iki kez
+     * sayılmasın diye yalnızca indirilmeyenler eklenir.
+     */
+    for (const file of sceneChunks()) {
+      if (!fetched.has(file)) bytes += statSync(file).size;
+    }
 
     const kb = Math.round(bytes / 1024);
     expect(kb, `ilk yük ${kb} KB (bütçe ${FIRST_LOAD_BUDGET_KB} KB)`).toBeLessThanOrEqual(
