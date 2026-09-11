@@ -259,11 +259,19 @@ DEĞİL, hiçbir zorlama parametresi olmadan üretildi.
 | `03-frame-core.png`           | Core aktif: halkalar hizalandı, bağlam kuruldu                     |
 | `04-frame-action.png`         | karar geçidi açık, sinyal aksiyona bağlandı                        |
 | `05-frame-transform.png`      | section dönüşümü: düzleşen yollar atlasın ray geometrisine dönüştü |
-| `video/01-hero-to-atlas.webm` | **17,9 sn** kesintisiz: ilk açılıştan geçişin sonuna kadar         |
+| `video/01-hero-to-atlas.webm` | **19,6 sn** kesintisiz: ilk açılıştan geçişin sonuna kadar         |
 | `evidence.json`               | üretim kaydı (konsol hatası: 0)                                    |
+
+Her karede `scrollY` ve `innerHeight` kayda geçirilir (`evidence.json`):
+dördü de `scrollY = 0`, `innerHeight = 900`. Bu denetim, bir koşuda sayfanın
+~400 piksel kaymış başladığı ÖLÇÜLDÜKTEN sonra eklendi; o koşuda hero kareleri
+H1'siz çıkmıştı.
 
 Çerez bandı kanıt oturumunda önceden karara bağlandı (analitik KAPALI); bant
 sahnenin alt şeridini kapatıyordu. Sayfanın davranışı değişmedi.
+
+Kanıtın üretildiği derleme `c04b320` commit'ine aittir. Sonrasında yalnızca bu
+rapor güncellendi; derleme çıktısı değişmedi.
 
 ---
 
