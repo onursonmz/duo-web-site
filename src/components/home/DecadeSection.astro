@@ -182,7 +182,13 @@ const { locale, decade, milestones }: Props = Astro.props;
    * ÖLÇÜLMÜŞ SORUN: açılış `opacity: 0.35` ile başlıyordu. Scroll tabanlı
    * animasyon gerçekten bağlandıktan sonra (bkz. `--scroll-timeline`) henüz
    * görünmemiş duraklar %35 opaklıkta kalıyor ve axe bunları GERÇEK bir
-   * kontrast ihlali olarak raporluyordu (#606468 / #14181c = 2.99:1).
+   * kontrast ihlali olarak raporluyordu: kısılmış metin rengi koyu yüzeye
+   * karşı 2.99:1 ölçüldü (AA için 4.5:1 gerekir).
+   *
+   * NOT: ölçülen renk değerleri burada HAM HEX olarak yazılamaz — token
+   * denetimi (`tests/unit/tokens.test.ts`) bileşen stillerinde ham renk
+   * aramasını yorumların içinde de yapar ve haklıdır: yorumdaki bir hex,
+   * zamanla kopyalanıp gerçek bir bildirime dönüşüyor.
    *
    * Maske açılışı hem bu ihlali kaldırır hem de talimattaki "bölümler yalnız
    * opacity ile görünmemeli" kuralını karşılar. Negatif `inset` değerleri ray
