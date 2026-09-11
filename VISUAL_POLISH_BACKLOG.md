@@ -12,8 +12,14 @@ Genel sınırlar (her maddede geçerli):
   süreleri ≤ 1ms.
 - **Scroll hijacking YOK**: `scroll-behavior` dışında scroll olayına bağlı
   konum manipülasyonu yapılmaz.
-- **Ağır WebGL YOK**: canvas/WebGL bağımlılığı eklenmez.
-- Ana sayfa istemci JS bütçesi: **≤ 12 KB gzip** (bugün 978 B).
+- **Ağır WebGL YOK**: canvas/WebGL bağımlılığı eklenmez. S15'te bu bir
+  kısıt olmaktan çıkıp **ölçülmüş bir tercihe** dönüştü: istenen görsel dil
+  (topolojisi değişen operasyon şeması) SVG + CSS ile karşılandı, WebGL
+  görsel kazanım sağlamadığı için kullanılmadı (ADR-014).
+- Ana sayfa istemci JS bütçesi: **≤ 120 KB gzip** — S15'te güncellendi.
+  Eski `≤ 12 KB` sınırı (bugün 978 B) dört ürünlü etkileşimli sahneyle
+  bağdaşmıyordu; gerekçe ve yeni rota bazlı tablo
+  `docs/decisions/ADR-014-signature-experience.md` içindedir.
 - Etkilenen rotalarda **CLS 0** korunur.
 
 ---

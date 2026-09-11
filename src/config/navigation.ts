@@ -3,7 +3,7 @@ import type { TranslationKey } from "@lib/i18n/dictionary";
 import {
   aboutPath,
   contactPath,
-  cyclopsPath,
+  productsIndexPath,
   homePath,
   insightsIndexPath,
   servicesIndexPath,
@@ -43,9 +43,11 @@ export interface NavItem {
 /**
  * Ana menü. Sıra `03_CONTENT_AND_ROUTE_MAP.md` §1 ile aynıdır.
  *
- * S08-S11 ENTEGRASYONU SONRASI: altı girdinin TAMAMI aktif ve sözleşmedeki
- * sırada — Çözümler, CyclOps, Hizmetler, İçgörüler, Hakkımızda, İletişim.
- * `planned` girdi kalmadı; `MAX_PRIMARY_ITEMS` sınırı tam dolu.
+ * S14 GÜNCELLEMESİ: ikinci girdi artık tek bir ürün (CyclOps) değil, ürün
+ * AİLESİ. Sıra — Çözümler, Ürünler, Hizmetler, İçgörüler, Hakkımızda,
+ * İletişim. Tek bir ürünü ana menüde tutmak, dört ürün olduğunda hangisinin
+ * neden seçildiğini açıklanamaz hâle getiriyordu.
+ * `MAX_PRIMARY_ITEMS` sınırı hâlâ tam dolu; girdi sayısı değişmedi.
  *
  * TEKNOLOJİ ATLASI BURAYA EKLENMEZ: yedinci ana giriş üretmek sözleşmeyi
  * bozardı. Atlas, çözüm ekosisteminin alt görünümü olarak `SECONDARY_NAV`
@@ -59,8 +61,8 @@ export const PRIMARY_NAV: readonly NavItem[] = [
     panel: "solutions",
   },
   {
-    labelKey: "nav.cyclops",
-    href: (locale) => cyclopsPath(locale),
+    labelKey: "nav.products",
+    href: (locale) => productsIndexPath(locale),
     status: "active",
   },
   {

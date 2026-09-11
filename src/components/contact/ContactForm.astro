@@ -26,7 +26,12 @@ import {
   TIMESTAMP_FIELD,
   htmlAttributes,
 } from "@lib/contact/schema";
-import { CONTACT_TOPICS, GENERAL_TOPIC, type ContactTopic } from "@lib/contact/topics";
+import {
+  CONTACT_TOPICS,
+  GENERAL_TOPIC,
+  PRODUCT_DISPLAY_NAMES,
+  type ContactTopic,
+} from "@lib/contact/topics";
 
 interface Props {
   locale: Locale;
@@ -46,6 +51,9 @@ const labelFor = (name: string): string => t(locale, `contact.field.${name}` as 
  */
 function topicLabel(value: string): string {
   if (value === GENERAL_TOPIC) return t(locale, "contact.topic.genel");
+  // Ürün adları marka yazımıyla; kalanlar slug'dan türetilir.
+  const brand = PRODUCT_DISPLAY_NAMES[value];
+  if (brand !== undefined) return brand;
   return value
     .split("-")
     .map((part) => part.charAt(0).toLocaleUpperCase(locale) + part.slice(1))

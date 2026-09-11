@@ -177,7 +177,7 @@ test.describe("yapılandırılmış veri — tür ayrıntısı", () => {
   });
 
   test("CyclOps sayfası SoftwareApplication taşıyor", async ({ page }) => {
-    await page.goto("/cyclops/");
+    await page.goto("/urunler/cyclops/");
     const types = await page
       .locator('script[type="application/ld+json"]')
       .evaluateAll((els) => els.map((el) => JSON.parse(el.textContent ?? "{}")["@type"]));
@@ -185,7 +185,7 @@ test.describe("yapılandırılmış veri — tür ayrıntısı", () => {
   });
 
   test("BreadcrumbList adları sayfada GÖRÜNEN adlarla aynı", async ({ page }) => {
-    await page.goto("/cyclops/");
+    await page.goto("/urunler/cyclops/");
     const blocks = await page
       .locator('script[type="application/ld+json"]')
       .evaluateAll((els) => els.map((el) => JSON.parse(el.textContent ?? "{}")));

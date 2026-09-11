@@ -296,6 +296,28 @@ export async function getProduct(
 }
 
 /**
+ * ÜRÜN AİLESİ.
+ *
+ * Sıra `PRODUCT_ORDER` ile SABİTTİR: ürünler alfabetik veya dosya sırasına
+ * göre değil, anlatı sırasına göre gösterilir. Listede olmayan bir ürün
+ * sona alınır (sessizce kaybolmaz).
+ */
+const PRODUCT_ORDER = ["cyclops", "hermes", "logislot", "ravskald"];
+
+export async function getProducts(locale: Locale, mode: ViewMode): Promise<Product[]> {
+  const all = await getCollection("products");
+  return all
+    .filter((entry) => entry.data.locale === locale && isPublishedStatus(entry.data.status, mode))
+    .sort((a, b) => {
+      const left = PRODUCT_ORDER.indexOf(a.data.slug);
+      const right = PRODUCT_ORDER.indexOf(b.data.slug);
+      return (
+        (left === -1 ? PRODUCT_ORDER.length : left) - (right === -1 ? PRODUCT_ORDER.length : right)
+      );
+    });
+}
+
+/**
  * HUKUKİ METİN.
  *
  * Public modda yalnızca `published` kayıt döner; taslak metin yalnızca
@@ -339,13 +361,13 @@ export async function getAboutAlternates(
 export async function getProductAlternates(
   slug: string,
   mode: ViewMode,
-  buildPath: (locale: Locale) => string
+  buildPath: (locale: Locale, slug: string) => string
 ): Promise<Partial<Record<Locale, string>>> {
   const all = await getCollection("products");
   const alternates: Partial<Record<Locale, string>> = {};
   for (const entry of all) {
     if (entry.data.slug === slug && isPublishedStatus(entry.data.status, mode)) {
-      alternates[entry.data.locale] = buildPath(entry.data.locale);
+      alternates[entry.data.locale] = buildPath(entry.data.locale, entry.data.slug);
     }
   }
   return alternates;

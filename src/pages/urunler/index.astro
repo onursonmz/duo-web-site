@@ -1,0 +1,34 @@
+---
+/**
+ * ÜRÜNLER İNDEKSİ.
+ *
+ * Ürünler artık tek tek ana navigasyon öğesi değil, bir AİLE. Bu sayfa
+ * ailenin sahnesidir: dört ürün ortak bir mühendislik ekseninin çevresinde
+ * kendi operasyon akışlarıyla gösterilir.
+ */
+import BaseLayout from "@layouts/BaseLayout.astro";
+import ProductEcosystem from "@components/product/ProductEcosystem.astro";
+import { PUBLIC, getProducts } from "@lib/content/selectors";
+import { productsIndexPath } from "@lib/i18n/routes";
+import { t } from "@lib/i18n/dictionary";
+
+const locale = "tr" as const;
+const products = await getProducts(locale, PUBLIC);
+const alternates = { tr: productsIndexPath("tr"), en: productsIndexPath("en") };
+// Yayın olgunluk politikası: indeksleme kararı S15 içerik kapısında.
+---
+
+<BaseLayout
+  locale={locale}
+  title={t(locale, "products.title")}
+  description={t(locale, "products.intro")}
+  alternates={alternates}
+  noindex={true}
+  wide={true}
+  breadcrumbs={[
+    { label: t(locale, "nav.home"), href: "/" },
+    { label: t(locale, "products.title") },
+  ]}
+>
+  <ProductEcosystem locale={locale} products={products} />
+</BaseLayout>

@@ -51,7 +51,8 @@ test.describe("rota envanteri", () => {
     const families: Record<string, RegExp> = {
       "çözüm landing": /^\/(cozumler|en\/solutions)\/$/,
       "çözüm detay": /^\/cozumler\/[a-z-]+\/$/,
-      cyclops: /^\/(cyclops|en\/cyclops)\/$/,
+      "ürün landing": /^\/(urunler|en\/products)\/$/,
+      "ürün detay": /^\/urunler\/[a-z-]+\/$/,
       hakkimizda: /^\/(hakkimizda|en\/about)\/$/,
       hizmetler: /^\/(hizmetler|en\/services)\/$/,
       teknolojiler: /^\/(teknolojiler|en\/technologies)\/$/,

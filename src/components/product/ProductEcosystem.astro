@@ -1,0 +1,455 @@
+---
+/**
+ * ÜRÜN EKOSİSTEMİ — SIGNATURE MOMENT 2 (S15).
+ *
+ * DÖRT KÜÇÜK METİN KARTI DEĞİLDİR.
+ *
+ * Ortada Duosis mühendislik ekseni, çevresinde her ürünün YÖNETTİĞİ operasyon
+ * akışı bulunur. Ürün seçildiğinde yalnız renk değişmez: sahnenin TOPOLOJİSİ,
+ * hareketi, açıklaması ve CTA'sı o ürünün gerçek çalışma modeline dönüşür.
+ *
+ * HAREKET DİLLERİ (`motionKey`):
+ *   converge — farklı kaynaklardan gelen olaylar tek yaşam döngüsünde birleşir
+ *   organise — dağınık kayıtlar müşteri/proje bağlamında düzenlenip rapora döner
+ *   allocate — talep ve araç bilgisi kurallardan geçip uygun zaman/rampaya yerleşir
+ *   answer   — soru deterministik araçlara iner, cevap kanıtıyla geri döner
+ *
+ * ERİŞİLEBİLİRLİK VE DÜRÜSTLÜK
+ * - Kontroller GERÇEK `<button>`; hover, focus ve dokunmatik eşdeğer.
+ * - OTOMATİK DÖNEN CAROUSEL YOK; sahne yalnızca kullanıcı seçimiyle değişir.
+ * - Tüm ürün açıklamaları İLK HTML'de bulunur; JavaScript kapalıyken de
+ *   dördü birden okunur (sekmeler görünür kalır, gizleme yalnızca JS ile
+ *   devreye girer).
+ * - `prefers-reduced-motion` altında animasyon yok; sahne son durumda durur.
+ */
+import type { CollectionEntry } from "astro:content";
+import type { Locale } from "@lib/content/schema";
+import { t } from "@lib/i18n/dictionary";
+import { productPath } from "@lib/i18n/routes";
+
+type Product = CollectionEntry<"products">;
+
+interface Props {
+  locale: Locale;
+  products: Product[];
+}
+
+const { locale, products }: Props = Astro.props;
+
+/** Sahne düğümleri: her hareket dili KENDİ topolojisini tanımlar. */
+const TOPOLOGY = {
+  converge: {
+    sources: 4,
+    label: { tr: "Olay yaşam döngüsü", en: "Event lifecycle" },
+  },
+  organise: {
+    sources: 3,
+    label: { tr: "Müşteri ve proje bağlamı", en: "Customer and project context" },
+  },
+  allocate: {
+    sources: 3,
+    label: { tr: "Kural motoru", en: "Rule engine" },
+  },
+  answer: {
+    sources: 2,
+    label: { tr: "Deterministik araçlar", en: "Deterministic tools" },
+  },
+} as const;
+---
+
+<section class="eco" aria-labelledby="eco-heading" data-testid="product-ecosystem">
+  <div class="eco__head">
+    <h1 id="eco-heading">{t(locale, "products.title")}</h1>
+    <p class="eco__intro">{t(locale, "products.intro")}</p>
+  </div>
+
+  <div class="eco__stage">
+    {/* Kontroller: gerçek buton, gerçek tab semantiği. */}
+    <div class="eco__tabs" role="tablist" aria-labelledby="eco-heading">
+      {
+        products.map((product, index) => (
+          <button
+            type="button"
+            role="tab"
+            class="eco__tab"
+            id={`eco-tab-${product.data.slug}`}
+            aria-controls={`eco-panel-${product.data.slug}`}
+            aria-selected={index === 0 ? "true" : "false"}
+            tabindex={index === 0 ? 0 : -1}
+            data-eco-tab={product.data.slug}
+            data-motion={product.data.motionKey}
+          >
+            <span class="eco__tab-name">{product.data.name}</span>
+            {product.data.verificationStatus === "verified-scope" && (
+              <span class="eco__tab-flag">{t(locale, "products.inDevelopment")}</span>
+            )}
+          </button>
+        ))
+      }
+    </div>
+
+    <div class="eco__scene-wrap">
+      {
+        /*
+        SAHNE: tek bir SVG, ürün seçimine göre topolojisi değişir.
+        Canvas/WebGL kullanılmadı — bu geometri için gereksiz ağırlık olurdu
+        (bkz. docs/decisions/ADR-014-signature-experience.md).
+      */
+      }
+      <svg
+        class="eco__scene"
+        viewBox="0 0 640 360"
+        role="img"
+        aria-hidden="true"
+        data-eco-scene
+        data-motion={products[0]?.data.motionKey}
+      >
+        <g class="eco__grid">
+          {
+            [72, 144, 216, 288].map((y) => (
+              <line x1="24" y1={y} x2="616" y2={y} class="eco__gridline" />
+            ))
+          }
+        </g>
+
+        {/* Kaynak düğümleri — sayısı ürüne göre değişir. */}
+        <g class="eco__sources" data-eco-sources>
+          {
+            [0, 1, 2, 3].map((index) => (
+              <g class="eco__source" data-index={index}>
+                <rect x="40" y={54 + index * 72} width="118" height="40" rx="6" />
+                <circle cx="158" cy={74 + index * 72} r="5" class="eco__port" />
+              </g>
+            ))
+          }
+        </g>
+
+        {/* Akış yolları: kaynaktan çekirdeğe. */}
+        <g class="eco__paths" data-eco-paths>
+          {
+            [0, 1, 2, 3].map((index) => (
+              <path
+                class="eco__path"
+                data-index={index}
+                d={`M158 ${74 + index * 72} C 240 ${74 + index * 72}, 250 180, 300 180`}
+              />
+            ))
+          }
+        </g>
+
+        {/* Çekirdek: Duosis mühendislik ekseni. */}
+        <g class="eco__core">
+          <circle cx="330" cy="180" r="34" class="eco__core-ring"></circle>
+          <circle cx="330" cy="180" r="7" class="eco__core-dot"></circle>
+        </g>
+
+        {/* Çıkış yolu: çekirdekten sonuca. */}
+        <path class="eco__out" d="M364 180 C 430 180, 450 180, 512 180"></path>
+        <g class="eco__result">
+          <rect x="512" y="156" width="96" height="48" rx="6"></rect>
+          <circle cx="512" cy="180" r="5" class="eco__port"></circle>
+        </g>
+      </svg>
+    </div>
+
+    {/* Paneller: her ürünün KENDİ anlatısı, ilk HTML'de. */}
+    {
+      products.map((product, index) => (
+        <div
+          class="eco__panel"
+          role="tabpanel"
+          id={`eco-panel-${product.data.slug}`}
+          aria-labelledby={`eco-tab-${product.data.slug}`}
+          data-eco-panel={product.data.slug}
+          data-initial={index === 0 ? "true" : "false"}
+        >
+          <p class="eco__stagelabel">{TOPOLOGY[product.data.motionKey].label[locale]}</p>
+          <h3 class="eco__panel-title">{product.data.headline}</h3>
+          <p class="eco__panel-body">{product.data.summary}</p>
+          <a class="eco__panel-cta" href={productPath(locale, product.data.slug)}>
+            {product.data.name}
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      ))
+    }
+  </div>
+</section>
+
+<script>
+  /*
+   * Sahne kontrolü.
+   *
+   * JS YOKKEN: hiçbir panel gizlenmez; dört ürün de okunur. Gizleme
+   * YALNIZCA burada, JS çalıştığında başlar — "JS kapalı" durumunda boş
+   * sekme kalmaz.
+   */
+  const scene = document.querySelector<SVGElement>("[data-eco-scene]");
+  const tabs = [...document.querySelectorAll<HTMLButtonElement>("[data-eco-tab]")];
+  const panels = [...document.querySelectorAll<HTMLElement>("[data-eco-panel]")];
+
+  if (scene !== null && tabs.length > 0) {
+    const select = (slug: string, focus: boolean): void => {
+      for (const tab of tabs) {
+        const active = tab.dataset["ecoTab"] === slug;
+        tab.setAttribute("aria-selected", active ? "true" : "false");
+        tab.tabIndex = active ? 0 : -1;
+        if (active) {
+          scene.dataset["motion"] = tab.dataset["motion"] ?? "";
+          if (focus) tab.focus();
+        }
+      }
+      for (const panel of panels) {
+        panel.hidden = panel.dataset["ecoPanel"] !== slug;
+      }
+    };
+
+    // İlk durum: JS varken yalnızca seçili panel görünür.
+    const first = tabs[0]?.dataset["ecoTab"];
+    if (first !== undefined) select(first, false);
+
+    for (const tab of tabs) {
+      tab.addEventListener("click", () => select(tab.dataset["ecoTab"] ?? "", false));
+    }
+
+    // Klavye: sekmeler arasında ok tuşlarıyla gezinme (WAI-ARIA tab deseni).
+    for (const [index, tab] of tabs.entries()) {
+      tab.addEventListener("keydown", (event) => {
+        const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+        if (step === 0) return;
+        event.preventDefault();
+        const next = tabs[(index + step + tabs.length) % tabs.length];
+        if (next !== undefined) select(next.dataset["ecoTab"] ?? "", true);
+      });
+    }
+  }
+</script>
+
+<style>
+  .eco {
+    padding-block: var(--space-3xl);
+    background: var(--surface-inverse);
+    color: var(--text-inverse);
+  }
+
+  /*
+   * Bu bölüm ürünler sayfasının ANA başlığını taşır; bu yüzden `h1`.
+   * Sayfada başka `h1` yoktur (`tests/e2e/route-inventory.spec.ts` denetler).
+   */
+  .eco__head h1 {
+    margin: 0;
+  }
+
+  .eco__head {
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--container-gutter);
+  }
+
+  .eco__intro {
+    max-width: 60ch;
+    margin-top: var(--space-xs);
+    color: var(--text-inverse-muted);
+  }
+
+  .eco__stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-lg);
+    max-width: var(--container-max);
+    margin-inline: auto;
+    margin-top: var(--space-xl);
+    padding-inline: var(--container-gutter);
+  }
+
+  @media (min-width: 60rem) {
+    .eco__stage {
+      grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+      grid-template-areas:
+        "tabs scene"
+        "panel scene";
+      align-items: start;
+    }
+
+    .eco__tabs {
+      grid-area: tabs;
+    }
+
+    .eco__scene-wrap {
+      grid-area: scene;
+    }
+
+    .eco__panel {
+      grid-area: panel;
+    }
+  }
+
+  .eco__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+  }
+
+  @media (min-width: 60rem) {
+    .eco__tabs {
+      flex-direction: column;
+    }
+  }
+
+  .eco__tab {
+    display: grid;
+    gap: 2px;
+    padding: var(--space-2xs) var(--space-sm);
+    border: var(--border-width) solid var(--border-inverse-strong);
+    border-radius: var(--radius-sm);
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+  }
+
+  .eco__tab[aria-selected="true"] {
+    border-color: var(--brand-cyan);
+    background: var(--signal-surface);
+  }
+
+  .eco__tab:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .eco__tab-name {
+    font-weight: var(--weight-medium);
+  }
+
+  .eco__tab-flag {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--brand-cyan);
+  }
+
+  .eco__scene {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 640 / 360;
+  }
+
+  .eco__gridline {
+    stroke: var(--border-inverse);
+    stroke-width: 1;
+  }
+
+  .eco__source rect,
+  .eco__result rect {
+    fill: none;
+    stroke: var(--border-inverse-strong);
+    stroke-width: 1.5;
+  }
+
+  .eco__port {
+    fill: var(--brand-cyan);
+  }
+
+  .eco__path,
+  .eco__out {
+    fill: none;
+    stroke: var(--brand-cyan);
+    stroke-width: 2;
+    opacity: 0.85;
+  }
+
+  .eco__core-ring {
+    fill: none;
+    stroke: var(--text-inverse-muted);
+    stroke-width: 1.5;
+  }
+
+  .eco__core-dot {
+    fill: var(--brand-cyan);
+  }
+
+  /*
+   * TOPOLOJİ DEĞİŞİMİ.
+   *
+   * Ürün değiştiğinde yalnız renk değil, sahnenin YAPISI değişir: kaç kaynak
+   * göründüğü, yolların nasıl aktığı ve çekirdeğin nasıl davrandığı.
+   */
+  .eco__scene[data-motion="answer"] .eco__source[data-index="2"],
+  .eco__scene[data-motion="answer"] .eco__source[data-index="3"],
+  .eco__scene[data-motion="answer"] .eco__path[data-index="2"],
+  .eco__scene[data-motion="answer"] .eco__path[data-index="3"],
+  .eco__scene[data-motion="organise"] .eco__source[data-index="3"],
+  .eco__scene[data-motion="organise"] .eco__path[data-index="3"],
+  .eco__scene[data-motion="allocate"] .eco__source[data-index="3"],
+  .eco__scene[data-motion="allocate"] .eco__path[data-index="3"] {
+    opacity: 0;
+  }
+
+  /* converge: yollar çekirdekte toplanır ve çekirdek halkası vurgulanır. */
+  .eco__scene[data-motion="converge"] .eco__core-ring {
+    stroke: var(--brand-cyan);
+  }
+
+  /* allocate: çıkış yolu bakır — yerleştirme kararı bir karardır. */
+  .eco__scene[data-motion="allocate"] .eco__out {
+    stroke: var(--decision);
+  }
+
+  /* answer: çıkış yolu kesikli — cevap kanıtıyla birlikte döner. */
+  .eco__scene[data-motion="answer"] .eco__out {
+    stroke-dasharray: 6 5;
+  }
+
+  .eco__source,
+  .eco__path,
+  .eco__out,
+  .eco__core-ring {
+    transition:
+      opacity 240ms ease,
+      stroke 240ms ease;
+  }
+
+  .eco__stagelabel {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-wide);
+    color: var(--brand-cyan);
+    text-transform: uppercase;
+  }
+
+  .eco__panel-title {
+    margin: var(--space-2xs) 0 0;
+    font-size: var(--text-lg);
+  }
+
+  .eco__panel-body {
+    margin-top: var(--space-2xs);
+    max-width: 52ch;
+    color: var(--text-inverse-muted);
+  }
+
+  .eco__panel-cta {
+    display: inline-flex;
+    gap: var(--space-3xs);
+    margin-top: var(--space-sm);
+    color: var(--brand-cyan);
+    font-weight: var(--weight-medium);
+  }
+
+  /* JS kapalıyken dört panel de görünür; ayrıca üstlerinde ürün adı vardır. */
+  .eco__panel + .eco__panel {
+    margin-top: var(--space-lg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .eco__source,
+    .eco__path,
+    .eco__out,
+    .eco__core-ring {
+      transition-duration: 1ms;
+    }
+  }
+</style>

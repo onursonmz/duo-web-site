@@ -1,0 +1,152 @@
+---
+/**
+ * SÜREÇ GÖRSELLEŞTİRMESİ — gerçek ekranı olmayan ürünler için.
+ *
+ * NE DEĞİLDİR: sahte bir ürün ekranı, uydurma bir dashboard veya "böyle
+ * görünecek" iddiası. Ürünün iş akışını şematik olarak çizer, o kadar.
+ *
+ * Bunun bir ürün ekranı OLMADIĞI hem görsel olarak (şematik dil, ekran
+ * çerçevesi yok) hem de METİNLE söylenir — `note` bunu açıkça yazar ve
+ * `tests/unit/product-content.test.ts` yazdığını denetler.
+ *
+ * Adımlar ürünün kendi `workflow` verisinden gelir; şablon kendi adım
+ * uydurmaz.
+ */
+import type { Locale } from "@lib/content/schema";
+
+interface Props {
+  title: string;
+  note: string;
+  motionKey: "converge" | "organise" | "allocate" | "answer";
+  steps: readonly { title: string; body: string }[];
+  locale?: Locale;
+}
+
+const { title, note, motionKey, steps }: Props = Astro.props;
+
+/** En fazla dört adım çizilir; kalanı metin listesinde zaten var. */
+const drawn = steps.slice(0, 4);
+const COLUMN = 150;
+const WIDTH = 60 + drawn.length * COLUMN;
+---
+
+<section aria-labelledby="diagram-heading" data-testid="product-diagram">
+  <h2 id="diagram-heading">{title}</h2>
+  <p class="diagram__note" data-testid="diagram-note">{note}</p>
+
+  <div class="diagram__scroll">
+    <svg
+      class="diagram"
+      viewBox={`0 0 ${WIDTH} 190`}
+      role="img"
+      aria-label={title}
+      data-motion={motionKey}
+      style={`--diagram-width:${WIDTH}px`}
+    >
+      {/* Akış çizgisi: soldan sağa, adımların ortasından geçer. */}
+      <line class="diagram__spine" x1="30" y1="70" x2={WIDTH - 30} y2="70"></line>
+
+      {
+        drawn.map((step, index) => {
+          const x = 30 + index * COLUMN;
+          return (
+            <g class="diagram__step" data-index={index}>
+              <rect x={x} y="40" width="120" height="60" rx="6" />
+              <circle class="diagram__node" cx={x + 120} cy="70" r="5" />
+              <text class="diagram__index" x={x + 12} y="62">
+                {String(index + 1).padStart(2, "0")}
+              </text>
+              <text class="diagram__title" x={x + 12} y="84">
+                {step.title}
+              </text>
+            </g>
+          );
+        })
+      }
+    </svg>
+  </div>
+
+  {/* Şemadaki her adımın metni; görsel olmadan da tam okunur. */}
+  <ol class="diagram__list">
+    {
+      steps.map((step) => (
+        <li>
+          <strong>{step.title}</strong>
+          <span>{step.body}</span>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<style>
+  .diagram__note {
+    max-width: 68ch;
+    margin: var(--space-2xs) 0 var(--space-md);
+    padding: var(--space-2xs) var(--space-sm);
+    border-inline-start: var(--border-width-strong) solid var(--border-strong);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+
+  /* Dar ekranda ŞEMA kendi içinde kayar; sayfa yatay taşmaz. */
+  .diagram__scroll {
+    overflow-x: auto;
+  }
+
+  .diagram {
+    display: block;
+    width: 100%;
+    min-width: min(var(--diagram-width), 100%);
+    max-width: 100%;
+    height: auto;
+  }
+
+  .diagram__spine {
+    stroke: var(--border-subtle);
+    stroke-width: 2;
+  }
+
+  .diagram__step rect {
+    fill: var(--surface-raised);
+    stroke: var(--border-strong);
+    stroke-width: 1.5;
+  }
+
+  .diagram__node {
+    fill: var(--signal);
+  }
+
+  .diagram__index {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    fill: var(--signal);
+  }
+
+  .diagram__title {
+    font-size: 13px;
+    fill: var(--text-primary);
+  }
+
+  /* Karar adımı bakır: insan müdahalesinin olduğu yer. */
+  .diagram[data-motion="allocate"] .diagram__step[data-index="2"] .diagram__node,
+  .diagram[data-motion="answer"] .diagram__step[data-index="2"] .diagram__node {
+    fill: var(--decision);
+  }
+
+  .diagram__list {
+    display: grid;
+    gap: var(--space-2xs);
+    margin: var(--space-md) 0 0;
+    padding-inline-start: var(--space-sm);
+    font-size: var(--text-sm);
+  }
+
+  .diagram__list strong {
+    display: block;
+  }
+
+  .diagram__list span {
+    color: var(--text-secondary);
+  }
+</style>

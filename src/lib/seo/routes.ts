@@ -4,7 +4,8 @@ import { PUBLIC, isPublishedStatus } from "@lib/content/selectors";
 import {
   aboutPath,
   contactPath,
-  cyclopsPath,
+  productPath,
+  productsIndexPath,
   homePath,
   insightPath,
   insightSeriesPath,
@@ -109,8 +110,9 @@ export async function indexableRoutes(): Promise<IndexableRoute[]> {
     const tags = new Set(localeInsights.flatMap((entry) => entry.data.tags));
     for (const key of tags) add(insightTagPath(locale, key), locale);
 
-    const product = products.find((e) => e.data.locale === locale);
-    if (product !== undefined && indexable(product)) add(cyclopsPath(locale), locale);
+    const localeProducts = products.filter((e) => e.data.locale === locale && indexable(e));
+    if (localeProducts.length > 0) add(productsIndexPath(locale), locale);
+    for (const entry of localeProducts) add(productPath(locale, entry.data.slug), locale);
 
     const aboutEntry = about.find((e) => e.data.locale === locale);
     if (aboutEntry !== undefined && indexable(aboutEntry)) add(aboutPath(locale), locale);

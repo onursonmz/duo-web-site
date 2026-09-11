@@ -39,7 +39,22 @@ export const EN_SOLUTION_TOPICS = [
 ] as const;
 
 /** Ürün konuları (ADR-012). */
-export const PRODUCT_CONTACT_TOPICS = ["cyclops"] as const;
+export const PRODUCT_CONTACT_TOPICS = ["cyclops", "hermes", "logislot", "ravskald"] as const;
+
+/**
+ * ÜRÜN GÖRÜNEN ADLARI.
+ *
+ * Slug'dan türetilen genel etiketleme marka yazımını bozuyordu
+ * ("Logislot", "Ravskald"). Marka adı bir yazım tercihi değil, ürünün
+ * kendi adıdır; bu yüzden açıkça yazılır. Buradaki anahtarlar
+ * `PRODUCT_CONTACT_TOPICS` ile aynı kümedir.
+ */
+export const PRODUCT_DISPLAY_NAMES: Readonly<Record<string, string>> = {
+  cyclops: "CyclOps",
+  hermes: "Hermes",
+  logislot: "LogiSlot",
+  ravskald: "RAVSKALD",
+};
 
 /** Konu belirtilmediğinde kullanılan nötr değer. */
 export const GENERAL_TOPIC = "genel" as const;

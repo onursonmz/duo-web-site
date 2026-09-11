@@ -29,6 +29,15 @@
   --brand-cyan: #16a6de;
   --brand-cyan-alt: #16a6d9;
   --brand-ink: #252a2e;
+  /*
+   * BAKIR (S15 sanat yönü).
+   *
+   * Cyan sinyali ve veri akışını taşır; bakır YALNIZCA KARAR anlarını
+   * işaretler: insan onayı, yerleştirme kararı ve 10. yıl vurgusu. Her yerde
+   * kullanılırsa anlamını yitirir — bu yüzden semantik karşılığı
+   * `--decision` tek bir role bağlıdır.
+   */
+  --brand-copper: #b87333;
 
   /* ---------------------------------------------------------- ölçek: boşluk */
   /* 4px tabanlı ritim; bölüm aralıkları büyük adımlarla kurulur. */
@@ -120,6 +129,16 @@
   --text-secondary: #4a545e; /*  7.20:1 */
   --text-muted: #5d6874; /*      5.29:1 */
   --text-inverse: #eef1f4;
+  /*
+   * INVERSE YÜZEY TONLARI.
+   *
+   * `--surface-inverse` her iki temada da koyu grafittir; üstündeki metin ve
+   * çizgi tonları bu yüzden temaya göre DEĞİŞMEZ. Ayrı token olmaları,
+   * bileşenlerin `rgb(255 255 255 / …)` gibi ham değer yazmasını önler.
+   */
+  --text-inverse-muted: #9aa6b1; /* 5.83:1 — koyu grafit üzerinde */
+  --border-inverse: #2c343c;
+  --border-inverse-strong: #3d4750;
   --text-disabled: #8b95a0; /*   2.84:1 — yalnızca devre dışı kontrol */
 
   --border-subtle: #d8dde2; /*   1.27:1 — ayırıcı çizgi */
@@ -136,6 +155,10 @@
   --signal-hover: #0d6081; /*    6.51:1 */
   --signal-surface: #e6f2f8;
   --signal-contrast: #ffffff; /*  5.48:1 (signal üzerinde) */
+
+  /* KARAR vurgusu — insan müdahalesinin göründüğü yer. */
+  --decision: #8a5220; /*        5.24:1 — açık yüzeyde metin olarak da okunur */
+  --decision-surface: #f6ede4;
 
   --action: #a44f0e; /*          5.29:1 */
   --action-hover: #96480d; /*    6.06:1 */
@@ -175,6 +198,10 @@
   --signal-hover: #4dbce7;
   --signal-surface: #10262f;
   --signal-contrast: #14181c;
+
+  /* KARAR vurgusu — koyu yüzeyde marka bakırı doğrudan kullanılabilir. */
+  --decision: #d08c46; /*        6.02:1 */
+  --decision-surface: #2a1f14;
 
   --action: #e06b12; /*          5.34:1 */
   --action-hover: #ee8636;
